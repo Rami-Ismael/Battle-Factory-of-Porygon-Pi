@@ -184,15 +184,92 @@ def build_final_figure(summary, out_dir):
                        height=120 + 70 * len(names))
 
 
-def format_final_comment(summary, fig_light, fig_dark):
+NEW_COLOR, REF_COLOR = R.NEW_COLOR, R.REF_COLOR    # the grid figure's colours: shared recipe teal, old recipe grey
+
+
+def build_error_gap_figure(summary, out_dir):
+    """Frame 2: the paired ask-versus-got error difference at each guidance, with its 95% interval, against the
+    training-luck band."""
+    gs = [str(g) for g in summary["guidances"]]
+    rows = [summary["by_guidance"][g]["paired"]["error"] for g in gs]
+    series = [{"type": "line", "name": "95% interval", "color": NEW_COLOR, "symbol": "none", "lineStyle": {"width": 3},
+               "data": [[r["interval"][0], i], [r["interval"][1], i]], "silent": True} for i, r in enumerate(rows)]
+    series.append({"type": "scatter", "name": "Shared minus old", "color": NEW_COLOR, "symbolSize": 13,
+                   "data": [[r["difference"], i] for i, r in enumerate(rows)],
+                   "markArea": {"silent": True, "itemStyle": {"color": "rgba(138,135,128,0.16)"},
+                                "data": [[{"xAxis": -R.ERROR_LUCK}, {"xAxis": R.ERROR_LUCK}]]},
+                   "markLine": {"silent": True, "symbol": "none", "lineStyle": {"color": "#8a8780", "type": "dashed"},
+                                "data": [{"xAxis": 0}], "label": {"show": False}}})
+    inside = sum(-R.ERROR_LUCK < r["interval"][0] and r["interval"][1] < R.ERROR_LUCK for r in rows)
+    span = max(R.ERROR_LUCK * 1.6, *(abs(v) * 1.15 for r in rows for v in r["interval"]))
+    option = {"animation": False, "grid": {"left": 96, "right": 28, "top": 40, "bottom": 56},
+              "tooltip": {"trigger": "axis", "valueFormatter": "js:v => (v >= 0 ? '+' : '') + v.toFixed(4)"},
+              "xAxis": {"type": "value", "min": -span, "max": span, "name": "Ask-versus-got error, shared recipe minus old recipe",
+                        "nameLocation": "middle", "nameGap": 34, "axisLabel": {"formatter": "js:v => v.toFixed(3)"}},
+              "yAxis": {"type": "category", "data": [f"Guidance {g}" for g in gs], "inverse": True},
+              "series": series}
+    title = (f"The shared recipe hits the asked win rate as closely as the old one at {inside} of {len(gs)} guidance weights"
+             if inside else "The shared recipe changes how closely teams hit the asked win rate")
+    subtitle = "Dot: paired difference; bar: 95% bootstrap interval; grey band: the 0.002 training-luck bar. Asks 1/24 to 17/24."
+    note = "Masked, full filter, both recipes on sampling seed base 7300; 216,384 battles per grid, 49 top-50 meta teams, slots shuffled."
+    return write_chart(option, Path(out_dir) / "error-gap.html", title=title, subtitle=subtitle, note=note, height=300)
+
+
+def build_tradeoff_figure(summary, out_dir):
+    """Frame 3: ask-versus-got error against distinct line-ups, one line per recipe through guidance 2, 4 and 8."""
+    gs = [str(g) for g in summary["guidances"]]
+    series = []
+    for side, label, color, dash in (("filtered", R.NEW_LABEL, NEW_COLOR, "solid"), ("unfiltered", R.REF_LABEL, REF_COLOR, "dashed")):
+        pts = [summary["by_guidance"][g][side] for g in gs]
+        series.append({"type": "line", "name": label, "color": color, "symbolSize": 9, "lineStyle": {"type": dash, "width": 2.4},
+                       "emphasis": {"focus": "series"},
+                       "label": {"show": True, "position": "top", "formatter": "js:p => 'g' + p.data[2]"},
+                       "data": [[m["distinct_line_ups"], m["error"], g] for m, g in zip(pts, gs)]})
+    option = {"animation": False, "grid": {"left": 72, "right": 28, "top": 56, "bottom": 56},
+              "legend": {"top": 0, "data": [R.NEW_LABEL, R.REF_LABEL]}, "tooltip": {"trigger": "item"},
+              "xAxis": {"type": "value", "scale": True, "name": "Distinct line-ups (pooled, 4,416 teams)", "nameLocation": "middle", "nameGap": 34},
+              "yAxis": {"type": "value", "scale": True, "name": "Ask-versus-got error", "nameLocation": "middle", "nameGap": 54,
+                        "axisLabel": {"formatter": "js:v => v.toFixed(4)"}},
+              "series": series}
+    new = [summary["by_guidance"][g]["filtered"]["distinct_line_ups"] for g in gs]
+    old = [summary["by_guidance"][g]["unfiltered"]["distinct_line_ups"] for g in gs]
+    gap = sum(n - o for n, o in zip(new, old)) / len(gs)
+    title = f"The shared recipe draws {gap:+,.0f} distinct line-ups per grid on average at guidance 2 to 8"
+    subtitle = "Lower and further right is better: closer to the ask with more line-up variety. Labels: guidance weight."
+    note = "Line-up: the six species of a team. Error: mean squared gap between measured and asked win rate, asks 1/24 to 17/24."
+    return write_chart(option, Path(out_dir) / "tradeoff.html", title=title, subtitle=subtitle, note=note, height=420)
+
+
+CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+FINAL_FIGURES = (("error-gap", 380), ("tradeoff", 520), ("recipe-matrix", 760))   # stem, window height for the PNG
+
+
+def render_final_pngs(out_dir, gist_dir):
+    """Light and dark PNGs of every final figure into the gist folder, so the queue's push sends all three."""
+    for stem, height in FINAL_FIGURES:
+        for theme, scheme in (("light", 1), ("dark", 0)):
+            subprocess.run([CHROME, "--headless=new", "--hide-scrollbars", f"--blink-settings=preferredColorScheme={scheme}",
+                            "--virtual-time-budget=8000", f"--window-size=1000,{height}", "--force-device-scale-factor=2",
+                            f"--screenshot={Path(gist_dir) / f'{stem}-{theme}.png'}", f"file://{Path(out_dir) / f'{stem}.html'}"],
+                           check=True, capture_output=True, timeout=120)
+
+
+def format_final_comment(summary, base_url):
+    """Frames 2, 3 and 4 of docs/gidd-lr-recipe-grids.md, each as light and dark PNGs at BASE_URL/<stem>-<theme>.png."""
     gs = [str(g) for g in summary["guidances"]]
     all_flags = [f"guidance {g}: {f}" for g in gs for f in flags(summary["by_guidance"][g])]
     errs = {g: summary["by_guidance"][g]["paired"]["error"] for g in gs}
+    by = summary["by_guidance"]
     headline = ("the shared GIDD-style recipe changes Masked, full filter's ask grids beyond training luck"
                 if all_flags else "the shared GIDD-style recipe leaves Masked, full filter's ask grids within training luck of the old recipe")
-    alt = ("Matrix of shared-recipe minus old-recipe differences for Masked, full filter at guidance 2, 4 and 8: "
-           + "; ".join(f"guidance {g} error {errs[g]['difference']:+.4f}" for g in gs))
-    lines = [f"**Ask grids done: {headline}.**", "", R.picture(fig_light, fig_dark, alt), "",
+    fig = lambda stem, alt: R.picture(f"{base_url}/{stem}-light.png", f"{base_url}/{stem}-dark.png", alt)
+    alt_gap = ("Paired ask-versus-got error difference, shared recipe minus old, at guidance 2, 4 and 8, against the 0.002 luck band: "
+               + "; ".join(f"guidance {g} {errs[g]['difference']:+.4f} {R.fmt_iv(errs[g]['interval'], '+.4f')}" for g in gs))
+    alt_trade = ("Ask-versus-got error against distinct line-ups for both recipes at guidance 2, 4 and 8: "
+                 + "; ".join(f"guidance {g} {by[g]['filtered']['distinct_line_ups']:,} vs {by[g]['unfiltered']['distinct_line_ups']:,} line-ups" for g in gs))
+    alt_matrix = "Matrix of shared-recipe minus old-recipe differences for every measure at guidance 2, 4 and 8"
+    lines = [f"**Ask grids done: {headline}.**", "", fig("error-gap", alt_gap), "", fig("tradeoff", alt_trade), "",
+             fig("recipe-matrix", alt_matrix), "",
              "| Guidance | Error, shared recipe | Error, old recipe | Paired difference (95% interval) | Per-seed differences |",
              "| --- | --- | --- | --- | --- |"]
     for g in gs:
@@ -204,7 +281,9 @@ def format_final_comment(summary, fig_light, fig_dark):
     lines += ["", "**Caveats.** One training seed per recipe, and both checkpoints stopped at the 80-epoch cap still improving. "
               "The old recipe trained on the laptop's MPS GPU and the shared one on a Modal A10; their validation curves agree within 0.007 through epoch 40. "
               "Uniform, no filter's grids run in [Run every masked-model evaluation on the shared-recipe Uniform, no filter checkpoint]"
-              "(https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/438), which picks its pass count first."]
+              "(https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/438), which picks its pass count first. "
+              "Battles moved to Modal CPU containers at 11:30 (20 of 69 guidance 2 cells had run on the laptop); a 768-team re-battle "
+              "matched the laptop (-0.0035 [-0.0096, +0.0027], ask-versus-got error +0.0002). Storyboard: `code/docs/gidd-lr-recipe-grids.md`."]
     return "\n".join(lines) + "\n"
 
 
@@ -260,9 +339,12 @@ def main(argv=None):
     elif cmd == "summary":
         build_summary(Path(args[1]) if len(args) > 1 else SUMMARY_PATH)
     elif cmd == "final-figure":
-        print(build_final_figure(json.loads(Path(args[1]).read_text()), args[2]))
+        summary = json.loads(Path(args[1]).read_text())
+        for build in (build_error_gap_figure, build_tradeoff_figure, build_final_figure): print(build(summary, args[2]))
+        render_final_pngs(args[2], Path(args[2]).parent / "gist")     # the queue folder holds figure/ and gist/ side by side
     elif cmd == "final-comment":
-        sys.stdout.write(format_final_comment(json.loads(Path(args[1]).read_text()), args[2], args[3]))
+        base = args[2].rsplit("/", 1)[0] if args[2].endswith(".png") else args[2]   # a PNG URL from the queue, or the base
+        sys.stdout.write(format_final_comment(json.loads(Path(args[1]).read_text()), base))
     elif cmd == "update-map":
         update_map(json.loads(Path(args[1]).read_text()))
     else:

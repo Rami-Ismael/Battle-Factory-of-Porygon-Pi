@@ -36,8 +36,8 @@ def main():
             assert abs(pair["paired"]["error"]["difference"]) < 1e-12, pair["paired"]["error"]
             assert "shared recipe" in G.format_grid_comment(pair, "light.png", "dark.png")
             R.build_grid_figure(pair, out)
-        G.build_final_figure(summary, out)
-        assert "within training luck" in G.format_final_comment(summary, "light.png", "dark.png")
+        for build in (G.build_error_gap_figure, G.build_tradeoff_figure, G.build_final_figure): build(summary, out)
+        assert "within training luck" in G.format_final_comment(summary, "https://example.invalid")
         assert "every measure within training luck" in G.decision_line(summary)
     print("GIDD_LR_GRID_DRY_RUN_PASS")
 
