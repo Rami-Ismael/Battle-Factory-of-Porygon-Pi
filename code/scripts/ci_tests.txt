@@ -50,6 +50,7 @@ test_random_order_multiple.py
 test_grid_seeds.py
 test_sampler_checks.py
 test_inplace_prompt_grid.py
+test_inplace_prompt_fill_modal.py
 test_wandb_tracking.py
 test_uniform_preflight84.py
 test_uniform_math84.py
