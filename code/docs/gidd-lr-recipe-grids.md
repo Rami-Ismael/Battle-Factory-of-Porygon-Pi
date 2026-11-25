@@ -23,3 +23,4 @@ Teaser, after all three grids: one view pairing the training result (validation 
 
 - 2026-11-25 11:30: battles moved from the laptop to Modal CPU containers (owner). 20 of 69 guidance 2 cells had battled on the laptop. `src/modal_battle_check.py` re-battled 768 stored teams on Modal: Modal minus laptop −0.0035 [−0.0096, +0.0027], ask-versus-got error +0.0002 over 12 asks.
 - 2026-11-25 11:32–11:38: the battle step loaded the pilot's `matchup_db.py` (no Modal backend) and restarted 10 times without battling; fixed in `asked_vs_got.py` (review finding).
+- 2026-11-25 12:01: battles back on the laptop for guidance 4 and 8 (owner). The Modal battle app had used about $7.00 of credit in 40 minutes (equivalence checks and 49 guidance 2 cells), about $7–8 per grid against the ~$1 estimated. Guidance 2 battled on the laptop (20 cells) and Modal (49 cells).
