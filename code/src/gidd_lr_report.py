@@ -27,7 +27,7 @@ ARMS = {
     "Masked, full filter": ("stat84_shuffled_noise_linear_filtered_es3_cap80",
                             "stat84_shuffled_noise_linear_filtered_lr5e4_min5e5_es3_cap80"),
 }
-OLD_RECIPE, NEW_RECIPE = "4e-4 cosine to 0", "5e-4 cosine to 5e-5 (GIDD)"
+OLD_RECIPE, NEW_RECIPE = "old recipe", "shared GIDD-style recipe"
 COLORS = {"Uniform, no filter": "#0f766e", "Masked, full filter": "#c2410c"}
 ABILITY_RULE, MOVE_RULE = "ability the species can't have", "move the species can't learn"
 STEPS_PER_EPOCH = math.ceil(214_055 / 256)
@@ -86,19 +86,19 @@ def val_loss_figure(runs, out_dir):
                        "emphasis": {"focus": "series"},
                        "data": [[i + 1, v] for i, v in enumerate(lr_by_epoch(info))]})
     option = {
-        "tooltip": {"trigger": "axis"}, "legend": {"top": 0, "type": "scroll"},
-        "grid": [{"left": 64, "right": 24, "top": 48, "height": "52%"}, {"left": 64, "right": 24, "top": "74%", "bottom": 48}],
+        "tooltip": {"trigger": "axis"}, "legend": {"top": 0, "left": 0, "itemGap": 14},
+        "grid": [{"left": 64, "right": 24, "top": 104, "height": "46%"}, {"left": 64, "right": 24, "top": "75%", "bottom": 72}],
         "xAxis": [{"type": "value", "min": 1, "max": 80, "gridIndex": 0, "axisLabel": {"show": False}},
-                  {"type": "value", "min": 1, "max": 80, "gridIndex": 1, "name": "epoch", "nameLocation": "middle", "nameGap": 28}],
+                  {"type": "value", "min": 1, "max": 80, "gridIndex": 1, "name": "epoch", "nameLocation": "middle", "nameGap": 24}],
         "yAxis": [{"type": "value", "scale": True, "gridIndex": 0, "name": "validation loss (nats per field)"},
                   {"type": "value", "gridIndex": 1, "name": "learning rate", "axisLabel": {"formatter": "{value}"}}],
-        "dataZoom": [{"type": "inside", "xAxisIndex": [0, 1]}, {"type": "slider", "xAxisIndex": [0, 1], "height": 16, "bottom": 8}],
+        "dataZoom": [{"type": "inside", "xAxisIndex": [0, 1]}, {"type": "slider", "xAxisIndex": [0, 1], "height": 14, "bottom": 4}],
         "series": series,
     }
     return write_chart(option, Path(out_dir) / "lr-recipe-val-loss.html",
                        title="Validation loss under the old and the shared GIDD-style learning-rate recipe",
-                       subtitle="Dashed: 4e-4 cosine to 0 (laptop GPU). Solid: 5e-4 cosine to 5e-5 (Modal GPU). Lower is better.",
-                       note="One training seed per run. Validation loss: 4 fixed draws on 4,368 held-out teams.", height=560)
+                       subtitle="Dashed, old recipe: 4e-4 cosine to 0 (laptop GPU). Solid, shared GIDD-style recipe: 5e-4 cosine to 5e-5 (Modal GPU). Lower is better.",
+                       note="One training seed per run. Validation loss: 4 fixed draws on 4,368 held-out teams.", height=600)
 
 
 def field_matching_figure(runs, out_dir):
@@ -109,16 +109,16 @@ def field_matching_figure(runs, out_dir):
             series.append({"type": "line", "name": f"{rule} · {label}", "color": color, "symbol": "none",
                            "lineStyle": {"type": dash, "width": 2}, "emphasis": {"focus": "series"},
                            "data": [[e["epoch"], e["rule_shares"][rule]] for e in info["curves"] if "rule_shares" in e]})
-    option = {"tooltip": {"trigger": "axis"}, "legend": {"top": 0, "type": "scroll"},
-              "grid": {"left": 64, "right": 24, "top": 56, "bottom": 64},
-              "xAxis": {"type": "value", "min": 1, "max": 80, "name": "epoch", "nameLocation": "middle", "nameGap": 28},
+    option = {"tooltip": {"trigger": "axis"}, "legend": {"top": 0, "left": 0, "itemGap": 14},
+              "grid": {"left": 64, "right": 24, "top": 96, "bottom": 72},
+              "xAxis": {"type": "value", "min": 1, "max": 80, "name": "epoch", "nameLocation": "middle", "nameGap": 24},
               "yAxis": {"type": "value", "min": 0, "max": 1, "name": "share of 64 drawn teams"},
-              "dataZoom": [{"type": "inside"}, {"type": "slider", "height": 16, "bottom": 8}], "series": series}
+              "dataZoom": [{"type": "inside"}, {"type": "slider", "height": 14, "bottom": 4}], "series": series}
     return write_chart(option, Path(out_dir) / "lr-recipe-field-matching.html",
                        title="Uniform, no filter: when does Pokémon-to-field matching click under each recipe?",
                        subtitle="Share of 64 teams drawn without the legal Pokémon construction filter that break each rule, every epoch.",
-                       note="Draw: guidance 1, 128 passes, the same seed every epoch. Dashed: old recipe. Solid: shared GIDD-style recipe.",
-                       height=460)
+                       note="Draw: guidance 1, 128 passes, the same seed every epoch. Dashed, old recipe: 4e-4 cosine to 0. Solid, shared GIDD-style recipe: 5e-4 cosine to 5e-5.",
+                       height=500)
 
 
 def main(argv=None):
