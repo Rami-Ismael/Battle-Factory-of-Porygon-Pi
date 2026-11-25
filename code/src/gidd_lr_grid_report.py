@@ -12,9 +12,12 @@ Uniform, no filter's grids belong to #438, which picks its pass count first.
     python gidd_lr_grid_report.py summary OUT_JSON
     python gidd_lr_grid_report.py final-figure SUMMARY_JSON OUT_DIR
     python gidd_lr_grid_report.py final-comment SUMMARY_JSON FIG_LIGHT FIG_DARK
+    python gidd_lr_grid_report.py update-map SUMMARY_JSON
 """
 import json
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -138,8 +141,8 @@ def build_final_figure(summary, out_dir):
         "xAxis": {"type": "category", "data": [f"Guidance {g}" for g in gs], "position": "top", "splitArea": {"show": False}},
         "yAxis": {"type": "category", "data": list(reversed(names))},
         "series": [{"type": "heatmap", "data": data, "label": {"show": True, "color": "#ffffff", "fontSize": 12, "lineHeight": 16},
-                    "itemStyle": {"borderColor": "transparent", "borderWidth": 3}, "emphasis": {"itemStyle": {"borderColor": "#ffffff"}}}]
-                  + legend_series,
+                    "itemStyle": {"borderColor": "transparent", "borderWidth": 3}, "emphasis": {"itemStyle": {"borderColor": "#ffffff"}}},
+                   *legend_series],
     }
     better = sum(r[4] == BETTER for g in gs for r in per_g[g])
     worse = sum(r[4] == WORSE for g in gs for r in per_g[g])
@@ -175,6 +178,46 @@ def format_final_comment(summary, fig_light, fig_dark):
     return "\n".join(lines) + "\n"
 
 
+MAP_ISSUE = "270"
+TASK_TITLE = ("Test one shared GIDD-style learning-rate recipe (lr 5e-4, cosine to 10% floor 5e-5) on both Uniform, no filter "
+              "and Masked, full filter")
+
+
+def decision_line(summary):
+    gs = [str(g) for g in summary["guidances"]]
+    pairs = [summary["by_guidance"][g] for g in gs]
+    errors = " / ".join(f"`{p['filtered']['error']:.4f}` vs `{p['unfiltered']['error']:.4f}`" for p in pairs)
+    found = sum(len(flags(p)) for p in pairs)
+    verdict = "every measure within training luck" if not found else f"{found} difference(s) beyond training luck"
+    return (f"- [{TASK_TITLE}](https://github.com/{R.REPO}/issues/431): the shared recipe (peak `5e-4`, cosine to `5e-5`, "
+            f"trained on a Modal A10) lowers best validation loss on both arms (Uniform, no filter `1.4384` -> `1.3153`, "
+            f"Masked, full filter `1.3143` -> `1.2138`) by moving the late cliff earlier, and lifts Uniform, no filter's "
+            f"first-try legality `15.6%` -> `43.8%`. Masked, full filter's ask-versus-got error at guidance "
+            f"{', '.join(gs)}: {errors} against the old recipe ({verdict}). Uniform, no filter's grids moved to #438.")
+
+
+def update_map(summary):
+    """Add #431's result under "Decisions so far" on map #270, once, reading the map body fresh."""
+    body = subprocess.run(["gh", "issue", "view", MAP_ISSUE, "--repo", R.REPO, "--json", "body", "-q", ".body"],
+                          check=True, capture_output=True, text=True).stdout
+    if "## Decisions so far" not in body or "\n## Not yet specified" not in body:
+        raise RuntimeError(f"map #{MAP_ISSUE} is missing its Decisions so far / Not yet specified sections")
+    decisions = body.split("## Decisions so far", 1)[1].split("## Not yet specified", 1)[0]
+    if "/issues/431)" in decisions:
+        print(f"map #{MAP_ISSUE} already records #431", file=sys.stderr)
+        return
+    before, after = body.split("\n## Not yet specified", 1)
+    updated = before.rstrip() + "\n" + decision_line(summary) + "\n\n## Not yet specified" + after
+    with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False) as handle:
+        handle.write(updated)
+    try:
+        subprocess.run(["gh", "issue", "edit", MAP_ISSUE, "--repo", R.REPO, "--body-file", handle.name], check=True,
+                       capture_output=True, text=True)
+    finally:
+        Path(handle.name).unlink(missing_ok=True)
+    print(f"updated map #{MAP_ISSUE} Decisions so far", file=sys.stderr)
+
+
 def main(argv=None):
     args = sys.argv[1:] if argv is None else argv
     cmd = args[0]
@@ -190,6 +233,8 @@ def main(argv=None):
         print(build_final_figure(json.loads(Path(args[1]).read_text()), args[2]))
     elif cmd == "final-comment":
         sys.stdout.write(format_final_comment(json.loads(Path(args[1]).read_text()), args[2], args[3]))
+    elif cmd == "update-map":
+        update_map(json.loads(Path(args[1]).read_text()))
     else:
         raise SystemExit(f"unknown command {cmd}")
 
