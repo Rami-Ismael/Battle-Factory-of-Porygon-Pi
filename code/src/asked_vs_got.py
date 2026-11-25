@@ -17,11 +17,11 @@ import torch, torch.nn as nn, torch.nn.functional as F
 
 sys.path.insert(0, "/tmp/vgc-pilot/src")
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import matchup_db as MDB      # this checkout's copy, before the legacy modules below put /tmp/vgc-pilot/src first again
 from showdown_validator import VGC_BENCH
 import activesearch as A
 import diffusion as D
 import hpsdiffusion as H
-import matchup_db as MDB
 import pool
 from corpus import parse_team_text
 import heldout as HO               # ranks 51-100: excluded from training rows (docs/heldout-51-100.md)

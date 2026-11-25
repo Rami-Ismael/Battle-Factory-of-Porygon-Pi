@@ -101,7 +101,7 @@ def opponents(row, guidance, asks=None):
         for i, team in enumerate(cell["team_ids"]):
             for c, (wins, battles) in MDB.row_cells(con, policy, team, cols).items(): rate[i, cols.index(c)] = wins / battles
         arrays[f"a{k:02d}_s{seed}"] = rate
-        worst = max(worst, float(np.abs(team_scores(rate, arrays["weights"]) - np.array(cell["y"], float)).max()))
+        worst = max(worst, float(np.abs(team_scores(rate, arrays["weights"]) - np.array(cell["y"], float)).max(initial=0)))
     print(f"{grid_name(row, guidance)}: {len(out['by_ask_seed'])} cells, {len(cols)} opponents, largest gap from the stored scores {worst:.2e}")
     if worst > 1e-9: raise SystemExit("a team's per-opponent win rates no longer give the score its grid stored; nothing saved")
     np.savez_compressed(opponents_path(row, guidance), **arrays)

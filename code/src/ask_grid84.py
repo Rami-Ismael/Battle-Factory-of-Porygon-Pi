@@ -115,6 +115,17 @@ MODELS["udlm_loglinear_nofilter"] = dict(checkpoint="stat84_udlm_loglinear_es3_c
                                          stopped="early stopping on validation loss (patience 3, threshold 0, cap 80)",
                                          labelled=True, decoder="uniform_nofilter", uniform=True, passes=None,
                                          table=DEFAULT_TABLE)
+# Issue #431 / #438: both arms retrained with one shared GIDD-style learning-rate recipe (peak 5e-4, cosine to a 5e-5
+# floor) on a Modal GPU. The masked row draws on seed base 7300, the base its 4e-4 twin's grids record, so the two
+# recipes meet the same random numbers and their differences pair cell by cell.
+GIDD_LR_STOPPED = "early stopping on validation loss (patience 3, threshold 0, cap 80); reached the cap still improving"
+MODELS["shuffled_linear_filtered_gidd_lr"] = dict(MODELS["linear_masked_filter"], checkpoint="stat84_shuffled_noise_linear_filtered_lr5e4_min5e5_es3_cap80",
+                                                  reader="Masked, full filter, shared GIDD-style recipe", stopped=GIDD_LR_STOPPED,
+                                                  seed0=grid_seeds.LEGACY)
+MODELS["udlm_loglinear_gidd_lr"] = dict(MODELS["udlm_loglinear_nofilter"], checkpoint="stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80",
+                                        reader="Uniform, no filter, shared GIDD-style recipe", stopped=GIDD_LR_STOPPED, max_tries=20_000)
+for _passes in (84, 128, 256):
+    MODELS[f"udlm_loglinear_gidd_lr_k{_passes}"] = dict(MODELS["udlm_loglinear_gidd_lr"], passes=_passes)
 MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")
 
 
@@ -155,7 +166,7 @@ DIVERSITY_SUBSETS, SUBSET_SIZE = 200, 5
 OFF_GRID_ASKS = [0.3, 0.531, 0.6, 0.7]                   # not multiples of 1/24; the 48-field runs battled these too
 NUDGE_NUMERATORS, NUDGES = (6, 8, 10, 11, 12, 13, 14, 16), (0.0, 0.002, -0.002, 1 / 48)
 if SMOKE: OFF_GRID_ASKS, NUDGE_NUMERATORS, NUDGES = [0.3], (11,), (0.0, 0.002)
-RES = Path.home() / "vgc-data/results"
+RES = Path(os.environ.get("AG84_RESULTS_DIR", Path.home() / "vgc-data/results"))
 SEED_OVERRIDE = os.environ.get("AG84_SEED0")             # a redraw on other seeds, into its own file "..._seed<N>"
 OUT = RES / f"stat_points_84_{MODEL}{SUFFIX}{f'_seed{SEED_OVERRIDE}' if SEED_OVERRIDE else ''}{'_smoke' if SMOKE else ''}.json"
 SEED0 = int(SEED_OVERRIDE) if SEED_OVERRIDE else MODELS[MODEL].get("seed0") or grid_seeds.seed0(f"{MODEL}{SUFFIX}", OUT)   # stored grids keep 7300; new ones their own
@@ -331,7 +342,11 @@ def record_scores(cell, scores):
 def battle():
     require_shuffled(); con = MDB.connect(); out = load_out()
     for t, c in out["cells"].items():
-        if "y" in c or not c["pastes"]: continue
+        if "y" in c: continue
+        if not c["pastes"]:
+            if MODEL.startswith("udlm_loglinear_gidd_lr"):
+                record_scores(c, []); save(out)
+            continue
         sc = MDB.score_pastes(con, c["pastes"], per_cell=BATTLES_PER_OPPONENT, seed=SEED0 + c["seed"], origin=f"statpoints84:{t}")
         if not complete(sc): print(f"  {t} INCOMPLETE: left for the next run", flush=True); continue
         record_scores(c, sc); save(out); print(f"  {t:32s} win {np.mean(c['y']):.3f}", flush=True)

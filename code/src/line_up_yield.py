@@ -25,6 +25,7 @@ import math
 import os
 import re
 import sys
+import tempfile
 from collections import Counter
 from pathlib import Path
 
@@ -186,6 +187,17 @@ def stored(path):
     return json.load(open(path)) if path.exists() else {}
 
 
+def save_yield(path, data):
+    tmp = tempfile.NamedTemporaryFile(mode="w", dir=path.parent, delete=False)
+    temporary = Path(tmp.name)
+    try:
+        with tmp:
+            json.dump(data, tmp)
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
 def rebattle():
     if MDB.SLOT_ORDER != "shuffled":
         raise SystemExit(f"VGC_SLOT_ORDER={MDB.SLOT_ORDER}: these battles must shuffle slots")
@@ -198,15 +210,16 @@ def rebattle():
     print(f"{MODEL}: {len(cand)} elite line-ups, {len(pastes)} teams, {len(pastes) * per_cell * 49} battles", flush=True)
     con = fresh_db()
     claim_depth(con, per_cell)
-    scores = MDB.score_pastes(con, pastes, per_cell=per_cell, seed=SEED, origin=f"line-up-yield:{MODEL}")
+    scores = MDB.score_pastes(con, pastes, per_cell=per_cell, seed=SEED, origin=f"line-up-yield:{MODEL}") if pastes else []
     if not all(s["score"] is not None and s["coverage"] == s["columns"] and s["battles"] >= per_cell * s["columns"] for s in scores):
         raise SystemExit(f"{MODEL}: a team lacks some fresh battles")
     if DEPTH != PER_CELL and not all(s["battles"] == per_cell * s["columns"] for s in scores):
         raise SystemExit(f"{MODEL}: a team holds more than {per_cell} battles per meta team; its database was not fresh")
     keep = {k: v for k, v in stored(fresh_path(MODEL)).items() if k == "preflight"}
-    json.dump(dict(model=MODEL, cut=CUT, per_cell=per_cell, seed=SEED, db=str(DB), **keep,
-                   fresh=[dict(paste=p, fresh=s["score"], battles=s["battles"]) for p, s in zip(pastes, scores)]),
-              open(fresh_path(MODEL), "w"))
+    save_yield(fresh_path(MODEL), dict(
+        model=MODEL, cut=CUT, per_cell=per_cell, seed=SEED, db=str(DB), **keep,
+        fresh=[dict(paste=p, fresh=s["score"], battles=s["battles"]) for p, s in zip(pastes, scores)],
+    ))
     print("LY_REBATTLE_DONE", flush=True)
 
 
@@ -287,7 +300,7 @@ def report_model(model):
     train_set, common = references(model)
     rng = np.random.default_rng(DRAW_SEED)
     data["views"] = {name: view(teams, asks, fresh, train_set, common, rng) for name, asks in views_for().items()}
-    json.dump(data, open(fresh_path(model), "w"))
+    save_yield(fresh_path(model), data)
     for name, v in data["views"].items():
         print(f"{model:16s} {name:26s} win {v['mean_win']:.3f}  line-ups {v['line_ups']:4d}  elite {v['elite_line_ups']:3d}  held {v['held']:3d}"
               f"  near cut {v['near_cut']:3d}  yield/1000 {v['yield_per_1000']:.2f}  new held {v['held_new_against_training']}/{v['held_new_against_common']}", flush=True)
