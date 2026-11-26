@@ -1217,7 +1217,7 @@ def preflight(out: Path, prompt_code: str = 'inplace_header') -> dict[str, Any]:
                     'ceiling_legal': ceiling, 'round_trip_legal': trip, 'round_trip_same_paste': trip_paste,
                     'round_trip_misses': trip_misses[:10], 'floor_random_tokens_legal': floor,
                     'floor_random_tokens_showdown_accepts': floor_showdown}
-            if prompt.statement is not None:
+            if prompt.statement is not None and prompt.example is None:     # with an example, both would count
                 row['statement_tokens'] = statement_tokens(tasks, prompt, tokenizer, candidate.mask_id, start_id)
             if prompt.example is not None:
                 row['example_tokens'] = example_tokens(tasks, prompt, tokenizer, candidate.mask_id, start_id)
@@ -1412,6 +1412,18 @@ def shared_ids(*prompt_codes: str) -> frozenset[str] | None:
     return frozenset.intersection(*sets) if sets else None
 
 
+def on_masks(rows: list[dict[str, Any]], keep: frozenset[str] | None, what: str) -> list[dict[str, Any]]:
+    """The rows of the masks in keep, refused unless every mask in keep has exactly one row (#239): two runs that
+    both miss the same mask would otherwise pair cleanly on fewer masks than planned."""
+    if keep is None:
+        return rows
+    mine = [r for r in rows if r['id'] in keep]
+    ids = [r['id'] for r in mine]
+    if len(ids) != len(set(ids)) or set(ids) != keep:
+        raise ValueError(f'{what}: {len(set(ids))} of the {len(keep)} planned masks, {len(ids) - len(set(ids))} twice')
+    return mine
+
+
 def compare(directory: Path, before_code: str, after_code: str) -> str:
     import count_masked_diffusion_text as C
     labels = {c.key: c.label for c in C.CANDIDATES}
@@ -1420,7 +1432,7 @@ def compare(directory: Path, before_code: str, after_code: str) -> str:
     for key in SMALL_FOUR:
         paths = [directory / code / key / 'fills.jsonl' for code in (before_code, after_code)]
         if all(p.exists() for p in paths):
-            before, after = ([r for r in read_fills(p) if keep is None or r['id'] in keep] for p in paths)
+            before, after = (on_masks(read_fills(p), keep, str(p)) for p in paths)
             results[key] = compare_rows(before, after)
     (directory / after_code).mkdir(parents=True, exist_ok=True)
     name = 'compare.json' if before_code in ('inplace_header', PROMPTS[after_code].base) else f'compare-{before_code}.json'

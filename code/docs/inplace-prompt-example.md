@@ -8,6 +8,33 @@ Runner: `code/scripts/inplace_prompt_fill_modal.py` (fills on a Modal L4, judged
 
 Searched `experiments-index.md` and `code/docs/` for an example team in a masked diffusion fill prompt: none. #167 left example teams out without testing them. #238's task statement raised no model's legal count and halved DiffuGPT small's (20 → 10, p = 0.006), with fills like `[` and `Sp` in Stat Point slots. Every legal mask in #237 and #238 hides Stat Points or one Stat Alignment, and the base models write almost no real species (0 of 105 for three of the four).
 
+## Result, 2026-11-25
+
+**Refuted for both Qwen models and reversed for both DiffuGPT models.** No model's legal count rises beyond noise: Masked Qwen3's 6 → 8 on the task-statement base is 6 gained and 4 lost (p = 0.75). It costs DiffuGPT small all of its legal fills and DiffuGPT medium most of theirs. Every pair comes from one Modal L4 container per model, and the fills without the example repeat #238's L4 fills token for token on all 270 masks.
+
+| Model | Header only: without → with (257 masks) | Task statement: without → with (189 masks) |
+| --- | --- | --- |
+| DiffuGPT small | 20 → 0 (0 gained, 20 lost, p < 10⁻⁵) | 10 → 0 (0 / 10, p = 0.002) |
+| DiffuGPT medium | 27 → 5 (0 / 22, p < 10⁻⁶) | 23 → 8 (2 / 17, p < 0.001) |
+| Masked Qwen2.5 Coder 0.5B | 4 → 1 (1 / 4, p = 0.38) | 2 → 1 (1 / 2, p = 1) |
+| Masked Qwen3 0.6B | 3 → 1 (1 / 3, p = 0.63) | 6 → 8 (6 / 4, p = 0.75) |
+
+- **DiffuGPT small: position reproduces it.** It was trained on 512-token texts (Gong et al. 2024, Table 4). The example puts every mask past 512. The same header-only text moved 418 positions later gives 0 legal of 30, against 21 unmoved. This also explains #238's 20 → 10 (position probe: `modal-l4-239/preflight/position-probe-*.json`).
+- **DiffuGPT medium: most likely the content (a hypothesis, not isolated).** Its Stat Points match the example in place more often (31% → 46%), and it overspends the 66-point total on 19% of fills against 3%. Moving its unchanged text 418 positions later leaves it at 19 of 30, so position alone does not explain the drop. No run swaps the example for neutral text of the same length, so content is not isolated.
+- **Copies** stay small for names: items 0–2%, moves 0–1% for every model. The example is copied into Stat Alignments (Masked Qwen3 1% → 10%) and Stat Points.
+- **Prediction:** it held on where legal masks sit and on memory. It missed both DiffuGPT drops, the Qwen copy share of items and moves, and the cost: seconds per team rose only for DiffuGPT medium.
+- **Code review** (GPT-6.2 Sol, 2026-11-25): three bugs fixed after the result, none changing a number. `run.json` of the example runs said 270 masks (now 257 and 189). Preflight counted the example's tokens as the statement's for `inplace_example`. The Modal runner's default results folder was #238's. Comparisons now refuse a run missing any planned mask; every posted pair passes.
+- **Rule audit** (owner, 2026-11-25): all 3,944 fills re-judged as saved. No fill contradicts its rules. Each of the 35 disagreements with Showdown's messages is a Pokémon Showdown stops checking once it can't name it (`code/scripts/inplace_rule_audit.py`).
+- **Open for the owner:** #240 builds on the example prompt; the proposal is to build it on the header-only prompt instead. DiffuGPT small's limit should be 512.
+
+Results posted on #239: one comment per model, the four-prompt comparison, the rule audit and the verdict.
+
+## Deviations
+
+- **Position probe, after seeing DiffuGPT small's result.** It was not planned. It ran on the laptop (MPS), 30 Stat Points masks per shift, after DiffuGPT small's 0 came in, as the audit of a surprising result. It changes no planned comparison.
+- **Rule audit, after seeing three models' results.** Owner, 2026-11-25. It re-judges saved fills and changes no verdict.
+- **Batch size.** Owner, 2026-11-25, during the run: later runs no longer need batch size 1 (#443). This run stayed at batch 1 throughout.
+
 ## The example team
 
 Meta team MB756, the top-50 meta team (`top50_evs.json`) that is not held out, shares no species with the held-out grid's five unmasked teams (MB401, MB198, MB574, MB514, MB680), and costs the fewest tokens of the four such teams:

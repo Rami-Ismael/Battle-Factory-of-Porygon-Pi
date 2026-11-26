@@ -525,6 +525,16 @@ class ExamplePromptTest(unittest.TestCase):
         self.assertEqual(out['statPoints'], {'same_place': 1, 'same_field': 0, 'filled': 1})
         self.assertNotIn('species', out)
 
+    def test_a_run_missing_a_planned_mask_is_refused_even_when_both_miss_it(self):
+        keep = frozenset({'a', 'b', 'c'})
+        self.assertEqual([r['id'] for r in G.on_masks([row('a', True), row('b', False), row('c', False), row('z', True)],
+                                                      keep, 'x')], ['a', 'b', 'c'])
+        with self.assertRaises(ValueError):
+            G.on_masks([row('a', True), row('b', False)], keep, 'x')
+        with self.assertRaises(ValueError):
+            G.on_masks([row('a', True), row('a', True), row('b', False), row('c', False)], keep, 'x')
+        self.assertEqual(len(G.on_masks([row('z', True)], None, 'x')), 1)
+
     def test_comparisons_use_only_the_masks_every_prompt_fits(self):
         fit = {'inplace_header_example': frozenset({'a', 'b'}), 'inplace_example': frozenset({'b'})}
         with unittest.mock.patch.object(G, 'fitting_ids', lambda code: fit.get(code)):

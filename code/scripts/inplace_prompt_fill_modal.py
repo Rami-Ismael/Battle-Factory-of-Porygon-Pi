@@ -53,8 +53,11 @@ KEYS = ('diffugpt_s', 'diffugpt_m', 'qwen25c', 'qwen3')
 FOUR_PROMPTS = ('inplace_header', 'inplace_instructions', 'inplace_header_example', 'inplace_example')     # #239
 RAW = 'fills-modal-raw.jsonl'
 REMOTE_CODE = '/root/code'
-GPU = 'L4'
-TIMEOUT_SECONDS = 2 * 60 * 60          # 2-hour cap per model, about $1.60 at L4's $0.80 an hour
+DEFAULT_GPU = 'L4'
+# Owner, 2026-11-25: DiffuGPT medium fills on the A10, which gpu_speed_probe_modal.py timed at about 1.5x the L4's
+# speed for less per fill ($1.10 an hour against $0.80). Every other model stays on the L4 until it is timed.
+GPU_BY_KEY = {'diffugpt_m': 'A10'}
+TIMEOUT_SECONDS = 2 * 60 * 60          # 2-hour cap per model: about $1.60 on the L4, $2.20 on the A10
 HF_CACHE_VOLUME = 'vgc-hf-cache'
 DEFERRED = 'deferred: Showdown judges this fill on the laptop'
 IMAGE_PACKAGES = ('torch==2.15.0', 'transformers==4.57.3', 'accelerate==1.15.0', 'safetensors==0.8.0',
@@ -66,6 +69,17 @@ PACKAGED_FILES = ('scripts/inplace_prompt_grid.py', 'scripts/masked_diffusion_te
 VERDICT_KEYS = frozenset({'json_parses', 'reads_as_team', 'visible_kept', 'regmb_names', 'showdown_errors',
                           'showdown_accepts', 'legal', 'failed', 'reasons', 'not_regmb', 'recovered',
                           'copied_visible', 'paste', 'rules'})
+
+
+def gpu_for(key: str) -> str:
+    """The Modal GPU a model fills on: INPLACE_GPU when set, else the model's own, else the L4."""
+    return os.environ.get('INPLACE_GPU') or GPU_BY_KEY.get(key, DEFAULT_GPU)
+
+
+def other_devices(rows: Iterable[dict[str, Any]], device: str) -> list[str]:
+    """The devices earlier rows were filled on that are not device. A CUDA card draws its own tokens for a seed
+    (#238), so a run resumed on another card would mix two in one result."""
+    return sorted({r['device'] for r in rows if r.get('device')} - {device})
 
 
 def grid_tasks() -> list[dict[str, Any]]:
@@ -177,15 +191,16 @@ def resume_batch(rows: Iterable[dict[str, Any]], batch: int | None) -> int | Non
     return sizes.pop() if sizes else batch
 
 
-def run_meta(prompt: str, key: str, probe: dict[str, Any], batching: dict[str, Any] | None = None) -> dict[str, Any]:
+def run_meta(prompt: str, key: str, probe: dict[str, Any], tasks: list[dict[str, Any]],
+             batching: dict[str, Any] | None = None) -> dict[str, Any]:
     """run.json for one prompt and model, in the shape inplace_prompt_grid.run writes, with the Modal device and
-    the batch size the rows were filled at (#443)."""
+    the batch size the rows were filled at (#443). tasks are the masks the prompt was filled on; tasks_sha256 stays
+    the whole grid file's."""
     import hashlib
     sys.path[:0] = [str(FROZEN / 'scripts'), str(FROZEN / 'src')]
     import count_masked_diffusion_text as C
     import inplace_prompt_grid as G
     candidate = C.candidate_by_key(key)
-    tasks = grid_tasks()
     meta = G.run_meta(G.PROMPTS[prompt], candidate, tasks, tasks_sha256=hashlib.sha256(TASKS.read_bytes()).hexdigest(),
                       batch=batching)
     meta['setting']['device'] = probe['device']
@@ -251,7 +266,7 @@ def merge(key: str, prompt: str, directory: Path = DIRECTORY) -> dict[str, Any]:
     sizing = batching(raw, probe)              # refuses mixed batch sizes before anything is written
     (out / 'fills.jsonl').write_text(''.join(json.dumps(r, ensure_ascii=False) + '\n' for r in judged))
     G.gpu_preflight_path(directory, key, prompt).write_text(json.dumps(probe, indent=1) + '\n')
-    (out / 'run.json').write_text(json.dumps(run_meta(prompt, key, probe, sizing), indent=1) + '\n')
+    (out / 'run.json').write_text(json.dumps(run_meta(prompt, key, probe, tasks, sizing), indent=1) + '\n')
     return {'key': key, 'prompt': prompt, 'masks': len(judged), 'legal': sum(r['legal'] for r in judged)}
 
 
@@ -281,7 +296,9 @@ if modal is not None:
     hf_cache = modal.Volume.from_name(HF_CACHE_VOLUME, create_if_missing=True)
     app = modal.App('inplace-prompt-fills')
 
-    @app.function(image=image, gpu=GPU, timeout=TIMEOUT_SECONDS, volumes={'/root/.cache/huggingface': hf_cache})
+    VOLUMES = {'/root/.cache/huggingface': hf_cache}
+
+    @app.function(image=image, gpu=DEFAULT_GPU, timeout=TIMEOUT_SECONDS, volumes=VOLUMES)
     def fill(key: str, prompts: list, tasks: list, done: dict, limit: int | None,
              only: dict | None = None, batch: int | None = None) -> Iterator[str]:
         try:
@@ -294,14 +311,16 @@ if modal is not None:
         """batch 0 (the default) takes the largest batch that fits the GPU; any other value fixes it."""
         order = prompts.split(',')
         tasks = grid_tasks()
-        done = {p: [r['id'] for r in read_rows(DIRECTORY / p / key / RAW)] for p in order}
+        earlier = {p: read_rows(DIRECTORY / p / key / RAW) for p in order}
+        done = {p: [r['id'] for r in rows] for p, rows in earlier.items()}
+        gpu = gpu_for(key)
         only = {p: ids for p, ids in fitting().items() if p in order}
         missing = [p for p in order if p.endswith('_example') and p not in only]
         if missing:
             raise SystemExit(f'{FITTING}: no frozen mask list for {missing}')
         left = pending(order, tasks[:limit or None], {p: set(ids) for p, ids in done.items()}, only)
-        size = resume_batch((r for p in order for r in read_rows(DIRECTORY / p / key / RAW)), batch or None)
-        print(f'{key}: {len(left)} fills to make on Modal {GPU}', flush=True)
+        size = resume_batch((r for rows in earlier.values() for r in rows), batch or None)
+        print(f'{key}: {len(left)} fills to make on Modal {gpu}', flush=True)
         if not left:
             return
         handles = {}
@@ -310,14 +329,19 @@ if modal is not None:
             handles[p] = (DIRECTORY / p / key / RAW).open('a')
         begin, made = time.time(), 0
         try:
-            for line in fill.remote_gen(key, order, tasks, done, limit or None, {p: sorted(i) for p, i in only.items()},
-                                        size):
+            on_gpu = fill.with_options(gpu=gpu, volumes=VOLUMES)      # with_options replaces the volumes it is given
+            for line in on_gpu.remote_gen(key, order, tasks, done, limit or None,
+                                          {p: sorted(i) for p, i in only.items()}, size):
                 row = json.loads(line)
                 if 'probe' in row:
                     print(line, flush=True)
                     path = DIRECTORY / 'preflight' / f'modal-gpu-{key}.json'
                     path.parent.mkdir(parents=True, exist_ok=True)
                     path.write_text(json.dumps(row['probe'], indent=1) + '\n')
+                    mixed = other_devices((r for rows in earlier.values() for r in rows), row['probe']['device'])
+                    if mixed:
+                        raise SystemExit(f'{key}: earlier rows were filled on {mixed}, this container is '
+                                         f'{row["probe"]["device"]}; set INPLACE_GPU to resume on the same card')
                     if row['probe'].get('pass') is False:
                         raise SystemExit(f'{key}: A MODEL PROBE FAILED, {row["probe"]}')
                     continue

@@ -11,6 +11,7 @@ Covers:
 """
 import io
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -32,6 +33,22 @@ if HERE:
 
 
 class ReportAndChecksTests(unittest.TestCase):
+    def test_shared_recipe_report_import_preserves_default_comparison(self):
+        subprocess.run(
+            [sys.executable, "-c", """
+import repo_paths
+from copy import deepcopy
+import retrain_default_report as report
+
+names = ("ISSUE", "NEW_ROW", "REF_ROW", "NEW_CK", "REF_CK", "NEW_LABEL", "REF_LABEL",
+         "NEW_SHORT", "REF_SHORT", "REF_REDRAW_BASES", "BASES_FILE")
+before = deepcopy({name: getattr(report, name) for name in names})
+import gidd_lr_grid_report
+assert {name: getattr(report, name) for name in names} == before
+"""],
+            check=True, cwd=Path(__file__).resolve().parent,
+        )
+
     def _fake_grid_file(self, tmp, name, *, pastes_per_cell=64, battles_per_team=49):
         cells = {}
         for k in (1, 2):

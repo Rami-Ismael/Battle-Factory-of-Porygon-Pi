@@ -28,6 +28,8 @@ import os
 import subprocess
 import sys
 import tempfile
+from collections.abc import Mapping
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -51,6 +53,7 @@ NEW_CK = "stat84_shuffled_noise_linear_filtered_es3_cap80"
 REF_CK = "stat84_shuffled_noise_linear_es3_cap80"
 NEW_LABEL = "Filtered table (Linear masked, full filter)"
 REF_LABEL = "Unfiltered table (Linear, species-first)"
+NEW_SHORT, REF_SHORT = "Filtered table", "unfiltered"
 
 GUIDANCES = (2, 4, 8)
 ALL_ASKS = list(range(1, 24))               # asks k/24 for k = 1..23
@@ -82,6 +85,27 @@ TRAIN_COLOR = "#52514e"
 VAL_COLOR = "#c2410c"
 PERCENT_AXIS = "js:v => Math.round(v * 100) + '%'"
 PERCENT_TOOLTIP = "js:v => v == null ? '' : (v * 100).toFixed(1) + '%'"
+
+
+@dataclass(frozen=True)
+class GridComparison:
+    issue: str
+    new_row: str
+    ref_row: str
+    new_checkpoint: str
+    ref_checkpoint: str
+    new_label: str
+    ref_label: str
+    new_short: str
+    ref_short: str
+    ref_redraw_bases: Mapping[int, int]
+    bases_file: Path | None = None
+
+
+DEFAULT_COMPARISON = GridComparison(
+    ISSUE, NEW_ROW, REF_ROW, NEW_CK, REF_CK, NEW_LABEL, REF_LABEL, NEW_SHORT, REF_SHORT,
+    REF_REDRAW_BASES, BASES_FILE,
+)
 
 
 def grid_name(row, guidance):
@@ -401,16 +425,16 @@ def format_train_comment(info, commit_sha, loss_light, loss_dark, ref_info=None,
 
 # ---------------------------------------------------------------- one grid's measures, with bootstrap intervals
 
-def _load_redraw_bases():
+def _load_redraw_bases(comparison=DEFAULT_COMPARISON):
     """Seed bases of the unfiltered redraws by guidance; ~/vgc-data/seed_replay/bases.txt overrides the defaults."""
-    bases = dict(REF_REDRAW_BASES)
-    if BASES_FILE.exists():
-        for line in BASES_FILE.read_text().splitlines():
+    bases = dict(comparison.ref_redraw_bases)
+    if comparison.bases_file is not None and comparison.bases_file.exists():
+        for line in comparison.bases_file.read_text().splitlines():
             if not line.strip():
                 continue
             grid, base = line.split()
             for g in GUIDANCES:
-                if grid == grid_name(REF_ROW, g):
+                if grid == grid_name(comparison.ref_row, g):
                     bases[g] = int(base)
     return bases
 
@@ -429,6 +453,9 @@ def _bootstrap_grid(opponents_npz, counts, stream_id):
     for k in ALL_ASKS:
         for s in SEEDS:
             rate = data[f"a{k:02d}_s{s}"]                     # teams x opponents, NaN where a battle is missing
+            if not len(rate):
+                draws[(k, s)] = np.zeros(len(counts))
+                continue
             seen = ~np.isnan(rate)
             scores = (np.where(seen, rate, 0.0) @ weights.T) / np.maximum(seen @ weights.T, 1e-12)
             pick = rng.integers(0, len(rate), (DRAWS, len(rate)))
@@ -438,10 +465,21 @@ def _bootstrap_grid(opponents_npz, counts, stream_id):
 
 def _pooled_got_draws(cell_draws, teams_per_cell):
     """Per ask, the three seeds' draws pooled by team count."""
-    return {
-        k: sum(cell_draws[(k, s)] * teams_per_cell[(k, s)] for s in SEEDS) / sum(teams_per_cell[(k, s)] for s in SEEDS)
-        for k in ALL_ASKS
-    }
+    return {k: _pooled_draws(cell_draws, teams_per_cell, [k]) for k in ALL_ASKS}
+
+
+def _grid_error(got, asks):
+    return _ask_error(got, asks) if all(got[k] is not None for k in asks) else None
+
+
+def _mean_if_present(values):
+    return float(np.mean(values)) if values else None
+
+
+def _pooled_draws(cell_draws, teams_per_cell, asks):
+    keys = [(k, s) for k in asks for s in SEEDS]
+    total = sum(teams_per_cell[key] for key in keys)
+    return sum(cell_draws[key] * teams_per_cell[key] for key in keys) / total if total else None
 
 
 def _ask_error(got, asks=SCORED_ASKS):
@@ -451,7 +489,7 @@ def _ask_error(got, asks=SCORED_ASKS):
 
 
 def _interval(arr):
-    return [float(np.quantile(arr, 0.025)), float(np.quantile(arr, 0.975))]
+    return [float(np.quantile(arr, 0.025)), float(np.quantile(arr, 0.975))] if arr is not None else None
 
 
 def _excludes_zero(iv):
@@ -473,7 +511,7 @@ def _line_up_metrics_from_cells(cells, train_lineups):
         distinct_line_ups=len(set(all_lu)),
         within_ask_line_ups_mean_23=float(np.mean([per_ask[k] for k in ALL_ASKS if k in per_ask])),
         within_ask_line_ups_mean_17=float(np.mean([per_ask[k] for k in SCORED_ASKS if k in per_ask])),
-        novel_share=float(np.mean([lu not in train_lineups for lu in all_lu])),
+        novel_share=_mean_if_present([lu not in train_lineups for lu in all_lu]),
         distinct_novel_line_ups=len({lu for lu in all_lu if lu not in train_lineups}),
     )
 
@@ -537,16 +575,17 @@ def grid_metrics(grid, opponents_npz, name, guidance, counts, stream_id, train_l
     cells = list(grid["cells"].values())
     by_cell = {(int(c["numerator"]), int(c["seed"])): c for c in cells}
     teams_per_cell = {key: len(c["pastes"]) for key, c in by_cell.items()}
-    got = {k: float(np.mean([y for s in SEEDS for y in by_cell[(k, s)]["y"]])) for k in ALL_ASKS}
-    got_by_seed = {s: {k: float(np.mean(by_cell[(k, s)]["y"])) for k in ALL_ASKS} for s in SEEDS}
+    got = {k: _mean_if_present([y for s in SEEDS for y in by_cell[(k, s)]["y"]]) for k in ALL_ASKS}
+    got_by_seed = {s: {k: _mean_if_present(by_cell[(k, s)]["y"]) for k in ALL_ASKS} for s in SEEDS}
     tried = sum(int(c["tried"]) for c in cells)
     rejected = sum(int(c["rejected"]) for c in cells)
 
-    got_draws = _pooled_got_draws(_bootstrap_grid(opponents_npz, counts, stream_id), teams_per_cell)
+    cell_draws = _bootstrap_grid(opponents_npz, counts, stream_id)
+    got_draws = _pooled_got_draws(cell_draws, teams_per_cell)
     draws = dict(
-        error=_ask_error(got_draws, SCORED_ASKS),
-        pooled_win=np.mean([got_draws[k] for k in ALL_ASKS], 0),
-        win_top=np.mean([got_draws[k] for k in TOP_ASKS], 0),
+        error=_grid_error(got_draws, SCORED_ASKS),
+        pooled_win=_pooled_draws(cell_draws, teams_per_cell, ALL_ASKS),
+        win_top=_pooled_draws(cell_draws, teams_per_cell, TOP_ASKS),
     )
     metrics = dict(
         name=name,
@@ -557,18 +596,18 @@ def grid_metrics(grid, opponents_npz, name, guidance, counts, stream_id, train_l
         cells=len(cells),
         cells_short_of_64=sum(len(c["pastes"]) < int(grid.get("keep", 64)) for c in cells),
         battles=sum(int(c.get("battles", 0)) for c in cells),
-        error=float(_ask_error(got, SCORED_ASKS)),
+        error=_grid_error(got, SCORED_ASKS),
         error_interval=_interval(draws["error"]),
-        error_by_seed={str(s): float(_ask_error(got_by_seed[s], SCORED_ASKS)) for s in SEEDS},
-        error_asks_18_to_23=float(_ask_error(got, HIGH_ASKS)),
+        error_by_seed={str(s): _grid_error(got_by_seed[s], SCORED_ASKS) for s in SEEDS},
+        error_asks_18_to_23=_grid_error(got, HIGH_ASKS),
         got_by_ask={str(k): got[k] for k in ALL_ASKS},
         got_by_ask_interval={str(k): _interval(got_draws[k]) for k in ALL_ASKS},
-        pooled_win=float(np.mean([y for c in cells for y in c["y"]])),
+        pooled_win=_mean_if_present([y for c in cells for y in c["y"]]),
         pooled_win_interval=_interval(draws["pooled_win"]),
-        win_top_asks=float(np.mean([y for k in TOP_ASKS for s in SEEDS for y in by_cell[(k, s)]["y"]])),
+        win_top_asks=_mean_if_present([y for k in TOP_ASKS for s in SEEDS for y in by_cell[(k, s)]["y"]]),
         win_top_asks_interval=_interval(draws["win_top"]),
         first_try_legality=(tried - rejected) / max(tried, 1),
-        effective_species=float(np.mean([c["div"]["effective_species"] for c in cells if c.get("div")])),
+        effective_species=_mean_if_present([c["div"]["effective_species"] for c in cells if c.get("div")]),
         **_line_up_metrics_from_cells(cells, train_lineups),
         elite_line_up_yield=_elite_yield_summary(name, results_dir),
         pass_at_k=_pass_at_k_summary(name, results_dir),
@@ -611,7 +650,7 @@ def evaluate_beyond_luck(new_m, ref_m, paired_err, paired_win):
     return flags
 
 
-def read_guidance_pair(guidance, counts=None, train_lineups=None, results_dir=RES):
+def read_guidance_pair(guidance, counts=None, train_lineups=None, results_dir=RES, *, comparison=DEFAULT_COMPARISON):
     """Both checkpoints at one guidance, with paired bootstrap intervals over shared opponent draws."""
     if train_lineups is None:
         train_lineups = _train_lineups()
@@ -625,13 +664,13 @@ def read_guidance_pair(guidance, counts=None, train_lineups=None, results_dir=RE
         return grid_metrics(grid, opponents, name, g, counts, stream_id, train_lineups, results_dir)
 
     if counts is None:
-        counts = _opponent_draws(len(np.load(results_dir / f"masking_rate_rows_opponents_{grid_name(NEW_ROW, g)}.npz")["weights"]))
-    new_m, new_d = read(NEW_ROW, stream_id=10 * g + 1)
-    ref_m, ref_d = read(REF_ROW, stream_id=10 * g + 2)
+        counts = _opponent_draws(len(np.load(results_dir / f"masking_rate_rows_opponents_{grid_name(comparison.new_row, g)}.npz")["weights"]))
+    new_m, new_d = read(comparison.new_row, stream_id=10 * g + 1)
+    ref_m, ref_d = read(comparison.ref_row, stream_id=10 * g + 2)
 
     # The unfiltered checkpoint's redraws, which escape the seed-7300 training-team replay (#353)
-    base = _load_redraw_bases().get(g)
-    redraw_path = results_dir / f"stat_points_84_{grid_name(REF_ROW, g)}_seed{base}.json"
+    base = _load_redraw_bases(comparison).get(g)
+    redraw_path = results_dir / f"stat_points_84_{grid_name(comparison.ref_row, g)}_seed{base}.json"
     if base is not None and redraw_path.exists():
         redraw_cells = list(json.loads(redraw_path.read_text())["cells"].values())
         ref_m["unbiased_breadth"] = dict(seed0=base, file=redraw_path.name, **_line_up_metrics_from_cells(redraw_cells, train_lineups))
@@ -667,7 +706,7 @@ def read_guidance_pair(guidance, counts=None, train_lineups=None, results_dir=RE
     )
 
 
-def build_grid_figure(pair, out_dir):
+def build_grid_figure(pair, out_dir, *, comparison=DEFAULT_COMPARISON):
     """Got against ask for both checkpoints at one guidance, with 95% bootstrap bands."""
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -675,7 +714,7 @@ def build_grid_figure(pair, out_dir):
     new_m, ref_m = pair["filtered"], pair["unfiltered"]
     xs = [k / 24 for k in ALL_ASKS]
     series = []
-    arms = ((NEW_LABEL, NEW_COLOR, new_m, 2.8, "solid"), (REF_LABEL, REF_COLOR, ref_m, 1.8, "dashed"))
+    arms = ((comparison.new_label, NEW_COLOR, new_m, 2.8, "solid"), (comparison.ref_label, REF_COLOR, ref_m, 1.8, "dashed"))
     for i, (label, color, m, width, dash) in enumerate(arms):
         lo = [m["got_by_ask_interval"][str(k)][0] for k in ALL_ASKS]
         hi = [m["got_by_ask_interval"][str(k)][1] for k in ALL_ASKS]
@@ -701,7 +740,7 @@ def build_grid_figure(pair, out_dir):
     option = {
         "animation": False,
         "grid": {"left": 64, "right": 24, "top": 56, "bottom": 56},
-        "legend": {"top": 0, "data": [NEW_LABEL, REF_LABEL, "Got = ask"]},
+        "legend": {"top": 0, "data": [comparison.new_label, comparison.ref_label, "Got = ask"]},
         "tooltip": {"trigger": "axis", "valueFormatter": PERCENT_TOOLTIP},
         "xAxis": {
             "type": "value", "min": 0, "max": 1, "interval": 1 / 6,
@@ -718,8 +757,8 @@ def build_grid_figure(pair, out_dir):
     pe = pair["paired"]["error"]
     verdict = "differs beyond training luck" if pe["beyond_training_luck"] else "matches within training luck"
     title = (
-        f"Guidance {g}: Filtered table {verdict} "
-        f"(error {new_m['error']:.4f} vs unfiltered {ref_m['error']:.4f}, Δ {pe['difference']:+.4f})"
+        f"Guidance {g}: {comparison.new_short} {verdict} "
+        f"(error {new_m['error']:.4f} vs {comparison.ref_short} {ref_m['error']:.4f}, Δ {pe['difference']:+.4f})"
     )
     subtitle = (
         f"23 asks × 3 seeds × 64 teams = 4,416 teams (216,384 battles). "
@@ -798,22 +837,24 @@ def format_grid_comment(pair, fig_light, fig_dark):
 
 # ---------------------------------------------------------------- all three guidances: summary, figures, resolution, handoff, map
 
-def build_summary(out_json=SUMMARY_PATH, results_dir=RES, train_lineups=None):
+def build_summary(out_json=SUMMARY_PATH, results_dir=RES, train_lineups=None, *,
+                  comparison=DEFAULT_COMPARISON, flags_for_pair=None):
     if train_lineups is None:
         train_lineups = _train_lineups()
-    first_opponents = Path(results_dir) / f"masking_rate_rows_opponents_{grid_name(NEW_ROW, GUIDANCES[0])}.npz"
+    first_opponents = Path(results_dir) / f"masking_rate_rows_opponents_{grid_name(comparison.new_row, GUIDANCES[0])}.npz"
     counts = _opponent_draws(len(np.load(first_opponents)["weights"]))
     by_guidance, all_flags = {}, []
     for g in GUIDANCES:
-        pair = read_guidance_pair(g, counts=counts, train_lineups=train_lineups, results_dir=results_dir)
+        pair = read_guidance_pair(g, counts=counts, train_lineups=train_lineups, results_dir=results_dir, comparison=comparison)
         by_guidance[str(g)] = pair
-        all_flags += [f"guidance {g}: {f}" for f in pair["flags_beyond_luck"]]
+        flags = pair["flags_beyond_luck"] if flags_for_pair is None else flags_for_pair(pair)
+        all_flags += [f"guidance {g}: {f}" for f in flags]
     summary = dict(
-        issue=int(ISSUE),
-        filtered_checkpoint=NEW_CK,
-        filtered_row=NEW_ROW,
-        unfiltered_checkpoint=REF_CK,
-        unfiltered_row=REF_ROW,
+        issue=int(comparison.issue),
+        filtered_checkpoint=comparison.new_checkpoint,
+        filtered_row=comparison.new_row,
+        unfiltered_checkpoint=comparison.ref_checkpoint,
+        unfiltered_row=comparison.ref_row,
         guidances=list(GUIDANCES),
         bootstrap=dict(draws=DRAWS, seed=DRAW_SEED, resampled="teams within each ask and seed separately; 49 opponents shared across checkpoints"),
         training_luck=dict(error=ERROR_LUCK, pooled_win=WIN_LUCK, glossary_error_bar=BAR),
