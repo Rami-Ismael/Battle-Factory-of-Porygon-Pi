@@ -31,7 +31,7 @@ any row of any group with every field visible, which a wrong-stone team (another
     python src/train84.py smoke | same loop | same records | same mix | all | all_noise | byepoch | ddom_tau01 | ddom_tau03
                           | pos_per_field_s0 | pos_per_field_s1 | pos_slot_learned | pos_slot_fixed | pos_no_slot
                           | shuffled_per_field | shuffled_linear | shuffled_linear_filtered | shuffled_linear_filtered_gidd_lr
-                          | shuffled_linear_no_table_loss
+                          | shuffled_linear_no_table_loss | shuffled_linear_filtered_gidd_lr_no_table_loss
                           | loop_block_equal_compute | loop_block_equal_epochs | carry_state_equal_compute | carry_state_equal_epochs
 
 The four loop arms (docs/looped-84-fields.md) use shuffled_linear's rows and recipe, the linear masking schedule where every field
@@ -52,6 +52,12 @@ and recipe with the legal Pokémon construction tables and the Stat Point budget
 The rows the tables reject are still dropped. Its per-epoch legality check draws without the tables, so the illegal share
 shows what the network learned. Its control is shuffled_linear's 80 saved epoch checkpoints, checked the same way by
 src/checkpoint_legality.py.
+
+No tables in the loss is the default for a new training (owner, 2026-11-25): train() gives an arm NO_TABLE_LOSS unless
+the arm is in TABLES_IN_THE_LOSS_ARMS, the arms that reproduce a model trained with the tables in the loss, or names its own
+setting. Sampling is unchanged: it still draws through the tables unless asked not to.
+shuffled_linear_filtered_gidd_lr_no_table_loss is the first arm on that default: shuffled_linear_filtered_gidd_lr's rows and
+learning-rate recipe (peak 5e-4, 1,000 warm-up steps, cosine to 5e-5) with the tables left out of the loss.
 
 The five pos_ arms are the position-embedding split (docs/position-embedding-split.md; issues #78, #80 to #83, spec #233):
 all teams of the shuffled-only table (results/lossdata84_shuffled_only.npz), label noise 1/48, exactly 21 epochs with the
@@ -131,8 +137,12 @@ NAMES.update(shuffled_linear_filtered="stat84_shuffled_noise_linear_filtered_es3
 FILTERED_DEFAULT_ARMS.update(shuffled_linear_filtered_gidd_lr=dict(sched=LINEAR_MASKING_RATE, **LS.GIDD_LR_RECIPE))
 NAMES.update(shuffled_linear_filtered_gidd_lr="stat84_shuffled_noise_linear_filtered_lr5e4_min5e5_es3_cap80")
 # No tables in the loss (issue #361): code ID -> what changes from shuffled_linear, the loss mask and the check's draw
-TABLE_LOSS_ARMS = dict(shuffled_linear_no_table_loss=dict(table_loss=False, legality_tables=False, legality_copies=True))
+NO_TABLE_LOSS = dict(table_loss=False, legality_tables=False, legality_copies=True)
+TABLE_LOSS_ARMS = dict(shuffled_linear_no_table_loss=dict(NO_TABLE_LOSS))
 NAMES.update(shuffled_linear_no_table_loss="stat84_shuffled_noise_linear_no_table_loss_es3_cap80")
+# Cosine learning rate with no tables in the loss (owner, 2026-11-25): issue #431's learning-rate recipe on issue #361's loss
+TABLE_LOSS_ARMS.update(shuffled_linear_filtered_gidd_lr_no_table_loss=dict(NO_TABLE_LOSS, **LS.GIDD_LR_RECIPE))
+NAMES.update(shuffled_linear_filtered_gidd_lr_no_table_loss="stat84_shuffled_noise_linear_filtered_lr5e4_min5e5_no_table_loss_es3_cap80")
 CONTROL_EPOCHS = 80                                       # the cap of the loop arms' control, shuffled_linear
 LOOP_BLOCK = dict(loop_start=1, loop_layers=2, loop_max=4)              # 6 needs 13 GB of GPU memory per step (docs/looped-84-fields.md)
 LOOP_NETS = dict(loop_block=LOOP_BLOCK, carry_state=dict(carry=True))
@@ -146,6 +156,18 @@ def equal_compute_cap(net_kw):
 
 LOOP_ARMS = {f"{k}_{match}": dict(net=v, match=match) for k, v in LOOP_NETS.items() for match in ("equal_compute", "equal_epochs")}
 NAMES.update({arm: f"stat84_shuffled_noise_{arm}" for arm in LOOP_ARMS})
+
+
+# No tables in the loss is the default for a new training (owner, 2026-11-25). These arms reproduce a model trained with
+# the tables in the loss, so they keep it; any arm not listed here trains with NO_TABLE_LOSS unless it names its own setting.
+TABLES_IN_THE_LOSS_ARMS = frozenset(("loop", "records", "all", "all_noise", "byepoch", "ddom_tau01", "ddom_tau03",
+                                     *POSITION_ARMS, *MASKING_RATE_ARMS, *FILTERED_DEFAULT_ARMS, *LOOP_ARMS))
+
+
+def with_table_loss_default(arm, settings):
+    """settings with the default loss for arm filled in: NO_TABLE_LOSS, unless arm reproduces a model trained with the
+    tables in the loss. A setting the caller names wins."""
+    return dict(settings) if arm in TABLES_IN_THE_LOSS_ARMS else {**NO_TABLE_LOSS, **settings}
 
 
 def name(arm):
@@ -197,6 +219,7 @@ def recipe_for(arm, net_kw):
 
 def train(arm, rows, labels, val, epochs, patience=None, **net_kw):
     corpus = X.setup()[0]; V = T.regulation_vocab()
+    net_kw = with_table_loss_default(arm, net_kw)
     if NOISE is not None: net_kw["label_noise"] = float(NOISE)
     if SMOKE: rows, labels = small(rows, labels); val = tuple(small(*val, n=256)); epochs = 1
     print(f"[{name(arm)}] {len(rows)} teams · {len(val[0])} validation teams · cap {epochs} epochs"

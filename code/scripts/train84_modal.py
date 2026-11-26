@@ -54,6 +54,8 @@ ARMS = {
     "udlm_loglinear_gidd_lr": dict(script="src/train_uniform84.py", checkpoint="stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80"),
     "shuffled_linear_filtered_gidd_lr": dict(script="src/train84.py",
                                              checkpoint="stat84_shuffled_noise_linear_filtered_lr5e4_min5e5_es3_cap80"),
+    "shuffled_linear_filtered_gidd_lr_no_table_loss": dict(script="src/train84.py",
+                                                           checkpoint="stat84_shuffled_noise_linear_filtered_lr5e4_min5e5_no_table_loss_es3_cap80"),
 }
 SMOKE_PREFIX = "stat84smoke_"            # the trainers' S84_SMOKE name prefix
 SEED_CHECKPOINTS = ("F1_final_medium_noheldout_regmb_v3.pt",)        # read from lossdown.CK at import

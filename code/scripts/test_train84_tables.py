@@ -184,12 +184,44 @@ class AskGridTable(unittest.TestCase):
 
 
 @unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data")
+class NoTablesInTheLossByDefault(unittest.TestCase):
+    """A new training leaves the tables out of the loss; an arm that reproduces a stored model keeps its setting (owner, 2026-11-25)."""
+
+    def test_a_new_arm_trains_with_no_tables_in_the_loss(self):
+        got = TR.with_table_loss_default("an_arm_added_later", dict(sched="1,1,1,1,1"))
+        self.assertEqual(got, dict(table_loss=False, legality_tables=False, legality_copies=True, sched="1,1,1,1,1"))
+
+    def test_an_arm_can_still_name_its_own_setting(self):
+        self.assertIs(TR.with_table_loss_default("an_arm_added_later", dict(table_loss=True))["table_loss"], True)
+
+    def test_arms_that_reproduce_a_stored_model_keep_the_tables_in_the_loss(self):
+        for arm in ("byepoch", "pos_per_field_s0", "shuffled_per_field", "shuffled_linear", "shuffled_linear_filtered",
+                    "shuffled_linear_filtered_gidd_lr", "loop_block_equal_epochs"):
+            self.assertEqual(TR.with_table_loss_default(arm, dict(seed=0)), dict(seed=0), arm)
+
+    def test_both_no_table_arms_get_the_default(self):
+        for arm in TR.TABLE_LOSS_ARMS:
+            self.assertNotIn(arm, TR.TABLES_IN_THE_LOSS_ARMS)
+            self.assertIs(TR.TABLE_LOSS_ARMS[arm]["table_loss"], False)
+
+    def test_the_cosine_arm_carries_the_shared_learning_rate_recipe(self):
+        arm = "shuffled_linear_filtered_gidd_lr_no_table_loss"
+        settings = dict(TR.MASKING_RATE_ARMS["shuffled_linear"], **TR.TABLE_LOSS_ARMS[arm])
+        recipe = TR.recipe_for(arm, settings)
+        self.assertEqual({k: recipe[k] for k in TR.LS.GIDD_LR_RECIPE}, TR.LS.GIDD_LR_RECIPE)
+        self.assertEqual(recipe["sched"], TR.M.LINEAR_SCHED)
+        self.assertEqual(settings, dict(table_loss=False, legality_tables=False, legality_copies=True))
+        self.assertNotEqual(TR.NAMES[arm], TR.NAMES["shuffled_linear_filtered_gidd_lr"])
+
+
+@unittest.skipUnless(HERE, "needs /tmp/vgc-pilot data")
 class FilteredTableOnly(unittest.TestCase):
     """Every arm trains on a filtered table: no wrong-stone team in any group with every field visible (#368, #385)."""
 
     TRAINING_FUNCTIONS = dict(pos_per_field_s0=TR.train_position_arms, shuffled_linear=TR.train_masking_rate_arms,
                               shuffled_linear_filtered=TR.train_filtered_default_arms,
                               shuffled_linear_no_table_loss=TR.train_table_loss_arms,
+                              shuffled_linear_filtered_gidd_lr_no_table_loss=TR.train_table_loss_arms,
                               loop_block_equal_epochs=TR.train_loop_arms) if HERE else {}
 
     def test_every_training_function_reads_its_table_through_the_check(self):
