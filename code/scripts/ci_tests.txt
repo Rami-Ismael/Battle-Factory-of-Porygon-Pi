@@ -19,6 +19,7 @@ test_full_grid_recovery.py
 test_llm_completion.py
 test_mb_prompt.py
 test_meta_starters.py
+test_nats_check.py
 test_openrouter_generation.py
 test_parallel_temperature_campaign.py
 test_pokemon_id_diversity.py

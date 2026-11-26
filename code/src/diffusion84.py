@@ -549,10 +549,13 @@ class Model84:
             net = Net84(V, **mem["net_kw"]); net.load_state_dict(mem["sd"]); nets.append((net.to(DEV), mem["net_kw"]))
         return cls(V, corpus, nets, ck.get("info"))
 
-    def _logprobs(self, x, t, w, loops=None, state=None, keep=None, tables=True):
+    def _logprobs(self, x, t, w, loops=None, state=None, keep=None, tables=True, al=None):
         """Log-probabilities per field type. loops: loop-block count; state: carried hidden state of a one-member model;
-        keep: a list that receives the hidden state of each network, for the next pass. tables=False: no legality mask."""
-        al = allowed(self.tables, x) if tables else None
+        keep: a list that receives the hidden state of each network, for the next pass. tables=False: no legality mask.
+        al: the masks to apply in place of allowed(self.tables, x), for a caller that already has them or changes them;
+        it cannot be given together with tables=False."""
+        if al is not None and not tables: raise ValueError("al gives the masks to apply; tables=False applies none. Pass one of them")
+        if tables and al is None: al = allowed(self.tables, x)
         outs = []
         for net, _ in self.nets:
             h = net(x, t, w) if loops is None and state is None else net(x, t, w, loops=loops, state=state)
