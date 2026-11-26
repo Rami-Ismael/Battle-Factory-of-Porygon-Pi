@@ -56,7 +56,8 @@ def parse(paste):
 
 
 def shuffled_policy(con):
-    ids = [p for (p,) in con.execute("SELECT policy_id FROM policy WHERE row_policy LIKE ? AND col_policy LIKE ?",
+    ids = [p for (p,) in con.execute("SELECT policy_id FROM policy WHERE row_policy LIKE ? AND col_policy LIKE ? "
+                                     "AND row_policy NOT LIKE 'rust%'",   # Rust search labelers (#418) carry the tag too
                                      (f"%{SHUFFLED}", f"%{SHUFFLED}"))]
     if len(ids) != 1: raise ValueError(f"expected one shuffled-slot configuration, found {ids}")
     return ids[0]

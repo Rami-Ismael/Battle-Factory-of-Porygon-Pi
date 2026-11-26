@@ -11,10 +11,12 @@ MB493 and MB494 are the same team, byte for byte (2nd and 1st, Ranked Season M-3
 uniform draw, as in matchup_db's 'top50' column set.
 """
 import json
+import os
 from pathlib import Path
 
 TEAMS = Path("/tmp/vgc-pilot/vgc-bench/teams/reg_mb")
-TOP50 = Path("/Users/ramiismael/Documents/code/vgc-team-generator-pilot/results/top50_evs.json")
+# TOP50_EVS: a copy outside ~/Documents for launchd jobs, which macOS keeps out of ~/Documents
+TOP50 = Path(os.environ.get("TOP50_EVS", "/Users/ramiismael/Documents/code/vgc-team-generator-pilot/results/top50_evs.json"))
 N = 50
 DUPLICATES = {"MB494": "MB493"}          # same paste; 49 distinct teams in the 50
 

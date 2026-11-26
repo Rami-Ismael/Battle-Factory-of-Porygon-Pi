@@ -108,7 +108,7 @@ def fresh_rates(pastes, columns, weights, battle_db, fresh_db):
     if len(hash_of) != len(columns) or set(hash_of.values()) - set(fresh_col): raise SystemExit("an opponent of the grid is not in the re-battle database's top-50 set")
     cols = [fresh_col[hash_of[int(c)]][0] for c in columns]
     if not np.allclose([fresh_col[hash_of[int(c)]][1] for c in columns], weights): raise SystemExit("opponent weights differ between the grid and the re-battle")
-    (policy,) = fresh.execute("SELECT policy_id FROM policy WHERE row_policy LIKE '%+slots-shuffled'").fetchone()
+    (policy,) = fresh.execute("SELECT policy_id FROM policy WHERE row_policy LIKE '%+slots-shuffled' AND row_policy NOT LIKE 'rust%'").fetchone()
     out = np.full((len(pastes), len(cols)), np.nan)
     for i, paste in enumerate(pastes):
         row = fresh.execute("SELECT team_id FROM team WHERE canon_hash=?", (MDB.canon_hash(MDB.canonical_paste(paste)),)).fetchone()

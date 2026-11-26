@@ -127,7 +127,7 @@ def interval(pairs, key, reps=4000, seed=7):
 
 def report(_a):
     con = sqlite3.connect(f"file:{DB}?mode=ro", uri=True)
-    pid = con.execute("SELECT max(policy_id) FROM policy WHERE row_policy LIKE '%+slots-shuffled'").fetchone()[0]
+    pid = con.execute("SELECT max(policy_id) FROM policy WHERE row_policy LIKE '%+slots-shuffled' AND row_policy NOT LIKE 'rust%'").fetchone()[0]
     canon = {h: t for t, h in con.execute("SELECT team_id, canon_hash FROM team")}
     legal = {t for (t,) in con.execute("SELECT team_id FROM team WHERE legal=1")}
     sys.path.insert(0, str(SRC))
