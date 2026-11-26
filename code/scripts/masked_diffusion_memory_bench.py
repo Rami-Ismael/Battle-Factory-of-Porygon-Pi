@@ -19,6 +19,10 @@ schedule and Gumbel noise use float64, which the laptop's GPU refuses:
     The Gumbel noise is float32 in log form, argmax(logits - T * log(-log u)), which draws from the same
     distribution as dLLM's exp(logits) / (-log u)^T and cannot overflow.
 Temperature and step count are always explicit (dLLM's defaults are 0, which draws one team n times, and 128).
+fill fills one canvas (or copies of it) per call. fill_rows (#443) fills texts of different lengths in one batch,
+each with its own slots, schedule and generator, right-padded behind make_row_forward's padding mask, so a row gets
+the tokens fill gives it alone up to the arithmetic of a wider batch; largest_batch is the ladder below in one
+process, for a run that sizes its own batch.
 
 Two logit scopes per candidate:
     all     the model scores every position, as dLLM does
@@ -146,6 +150,102 @@ def fill(forward: Forward, canvas: torch.Tensor, slots: torch.Tensor, mask_id: i
         x[:, slots] = current.scatter(1, chosen, x0.gather(1, chosen))
         on_step(j)
     return x
+
+
+RowForward = Callable[[torch.Tensor, torch.Tensor, torch.Tensor], torch.Tensor]
+# (canvas [B, L] right-padded, attention [B, L] true on real tokens, keep [B, S] slot positions per row, padded with
+# 0) -> logits [B, S, V] at each row's slot positions, already shifted for a model that predicts from position i - 1
+
+
+@torch.no_grad()
+def fill_rows(forward: RowForward, rows: Sequence[Sequence[int]], slots: Sequence[Sequence[int]], mask_id: int,
+              setting: SamplerSetting, generators: Sequence[torch.Generator | None], device: str | torch.device = 'cpu',
+              pad_id: int = 0, on_step: Callable[[list[int]], None] = lambda _: None) -> list[list[int]]:
+    """Fill many texts in one forward pass per step, each as fill would fill it alone (#443).
+
+    Each row keeps its own slot positions, its own schedule (from its own mask count) and its own generator, so with
+    a model whose logits for a row do not depend on the other rows or the padding, every row's tokens are exactly
+    the tokens fill gives that row at batch size 1. Rows are right-padded to the longest, so every real token keeps
+    its position; the attention mask hides the padding. A row whose schedule has ended leaves the batch, and the
+    batch is cut to the longest row still filling. on_step gets the indices of the rows each forward served."""
+    active = _resolve_fill_setting(setting, None, None)
+    if not (len(rows) == len(slots) == len(generators)):
+        raise ValueError(f'{len(rows)} rows, {len(slots)} slot lists and {len(generators)} generators')
+    for n, (ids, where) in enumerate(zip(rows, slots, strict=True)):
+        if not where or any(not 0 <= p < len(ids) or ids[p] != mask_id for p in where) or \
+                sum(t == mask_id for t in ids) != len(where):
+            raise ValueError(f'row {n}: the mask tokens are not exactly its slots')
+    lengths = [len(ids) for ids in rows]
+    x = torch.full((len(rows), max(lengths)), pad_id, dtype=torch.long)
+    attention = torch.zeros(x.shape, dtype=torch.bool)
+    keep = torch.zeros((len(rows), max(map(len, slots))), dtype=torch.long)
+    for n, (ids, where) in enumerate(zip(rows, slots, strict=True)):
+        x[n, :len(ids)] = torch.tensor(ids)
+        attention[n, :len(ids)] = True
+        keep[n, :len(where)] = torch.tensor(where)
+    x, attention, keep = x.to(device), attention.to(device), keep.to(device)
+    plans = [schedule(len(where), active.step_count(len(where))) for where in slots]
+    for j in range(max(map(len, plans))):
+        live = [n for n, plan in enumerate(plans) if j < len(plan)]
+        width = max(lengths[n] for n in live)
+        depth = max(len(slots[n]) for n in live)
+        index = torch.tensor(live, device=device)
+        logits = forward(x[index, :width], attention[index, :width], keep[index, :depth])
+        for i, n in enumerate(live):
+            count = len(slots[n])
+            row_logits = logits[i, :count].float().unsqueeze(0)          # [1, S, V], as fill sees it at batch 1
+            x0 = gumbel_argmax(row_logits, active.temperature, generators[n])
+            p = torch.softmax(row_logits, -1).gather(-1, x0.unsqueeze(-1)).squeeze(-1)
+            del row_logits
+            where = keep[n, :count]
+            current = x[n, where].unsqueeze(0)
+            p = torch.where(current == mask_id, p, -math.inf)
+            chosen = p.topk(plans[n][j], dim=1).indices
+            x[n, where] = current.scatter(1, chosen, x0.gather(1, chosen)).squeeze(0)
+        del logits
+        on_step(live)
+    out = x.cpu()
+    return [out[n, :lengths[n]].tolist() for n in range(len(rows))]
+
+
+def largest_batch(peak_at: Callable[[int], int], capacity: int, batches: Sequence[int] = BATCHES,
+                  headroom: float = 0.9, cap: int | None = None) -> dict[str, Any]:
+    """The ladder of #170 inside one process, then a bisection: batch sizes 1, 2, 4, ... until one goes over the
+    ceiling (an out-of-memory error) or peaks above headroom x capacity, then halving between the last size that fit
+    and the first that did not, so the result is the largest size that fits, not only the largest power of two.
+    peak_at(b) fills a batch of b at the worst shape the run will meet for one step and returns the peak bytes;
+    every step after the first has that shape or a smaller one. cap (the number of fills to make) and the ladder's
+    last size bound the search. Returns the size and every reading."""
+    readings: list[dict[str, Any]] = []
+    top = min(batches[-1], cap) if cap is not None else batches[-1]
+
+    def fits(batch: int) -> bool:
+        try:
+            peak = peak_at(batch)
+        except Exception as error:
+            if not is_over_ceiling(error):
+                raise
+            readings.append({'batch': batch, 'status': 'over ceiling'})
+            return False
+        ok = peak <= headroom * capacity
+        readings.append({'batch': batch, 'peak': peak, 'status': 'fits' if ok else 'over headroom'})
+        return ok
+
+    good, bad = 0, None
+    for batch in [b for b in batches if b < top] + [top]:
+        if not fits(batch):
+            bad = batch
+            break
+        good = batch
+    if good == 0:
+        raise RuntimeError(f'not even batch {batches[0]} fits: {readings}')
+    while bad is not None and bad - good > 1:
+        middle = (good + bad) // 2
+        if fits(middle):
+            good = middle
+        else:
+            bad = middle
+    return {'batch': good, 'capacity': capacity, 'headroom': headroom, 'cap': cap, 'ladder': readings}
 
 
 def shift_right(logits: torch.Tensor) -> torch.Tensor:
@@ -378,6 +478,43 @@ def make_forward(model: Any, family: str, scope: str, slots: torch.Tensor,
         model.model.transformer.ln_f.register_forward_hook(lambda _m, _i, out: out.index_select(1, keep))
         return lambda x: model(input_ids=x).logits
     return lambda x: model.lm_head(hidden_states(model, family, x).index_select(1, keep))
+
+
+def padding_mask(model: Any, attention: torch.Tensor) -> torch.Tensor:
+    """The additive 4D mask for right-padded rows: every real token sees every real token, and no position sees a
+    padded one. With no padding it is bidirectional_mask's all-zero mask."""
+    dtype = model.dtype
+    blocked = torch.zeros(attention.shape, dtype=dtype, device=attention.device)
+    blocked.masked_fill_(~attention, torch.finfo(dtype).min)
+    return blocked[:, None, None, :].expand(-1, 1, attention.shape[1], -1)
+
+
+def row_hidden_states(model: Any, family: str, x: torch.Tensor, attention: torch.Tensor) -> torch.Tensor:
+    """The last layer's output for right-padded rows. Dream and LLaDA have no padding path here, so they take a batch
+    only of rows of one length."""
+    if family == 'gpt2':
+        return model.transformer(input_ids=x, attention_mask=padding_mask(model, attention)).last_hidden_state
+    if family == 'llama':
+        return model.model(input_ids=x, attention_mask=padding_mask(model, attention)).last_hidden_state
+    if family == 'a2d':                     # the masked Qwen models build a bidirectional padding mask from 2D
+        return model.model(input_ids=x, attention_mask=attention.long()).last_hidden_state
+    if not bool(attention.all()):
+        raise NotImplementedError(f'{family}: rows of different lengths in one batch are not implemented (#443)')
+    if family == 'dream':
+        return hidden_states(model, family, x)
+    raise NotImplementedError(f'{family}: batched fills are not implemented (#443)')
+
+
+def make_row_forward(model: Any, family: str, right_shift: bool | None = None) -> RowForward:
+    """fill_rows' forward for one family: the output layer on each row's own slot positions only (scope slots),
+    from position i - 1 for a model that predicts from the previous position."""
+    shifted = (family in SHIFTED) if right_shift is None else right_shift
+
+    def forward(x: torch.Tensor, attention: torch.Tensor, keep: torch.Tensor) -> torch.Tensor:
+        where = (keep - 1).clamp(min=0) if shifted else keep
+        h = row_hidden_states(model, family, x, attention)
+        return model.lm_head(h.gather(1, where[..., None].expand(-1, -1, h.shape[-1])))
+    return forward
 
 
 @torch.no_grad()
