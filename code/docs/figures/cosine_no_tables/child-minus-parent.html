@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The table-free 5e-4 recipe beats the table-free 4e-4 recipe by 2.26 nats per team but trails the table-masked 5e-4 recipe by 0.75</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:260px}
+</style>
+</head>
+<body>
+<main>
+<h1>The table-free 5e-4 recipe beats the table-free 4e-4 recipe by 2.26 nats per team but trails the table-masked 5e-4 recipe by 0.75</h1>
+<p class="sub">Table-free 5e-4 recipe minus each parent, nats per team with the tables on, paired bootstrap 95% over 1,024 held-out teams. Left of zero = the child fits better. Grey band: within ±1 nat, too small to act on.</p>
+<div id="chart"></div>
+<p class="note">Nats per team: exact held-out log-likelihood under the species-first sampler, −log p summed over 84 fields; lower is better. 1,024 held-out teams. Tables on / off: the sampler draws with or without the legal Pokémon construction tables. Table-free: the legal Pokémon construction tables left out of the training loss. Table-masked: the loss masks every forbidden value. 5e-4 recipe: peak 5e-4, 1,000 warm-up steps, cosine to 5e-5. 4e-4 recipe: 4e-4, 500 warm-up steps, cosine to 0. Same table, seed and network otherwise. One training seed per model: the interval covers the held-out teams, not training luck.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"tooltip": {"trigger": "item", "formatter": "js:p => p.name + '<br>' + p.data.label"}, "grid": {"left": 210, "right": 40, "top": 30, "bottom": 50}, "yAxis": {"type": "category", "data": ["vs Table-masked 5e-4 recipe", "vs Table-free 4e-4 recipe"], "inverse": true, "axisTick": {"show": false}}, "xAxis": {"type": "value", "name": "child minus parent, nats per team", "nameLocation": "middle", "nameGap": 30}, "series": [{"type": "custom", "name": "interval", "silent": true, "z": 2, "encode": {"x": [1, 2], "y": 0}, "data": [[0, 0.438689062615571, 1.0788307543792859], [1, -2.4623540419695145, -2.0400265380969516]], "renderItem": "js:(params, api) => { const y = api.coord([0, api.value(0)])[1]; const a = api.coord([api.value(1), api.value(0)])[0]; const b = api.coord([api.value(2), api.value(0)])[0]; const s = {stroke: '#c2410c', lineWidth: 2.5}; return {type: 'group', children: [{type: 'line', shape: {x1: a, y1: y, x2: b, y2: y}, style: s},{type: 'line', shape: {x1: a, y1: y - 7, x2: a, y2: y + 7}, style: s},{type: 'line', shape: {x1: b, y1: y - 7, x2: b, y2: y + 7}, style: s}]}; }"}, {"type": "scatter", "name": "mean", "symbolSize": 11, "color": "#c2410c", "z": 3, "emphasis": {"focus": "series"}, "data": [{"value": [0.75, 0], "name": "vs Table-masked 5e-4 recipe", "label": "+0.75 [+0.44, +1.08] nats per team"}, {"value": [-2.258, 1], "name": "vs Table-free 4e-4 recipe", "label": "-2.26 [-2.46, -2.04] nats per team"}], "label": {"show": true, "position": "top", "fontSize": 11, "formatter": "js:p => p.value[0].toFixed(2)"}, "markArea": {"silent": true, "itemStyle": {"color": "rgba(138,137,132,0.16)"}, "data": [[{"xAxis": -1.0}, {"xAxis": 1.0}]]}, "markLine": {"silent": true, "symbol": "none", "lineStyle": {"color": "#52514e", "type": "solid"}, "label": {"show": false}, "data": [{"xAxis": 0}]}}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>

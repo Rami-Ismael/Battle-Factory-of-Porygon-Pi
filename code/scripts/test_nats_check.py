@@ -163,6 +163,13 @@ class ReportRefusals(unittest.TestCase):
         with self.assertRaises(SystemExit): NC.same_teams(dict(a=result("x" * 64, 256), b=result("y" * 64, 256)))
         with self.assertRaises(SystemExit): NC.same_teams(dict(a=result("x" * 64, 256), b=result("x" * 64, 32)))
 
+    def test_parents_name_models(self):
+        """Every model's parents are other models in MODELS, so the parent comparison can pair them."""
+        for code, spec in NC.MODELS.items():
+            for parent in spec.get("parents", ()):
+                self.assertIn(parent, NC.MODELS)
+                self.assertNotEqual(parent, code)
+
 
 if __name__ == "__main__":
     unittest.main()
