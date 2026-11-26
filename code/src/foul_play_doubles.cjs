@@ -346,6 +346,16 @@ class View {
       if (old && kind !== 'replace') { old.boosts = {}; old.volatiles = {}; old.protectChain = 0; }
       const m = this.mon(a[1]);
       m.species = a[2].split(',')[0];
+      if (kind === 'replace') {
+        // Illusion broke: the same Pokémon stays in, so it keeps what its disguise showed. The line has no HP.
+        if (old && old !== m) {
+          for (const k of ['frac', 'status', 'boosts', 'volatiles', 'protectChain', 'switchedTurn',
+            'movesSinceSwitch', 'lastMove', 'lastMoveTurn']) m[k] = old[k];
+        }
+        m.revealed = true;
+        this.active[side][slot] = m;
+        return;
+      }
       const hp = parseHP(a[3]);
       if (Number.isFinite(hp.frac)) { m.frac = hp.frac; m.status = hp.status === 'fnt' ? '' : hp.status; }
       m.revealed = true;

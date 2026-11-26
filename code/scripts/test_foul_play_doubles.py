@@ -26,6 +26,28 @@ def meta_teams(n):
 
 @unittest.skipUnless(RUNTIME.exists() and DB.exists(), "needs this laptop's Showdown runtime and matchup database")
 class FoulPlayDoubles(unittest.TestCase):
+    def test_illusion_break_keeps_the_hp_the_disguise_showed(self):
+        """Showdown's replace line (Illusion broken) carries no HP: the view must not parse one, and the revealed
+        Zoroark keeps the HP, boosts and switch turn its disguise showed. 61 of 98 battles of pilot team 385255
+        (#447) crashed here."""
+        script = """
+const {View} = require(process.argv[1]);
+const v = new View('p1', process.argv[2]);
+for (const l of ['|turn|1', '|switch|p2a: Wyrdeer|Wyrdeer, L50, M|100/100', '|-damage|p2a: Wyrdeer|43/100',
+                 '|-boost|p2a: Wyrdeer|atk|1', '|turn|2', '|replace|p2a: Zoroark|Zoroark-Hisui, L50, M',
+                 '|-end|p2a: Zoroark|Illusion']) v.line(l);
+const z = v.active.p2[0];
+console.log(JSON.stringify({species: z.species, frac: z.frac, atk: z.boosts.atk, switched: z.switchedTurn}));
+"""
+        paste = meta_teams(1)[0]
+        out = subprocess.run(["node", "-e", script, str(SRC / "foul_play_doubles.cjs"), paste],
+                             capture_output=True, text=True, timeout=60)
+        self.assertEqual(out.returncode, 0, out.stderr[-800:])
+        got = json.loads(out.stdout.strip().splitlines()[-1])
+        self.assertEqual(got["species"], "Zoroark-Hisui")
+        self.assertAlmostEqual(got["frac"], 0.435, places=3)
+        self.assertEqual((got["atk"], got["switched"]), (1, 1))
+
     def test_rebuilt_battle_matches_real_battle(self):
         """Every visible field of the searched battle equals the real one at every decision."""
         with tempfile.TemporaryDirectory() as tmp:
