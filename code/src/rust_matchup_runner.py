@@ -62,17 +62,14 @@ def sha256_files(paths, root=None):
     return h.hexdigest()
 
 
-_runtime_hash = {}
+RUNTIME_PARTS = ("dist/sim", "dist/data", "dist/config", "dist/lib")   # dist/config/formats.js holds the Reg M-B rules
+
 
 def runtime_hash(runtime=None):
-    """Content hash of the Showdown runtime that referees: package.json and every file under dist/sim and dist/data."""
-    runtime = runtime or RUNTIME
-    key = str(runtime)
-    if key not in _runtime_hash:
-        dist = sorted(p for sub in ("dist/sim", "dist/data") for p in (Path(runtime) / sub).rglob("*") if p.is_file())
-        files = [Path(runtime) / "package.json", *dist]
-        _runtime_hash[key] = sha256_files(files, root=runtime)
-    return _runtime_hash[key]
+    """Content hash of the Showdown runtime that referees: package.json and every file under RUNTIME_PARTS."""
+    runtime = Path(runtime or RUNTIME)
+    dist = sorted(p for sub in RUNTIME_PARTS for p in (runtime / sub).rglob("*") if p.is_file())
+    return sha256_files([runtime / "package.json", *dist], root=runtime)
 
 
 def provenance(bin=None, dex=None, spreads=None, runtime=None):
@@ -135,14 +132,18 @@ def claim_games(con, policy_id, counts):
     A cell's next index never falls back, so a game that failed, or was still running when a job died,
     is skipped rather than its index handed to a later game whose twin is already recorded."""
     import matchup_db as M
-    con.execute(NEXT_GAME)
+    with con: con.execute(NEXT_GAME)
     starts = {}
-    with con:
+    con.execute("BEGIN IMMEDIATE")          # write lock before the read: two jobs never claim the same index
+    try:
         for (lo, hi), n in counts.items():
             r = con.execute("SELECT next_game FROM rust_next_game WHERE policy_id=? AND lo=? AND hi=?", (policy_id, lo, hi)).fetchone()
             starts[(lo, hi)] = start = max(r[0] if r else 0, M.battles_done(con, policy_id, lo, hi))
             con.execute("INSERT INTO rust_next_game VALUES (?,?,?,?) ON CONFLICT (policy_id, lo, hi) "
                         "DO UPDATE SET next_game=excluded.next_game", (policy_id, lo, hi, start + n))
+        con.commit()
+    except BaseException:
+        con.rollback(); raise
     return starts
 
 
@@ -180,10 +181,20 @@ def agent_counts(stats):
 
 
 # ---------------------------------------------------------------- the node processes
-async def play_node(games, spec, on_done, workers=8, concurrency=1, timeout=1800, log=None, env=None):  # noqa: C901
+async def play_node(games, spec, on_done, workers=8, concurrency=1, timeout=1800, log=None, env=None, command=None):  # noqa: C901
     """Play every game on `workers` foul_play_doubles_runner.cjs processes (each with its own Rust engine
-    daemon), `concurrency` battles at a time per process. on_done(game, result_or_None, error_or_None)."""
-    procs, pending, dead = [], {}, set()
+    daemon), `concurrency` battles at a time per process, pulling from one shared queue.
+    on_done(game, result_or_None, error_or_None). A process that exits fails only its own battles; one
+    whose battle times out is killed and retired, and the queue goes to the live processes."""
+    procs, owned, dead, readers = [], {}, set(), []      # owned[k]: {game id: future} on process k
+
+    def retire(k, why):
+        dead.add(k)
+        if procs[k].returncode is None:
+            try: procs[k].kill()
+            except ProcessLookupError: pass
+        for f in owned[k].values():
+            if not f.done(): f.set_exception(RustRunnerError(why))
 
     async def read(proc, k):
         try:
@@ -192,26 +203,50 @@ async def play_node(games, spec, on_done, workers=8, concurrency=1, timeout=1800
                 if not line: break
                 try: item = json.loads(line)
                 except ValueError: continue          # a stray non-protocol line on stdout
-                f = pending.get(item.get("id"))
+                f = owned[k].get(item.get("id"))
                 if f is None or f.done(): continue
                 if item.get("kind") == "error": f.set_exception(RustRunnerError(str(item.get("error"))[:2000]))
                 elif item.get("kind") == "result": f.set_result(item)
         finally:
-            dead.add(k)
-            for f in pending.values():
-                if not f.done(): f.set_exception(RustRunnerError(f"battle runner {k} stopped (exit code {proc.returncode})"))
+            retire(k, f"battle runner {k} stopped (exit code {proc.returncode})")
 
-    readers = []
+    async def send_and_wait(k, game, f):
+        msg = {"kind": "start", "id": game["id"], "a": game["a"], "b": game["b"], "seed": game["seed"], "p1": spec, "p2": spec}
+        procs[k].stdin.write((json.dumps(msg) + "\n").encode()); await procs[k].stdin.drain()
+        return await f
+
+    queue = asyncio.Queue()
+    for g in games: queue.put_nowait(g)
+
+    async def consume(k):
+        while k not in dead:
+            try: game = queue.get_nowait()
+            except asyncio.QueueEmpty: return
+            f = owned[k][game["id"]] = asyncio.get_running_loop().create_future()
+            try:
+                result = await asyncio.wait_for(send_and_wait(k, game, f), timeout)
+            except asyncio.TimeoutError:
+                on_done(game, None, f"TimeoutError: no result in {timeout} s"); retire(k, "battle runner retired after a timeout")
+                continue
+            except (RustRunnerError, OSError) as e:
+                on_done(game, None, f"{type(e).__name__}: {e}"[:2000]); continue
+            finally:
+                owned[k].pop(game["id"], None)
+            on_done(game, result, None)
+
     try:
-        for _ in range(workers):
-            p = await asyncio.create_subprocess_exec("node", str(RUNNER_JS), stdin=asyncio.subprocess.PIPE,
+        for k in range(workers):
+            owned[k] = {}
+            p = await asyncio.create_subprocess_exec(*(command or ("node", str(RUNNER_JS))), stdin=asyncio.subprocess.PIPE,
                                                      stdout=asyncio.subprocess.PIPE, stderr=log, env=env, limit=2 ** 26)
             procs.append(p)
             try: ready = json.loads(await asyncio.wait_for(p.stdout.readline(), 120) or b"{}")
             except (asyncio.TimeoutError, ValueError): ready = {}
             if ready.get("kind") != "ready": raise RustRunnerError("foul_play_doubles_runner.cjs did not start")
         readers = [asyncio.create_task(read(p, k)) for k, p in enumerate(procs)]
-        await _play_all(games, spec, on_done, procs, pending, dead, concurrency, timeout)
+        await asyncio.gather(*(consume(k) for k in range(len(procs)) for _ in range(concurrency)))
+        while not queue.empty():                       # every process retired before the queue emptied
+            on_done(queue.get_nowait(), None, "RustRunnerError: no live battle runner left")
     finally:
         for p in procs:
             try: p.stdin.close()
@@ -220,29 +255,6 @@ async def play_node(games, spec, on_done, workers=8, concurrency=1, timeout=1800
             try: await asyncio.wait_for(p.wait(), 10)
             except asyncio.TimeoutError: p.kill()
         for r in readers: r.cancel()
-
-
-async def _play_all(games, spec, on_done, procs, pending, dead, concurrency, timeout):
-    """Each game on process i % len(procs), at most `concurrency` at a time per process."""
-    gates = [asyncio.Semaphore(concurrency) for _ in procs]
-
-    async def battle(game, k):
-        async with gates[k]:
-            f = pending[game["id"]] = asyncio.get_running_loop().create_future()
-            if k in dead: f.set_exception(RustRunnerError("battle runner exited before this battle started"))
-            msg = {"kind": "start", "id": game["id"], "a": game["a"], "b": game["b"], "seed": game["seed"],
-                   "p1": spec, "p2": spec}
-            try:
-                if not f.done():
-                    procs[k].stdin.write((json.dumps(msg) + "\n").encode()); await procs[k].stdin.drain()
-                result = await asyncio.wait_for(f, timeout)
-            except (asyncio.TimeoutError, RustRunnerError, OSError) as e:
-                on_done(game, None, f"{type(e).__name__}: {e}"[:2000]); return
-            finally:
-                pending.pop(game["id"], None)
-            on_done(game, result, None)
-
-    await asyncio.gather(*(battle(g, i % len(procs)) for i, g in enumerate(games)))
 
 
 # ---------------------------------------------------------------- the runner
@@ -262,39 +274,54 @@ class RustMatchupRunner:
         self.workers, self.concurrency, self.ms, self.preview_ms = workers, concurrency, ms, preview_ms
         self.flush_every, self.timeout, self.allow_errors = flush_every, timeout, allow_errors
         self.evidence, self.check_spreads, self._play = evidence, check_spreads, play
-        self._prov = prov                    # tests pass hashes; otherwise computed on first register()
+        self._prov = prov                    # tests pass fixed hashes; otherwise hashed afresh on every call
+        self._spreads_checked = set()
 
     def spec(self):
         return {"policy": self.policy, "samples": self.samples, "ms": self.ms, "previewMs": self.preview_ms,
                 "iterations": self.iterations}
 
-    def register(self, con):
-        """This runner's policy_id in the database (created on first use)."""
-        if self._prov is None:
-            self._prov = self.preflight() if self._play is None else provenance()
-        return get_rust_policy(con, self.policy, self.iterations, self.samples, self.slot_order, self._prov)
+    def register(self, con, inputs=None):
+        """This runner's policy_id for the inputs as they are now (created on first use). inputs: the
+        snapshot {bin, dex, spreads} a call battles with; default the live files."""
+        return get_rust_policy(con, self.policy, self.iterations, self.samples, self.slot_order, self.preflight(inputs))
 
-    def preflight(self):
-        """Fail before the first battle: engine, dex, runtime and node present; spreads leave out the evaluation teams."""
-        prov = provenance()
-        if shutil.which("node") is None: raise FileNotFoundError("node is not on PATH")
-        if self.check_spreads:
+    def preflight(self, inputs=None):
+        """Hash the inputs and fail before the first battle: engine, dex, runtime and node present; the
+        spreads leave out the evaluation teams (checked once per spreads content)."""
+        if self._prov is not None: return self._prov
+        prov = provenance(**(inputs or {}))
+        if self._play is None and shutil.which("node") is None: raise FileNotFoundError("node is not on PATH")
+        if self.check_spreads and self._play is None and prov["spreads"] not in self._spreads_checked:
             import foul_play_doubles_battles as F
-            F.check_spreads(SPREADS)
+            F.check_spreads((inputs or {}).get("spreads") or SPREADS)
+            self._spreads_checked.add(prov["spreads"])
         return prov
 
+    def snapshot(self, folder):
+        """Copies of the engine, dex and spreads in the run folder: the workers run the files that were hashed."""
+        d = Path(folder) / "inputs"; d.mkdir(parents=True, exist_ok=True)
+        out = {}
+        for key, src in (("bin", BIN), ("dex", DEX), ("spreads", SPREADS)):
+            if not Path(src).exists(): provenance()        # raises the named FileNotFoundError
+            out[key] = d / Path(src).name; shutil.copy2(src, out[key])
+        return out
+
     def __call__(self, con, jobs, seed=None, policy_id=None, sink=None):  # noqa: C901
-        own = self.register(con)
+        folder = Path(self.evidence or EVIDENCE / f"{time.strftime('%Y%m%d-%H%M%S')}-{os.getpid()}-{uuid.uuid4().hex[:6]}")
+        folder.mkdir(parents=True, exist_ok=True)
+        inputs = None if self._play else self.snapshot(folder)
+        prov = self.preflight(inputs)
+        own = get_rust_policy(con, self.policy, self.iterations, self.samples, self.slot_order, prov)
         if policy_id is not None and policy_id != own:
-            raise ValueError(f"this runner battles policy {own} ({self.policy}); it cannot add battles to policy {policy_id}")
+            raise ValueError(f"this runner battles policy {own} ({self.policy}) with its current inputs; "
+                             f"it cannot add battles to policy {policy_id}")
         ids = sorted({j["row"] for j in jobs} | {c for j in jobs for c in j["schedule"]})
         pastes = dict(con.execute(f"SELECT team_id, paste FROM team WHERE team_id IN ({','.join('?' * len(ids))})", ids))
         games = make_games(jobs, pastes, claim_games(con, own, cell_counts(jobs)), seed or 0)   # seed None plays as 0
-        folder = Path(self.evidence or EVIDENCE / f"{time.strftime('%Y%m%d-%H%M%S')}-{os.getpid()}-{uuid.uuid4().hex[:6]}")
-        folder.mkdir(parents=True, exist_ok=True)
         (folder / "config.json").write_text(json.dumps({**self.spec(), "workers": self.workers, "concurrency": self.concurrency,
                                                         "policy_id": own, "seed": seed, "games": len(games),
-                                                        "sha256": self._prov}, indent=1) + "\n")
+                                                        "sha256": prov}, indent=1) + "\n")
         out = (folder / "battles.jsonl").open("a")
         results, part, errors, totals = [], [], [], {"fallbacks": 0, "rejected": 0, "failed_samples": 0, "decisions": 0, "iterations": 0}
         window = {"t": time.perf_counter(), "unattributed": 0, **{k: 0 for k in totals}}
@@ -325,8 +352,8 @@ class RustMatchupRunner:
             out.flush()
             if len(part) + window["unattributed"] >= self.flush_every: flush()
 
-        env = {**os.environ, "FOUL_PLAY_SPREADS": str(SPREADS), "SHOWDOWN_RUNTIME": str(RUNTIME),
-               "RUST_ENGINE_BIN": str(BIN), "REGMB_DEX": str(DEX)}
+        env = {**os.environ, "SHOWDOWN_RUNTIME": str(RUNTIME)}
+        if inputs: env.update(FOUL_PLAY_SPREADS=str(inputs["spreads"]), RUST_ENGINE_BIN=str(inputs["bin"]), REGMB_DEX=str(inputs["dex"]))
         try:
             if self._play: self._play(games, self.spec(), on_done)
             else:

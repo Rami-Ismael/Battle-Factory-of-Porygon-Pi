@@ -56,16 +56,17 @@ in #417) or UCT (upper confidence bounds applied to trees) search with random pl
 | field | value |
 |---|---|
 | `row_policy` = `col_policy` | `rust_foulplay_det:iterations=30000:samples=1:engine=<16 hex>:dex=<16 hex>:spreads=<16 hex>:agent=<16 hex>+slots-shuffled` |
-| `simulator` | `showdown-runtime:<sha256 of package.json, dist/sim and dist/data>` |
+| `simulator` | `showdown-runtime:<sha256 of package.json, dist/sim, dist/data, dist/config (formats.js: the Reg M-B rules) and dist/lib>` |
 | `note` | JSON with the full SHA-256 of the engine binary, `regmb-dex.json`, the Stat Points dataset, the agent JavaScript and the runtime |
 
-Any change to the engine, dex, spreads or agent code makes a new policy row, so cells never mix
-configurations. `ensure` refuses to give a Rust policy to another runner, and the runner refuses a
+Any change to the engine, dex, spreads, agent code or runtime makes a new policy row, so cells never mix
+configurations. Each call hashes its inputs afresh and copies the engine, dex and spreads into its
+run folder (`inputs/`, 2.1 MB); the workers run those copies, so a file replaced mid-run cannot slip in. `ensure` refuses to give a Rust policy to another runner, and the runner refuses a
 policy_id other than its own, so the behaviour-cloning rows (policy_id 1-8) never take these battles.
 
 Game g of cell (lo, hi) is fixed by (seed, lo, hi, g): lo is p1 on even g, both teams' slots are
 shuffled from that tuple, and the battle seed comes from the same hash. Each cell's next g is
-reserved in table `rust_next_game` before its battles start, so a top-up plays new games and an
+reserved in table `rust_next_game` under a write lock before its battles start, so two jobs never share an index, so a top-up plays new games and an
 index is never reused; a failed or killed game leaves its index unplayed (sides may then split
 one game off even). The runner records a batch every 100 finished battles, so a
 killed job keeps what it finished; a failed battle is counted in `batch.unattributed` and raises

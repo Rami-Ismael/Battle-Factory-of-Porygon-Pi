@@ -6,6 +6,7 @@ bug: battles recorded under a behaviour-cloning policy, a cached cell battled ag
 replays earlier seeds, sides that never alternate, finished battles lost when a run dies, or a
 failed battle that passes silently."""
 import json
+import sqlite3
 import sys
 import tempfile
 import unittest
@@ -178,6 +179,70 @@ class RustRunner(unittest.TestCase):
         rows = [json.loads(x) for x in (Path(self.d.name) / "ev" / "battles.jsonl").read_text().splitlines()]
         self.assertEqual(len(rows), 6)
         self.assertEqual(json.loads((Path(self.d.name) / "ev" / "summary.json").read_text())["battles"], 6)
+
+
+FAKE_WORKER = r"""
+import json, os, sys, time
+print(json.dumps({"kind": "ready"}), flush=True)
+for line in sys.stdin:
+    m = json.loads(line)
+    if m["id"].startswith("crash"): os._exit(3)
+    if m["id"].startswith("hang"): time.sleep(60); continue
+    print("not json", flush=True)                      # stray stdout line
+    print(json.dumps({"kind": "result", "id": m["id"], "winner": "p1", "turns": 3, "stats": {}}), flush=True)
+"""
+
+
+class NodeDriver(unittest.TestCase):
+    """play_node against a fake worker process that answers, crashes or hangs by game id."""
+    def play(self, ids, workers=2, timeout=30):
+        d = tempfile.TemporaryDirectory(); self.addCleanup(d.cleanup)
+        worker = Path(d.name) / "worker.py"; worker.write_text(FAKE_WORKER)
+        done = {}
+        games = [{"id": i, "a": "", "b": "", "seed": 1} for i in ids]
+        import asyncio
+        asyncio.run(R.play_node(games, {}, lambda g, r, e: done.__setitem__(g["id"], e or r["winner"]),
+                                workers=workers, timeout=timeout, command=(sys.executable, str(worker))))
+        return done
+
+    def test_a_crashing_worker_fails_only_its_own_battle(self):
+        done = self.play(["crash-0"] + [f"ok-{i}" for i in range(6)])
+        self.assertIn("stopped", done["crash-0"])
+        self.assertEqual({k: v for k, v in done.items() if k != "crash-0"}, {f"ok-{i}": "p1" for i in range(6)})
+
+    def test_a_timed_out_worker_is_retired_and_the_rest_play_on_live_workers(self):
+        t0 = __import__("time").perf_counter()
+        done = self.play(["hang-0"] + [f"ok-{i}" for i in range(6)], timeout=1)
+        self.assertIn("TimeoutError", done["hang-0"])
+        self.assertEqual({k: v for k, v in done.items() if k != "hang-0"}, {f"ok-{i}": "p1" for i in range(6)})
+        self.assertLess(__import__("time").perf_counter() - t0, 15)     # one timeout, not one per queued game
+
+    def test_battles_left_when_every_worker_is_gone_fail_at_once(self):
+        done = self.play(["crash-0", "crash-1", "ok-0"], workers=2)
+        self.assertIn("no live battle runner", done["ok-0"])
+
+
+class Provenance(unittest.TestCase):
+    def test_the_format_rules_are_in_the_runtime_hash(self):
+        with tempfile.TemporaryDirectory() as d:
+            rt = Path(d)
+            for f in ("package.json", "dist/sim/battle.js", "dist/data/moves.js", "dist/config/formats.js"):
+                (rt / f).parent.mkdir(parents=True, exist_ok=True); (rt / f).write_text("x")
+            before = R.runtime_hash(rt)
+            (rt / "dist/config/formats.js").write_text("y")
+            self.assertNotEqual(before, R.runtime_hash(rt))
+
+    def test_two_jobs_cannot_claim_the_same_game_index(self):
+        with tempfile.TemporaryDirectory() as d:
+            con = M.connect(Path(d) / "t.sqlite")
+            other = sqlite3.connect(Path(d) / "t.sqlite", timeout=0.1)
+            def write_meanwhile(*a):
+                other.execute("INSERT INTO rust_next_game VALUES (1, 1, 2, 0)")    # a second job claiming now
+                return 0
+            with mock.patch.object(M, "battles_done", write_meanwhile):
+                with self.assertRaises(sqlite3.OperationalError):          # locked: the claim holds the write lock
+                    R.claim_games(con, 1, {(1, 2): 2})
+            con.close(); other.close()
 
 
 if __name__ == "__main__":
