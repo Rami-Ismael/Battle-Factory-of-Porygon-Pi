@@ -130,7 +130,7 @@ def check_controls(_args: argparse.Namespace) -> int:
     sys.path.insert(0, str(J.SRC))
     import matchup_db as M
     con = sqlite3.connect(f'file:{DB}?mode=ro', uri=True)
-    pid = con.execute("SELECT max(policy_id) FROM policy WHERE row_policy LIKE '%+slots-shuffled'").fetchone()[0]
+    pid = con.execute("SELECT max(policy_id) FROM policy WHERE row_policy LIKE '%+slots-shuffled' AND row_policy NOT LIKE 'rust%'").fetchone()[0]
     canon = {h: t for t, h in con.execute('SELECT team_id, canon_hash FROM team')}
     tid = lambda paste: canon[M.canon_hash(M.canonical_paste(paste))]
     cols = {t for (t,) in con.execute("SELECT team_id FROM team_set WHERE set_name='top50'")}
@@ -152,7 +152,7 @@ def report(_args: argparse.Namespace) -> dict:
     sys.path.insert(0, str(J.SRC))
     import matchup_db as M
     con = sqlite3.connect(f'file:{DB}?mode=ro', uri=True)
-    pid = con.execute("SELECT max(policy_id) FROM policy WHERE row_policy LIKE '%+slots-shuffled'").fetchone()[0]
+    pid = con.execute("SELECT max(policy_id) FROM policy WHERE row_policy LIKE '%+slots-shuffled' AND row_policy NOT LIKE 'rust%'").fetchone()[0]
     canon = {h: t for t, h in con.execute('SELECT team_id, canon_hash FROM team')}
     tid = lambda paste: canon[M.canon_hash(M.canonical_paste(paste))]
     sources = {s: tid(p) for s, p in unmasked().items()}
