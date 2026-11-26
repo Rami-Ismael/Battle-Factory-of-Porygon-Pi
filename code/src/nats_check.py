@@ -72,6 +72,10 @@ MODELS = {
                                     note="peak 5e-4 falling on a cosine to 5e-5, the GIDD paper's recipe (issue #431)"),
     "no_table_loss": dict(checkpoint="stat84_shuffled_noise_linear_no_table_loss_es3_cap80", role="new", grid=None,
                           reader="No tables in the loss, 80 epochs", note="linear schedule, filtered table (issue #361 rerun)"),
+    "no_table_loss_gidd_lr": dict(checkpoint="stat84_shuffled_noise_linear_filtered_lr5e4_min5e5_no_table_loss_es3_cap80", role="new",
+                                  grid=None, reader="Table-free 5e-4 recipe",
+                                  note="no tables in the loss with the cosine learning rate, peak 5e-4 to 5e-5 (issue #451)",
+                                  parents=("linear_filtered_gidd_lr", "no_table_loss")),
 }
 # Stored numbers the report sets each model against. `ours` names the measure of this check that is closest;
 # `same` says whether it is the same quantity on the same teams (then a rerun must reproduce it) or only a neighbour.
@@ -607,7 +611,9 @@ def build_report(out=OUT, grids=None):
     report = dict(selftest=selftest(), models=order, new=new, references=references, grid=grid,
                   checks={c: {k: max(results[c]["modes"][m][k] for m in MODES) for k in ("sum_error", "sampler_error")} for c in order},
                   held_out={c: results[c]["held_out"] for c in order},
-                  comparisons={n: {r: compare(n, r, arrays) for r in references} for n in new}, stored_references=[])
+                  comparisons={n: {r: compare(n, r, arrays) for r in references} for n in new},
+                  parent_comparisons={c: {p: compare(c, p, arrays) for p in MODELS[c]["parents"] if p in arrays}
+                                      for c in order if MODELS.get(c, {}).get("parents")}, stored_references=[])
     for ref in REFERENCES:
         measured_on = ref.get("model")
         row = dict(ref, new={c: our_measure(results[c], ref["ours"]) for c in new},
@@ -686,6 +692,14 @@ def markdown(report, results):  # noqa: C901
     for n, by_ref in report["comparisons"].items():
         for r, d in by_ref.items():
             lines.append(f"| {name(n)} | {name(r)} | {interval(d['tables on'])} | {interval(d['tables off'])} |")
+    if report.get("parent_comparisons"):
+        lines += ["", "## Each model against its parents", "",
+                  "A model that combines two trained changes, against each model it combines. Child minus parent, nats per team, "
+                  "paired bootstrap 95%. Negative = the child is better.", "",
+                  "| Model | Parent | Tables on | Tables off |", "|---|---|---|---|"]
+        for c, by_parent in report["parent_comparisons"].items():
+            for p, d in by_parent.items():
+                lines.append(f"| {name(c)} | {name(p)} | {interval(d['tables on'])} | {interval(d['tables off'])} |")
     new = report["new"]
     lines += ["", "## Against the stored reference numbers", "",
               "Each row is one stored number, the same measure rescored now on the checkpoint it came from, and that measure on each new model. "

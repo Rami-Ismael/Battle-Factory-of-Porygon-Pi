@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>With the tables on, the two gains do not add: the table-free 5e-4 recipe scores 99.3 nats, not the additive 93.4</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:380px}
+</style>
+</head>
+<body>
+<main>
+<h1>With the tables on, the two gains do not add: the table-free 5e-4 recipe scores 99.3 nats, not the additive 93.4</h1>
+<p class="sub">Nats per team on 1,024 held-out teams, one cell per trained model. Lower is better. Each panel has its own color scale.</p>
+<div id="chart"></div>
+<p class="note">Nats per team: exact held-out log-likelihood under the species-first sampler, −log p summed over 84 fields; lower is better. 1,024 held-out teams. Tables on / off: the sampler draws with or without the legal Pokémon construction tables. Table-free: the legal Pokémon construction tables left out of the training loss. Table-masked: the loss masks every forbidden value. 5e-4 recipe: peak 5e-4, 1,000 warm-up steps, cosine to 5e-5. 4e-4 recipe: 4e-4, 500 warm-up steps, cosine to 0. Same table, seed and network otherwise.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"tooltip": {"formatter": "js:p => p.value[2] == null ? 'not trained' : p.value[2].toFixed(2) + ' nats per team'"}, "grid": {"left": 110, "right": 24, "top": 40, "bottom": 70}, "xAxis": {"type": "category", "data": ["4e-4 recipe", "5e-4 recipe", "", "4e-4 recipe", "5e-4 recipe"], "axisTick": {"show": false}, "axisLabel": {"interval": 0, "fontSize": 11}, "splitArea": {"show": false}}, "yAxis": {"type": "category", "data": ["table-masked", "table-free"], "axisTick": {"show": false}}, "visualMap": [{"seriesIndex": 0, "min": 98.51, "max": 106.59, "show": true, "calculable": false, "orient": "horizontal", "left": "center", "bottom": 0, "inRange": {"color": ["#1b7a5a", "#f2efe6", "#b4442a"]}, "text": ["more nats", "fewer nats"]}, {"seriesIndex": 1, "min": 100.62, "max": 200.79, "show": false, "calculable": false, "orient": "horizontal", "left": "center", "bottom": 0, "inRange": {"color": ["#1b7a5a", "#f2efe6", "#b4442a"]}, "text": ["more nats", "fewer nats"]}], "title": [{"text": "Tables on", "left": 130, "top": 8, "textStyle": {"fontSize": 13}}, {"text": "Tables off", "right": 60, "top": 8, "textStyle": {"fontSize": 13}}], "series": [{"type": "heatmap", "data": [{"value": [0, 0, 106.59]}, {"value": [1, 0, 98.51]}, {"value": [0, 1, 101.52]}, {"value": [1, 1, 99.27]}], "label": {"show": true, "fontSize": 15, "formatter": "js:p => p.value[2] == null ? 'not trained' : p.value[2].toFixed(1)"}, "itemStyle": {"borderColor": "#fcfcfb", "borderWidth": 3}, "emphasis": {"itemStyle": {"borderColor": "#0b0b0b"}}}, {"type": "heatmap", "data": [{"value": [3, 0, 200.79]}, {"value": [4, 0, 162.73]}, {"value": [3, 1, 103.17]}, {"value": [4, 1, 100.62]}], "label": {"show": true, "fontSize": 15, "formatter": "js:p => p.value[2] == null ? 'not trained' : p.value[2].toFixed(1)"}, "itemStyle": {"borderColor": "#fcfcfb", "borderWidth": 3}, "emphasis": {"itemStyle": {"borderColor": "#0b0b0b"}}}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>
