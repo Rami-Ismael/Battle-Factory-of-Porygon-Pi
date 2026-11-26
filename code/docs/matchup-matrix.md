@@ -47,6 +47,38 @@ column whose six species it showed at team preview. Columns sharing a species se
 the VGCPastes pool; none in the top-50) are put in separate jobs. Battles that cannot be matched are counted
 as `unattributed` and never written to a cell.
 
+## Rust search labeler (2026-11-25, #418)
+
+`src/rust_matchup_runner.py` battles cells with our Rust Regulation M-B doubles search on both sides:
+Foul Play deterministic argmax (`rust_foulplay_det`, 30,000 iterations, 1 sample, the labeler chosen
+in #417) or UCT (upper confidence bounds applied to trees) search with random playouts (`rust_uct_rollout`). Its cells sit under their own `policy` row:
+
+| field | value |
+|---|---|
+| `row_policy` = `col_policy` | `rust_foulplay_det:iterations=30000:samples=1:engine=<16 hex>:dex=<16 hex>:spreads=<16 hex>:agent=<16 hex>+slots-shuffled` |
+| `simulator` | `showdown-runtime:<sha256 of package.json, dist/sim and dist/data>` |
+| `note` | JSON with the full SHA-256 of the engine binary, `regmb-dex.json`, the Stat Points dataset, the agent JavaScript and the runtime |
+
+Any change to the engine, dex, spreads or agent code makes a new policy row, so cells never mix
+configurations. `ensure` refuses to give a Rust policy to another runner, and the runner refuses a
+policy_id other than its own, so the behaviour-cloning rows (policy_id 1-8) never take these battles.
+
+Game g of cell (lo, hi) is fixed by (seed, lo, hi, g): lo is p1 on even g, both teams' slots are
+shuffled from that tuple, and the battle seed comes from the same hash. Each cell's next g is
+reserved in table `rust_next_game` before its battles start, so a top-up plays new games and an
+index is never reused; a failed or killed game leaves its index unplayed (sides may then split
+one game off even). The runner records a batch every 100 finished battles, so a
+killed job keeps what it finished; a failed battle is counted in `batch.unattributed` and raises
+after the finished ones are recorded. Each batch `note` carries the fallback, rejected-choice,
+failed-sample and error counts; per-battle evidence goes to `~/vgc-data/rust-matchup/<run>/`.
+
+    python src/matchup_db.py --labeler rust_foulplay_det ensure --rows 12,13 --cols top50 --per-cell 2
+    python src/matchup_db.py --labeler rust_foulplay_det score --teams 12,13
+
+Tracer (2026-11-25, `scripts/test_rust_matchup_live.py`): 4 VGCPastes teams x 4 top-50 meta teams x
+2 games = 32 battles in 4.4 s on 8 workers, 0 errors, 0 fallbacks, 1 rejected choice, 30,000
+iterations on each of 680 searched decisions; a second run with the same seed replayed all 32 games.
+
 ## Verification (2026-09-30)
 - 9 unit tests pass: canonical identity, duplicate mapping, symmetric storage, unknown = no row, no re-battle
   with deficit-only top-up, pair planned once, weighted row average, species-collision split, and an open

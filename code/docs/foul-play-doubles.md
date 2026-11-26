@@ -65,7 +65,7 @@ Flat Monte Carlo at 4 samples × 0.25 s against behaviour cloning: 102 of 200 (0
 - A switch request in the middle of a turn (U-turn, Parting Shot, Eject Button) is searched as if the turn ended there; the rest of that turn's queue is not rebuilt.
 - Sleep and Toxic counters are not tracked; the rebuilt battle starts them fresh.
 - The Speed bound skips turns with Quick Claw, After You, Quash or Instruct, and movers with Speed abilities it does not model (Unburden, Quick Feet, Protosynthesis, Quark Drive).
-- The Stat Points dataset holds out the 49 meta teams that are the opponents here, so a foe's exact spread is never looked up; species seen only on those teams fall back to a default spread.
+- The Stat Points dataset holds out the 49 meta teams that are the opponents here, so a foe's exact spread is never looked up; species seen only on those teams fall back to a default spread. Since 2026-11-25 (#418) it also holds out the held-out evaluation teams (ranks 51-100): 504 pool teams, down from 573, and its `_excluded` record lists both sets. The PR #415 benchmarks ran on the 573-team file. `check_spreads()` rebuilds the table from the pool and refuses a file that differs.
 
 ## Rust Regulation M-B doubles search engine (`code/rust/poke-engine-doubles`)
 

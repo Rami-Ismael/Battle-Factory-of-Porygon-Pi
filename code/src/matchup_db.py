@@ -371,11 +371,20 @@ def check_slot_order(con, policy_id, runner):
                          f"{'shuffled' if tagged else 'listed'} slot order but this runner uses {mode}; "
                          "listed-order policies take no new battles; use get_policy() for the shuffled one")
 
+def check_policy_runner(con, policy_id, runner):
+    """A Rust search policy (src/rust_matchup_runner.py) takes battles only from a runner that records as
+    it goes (streams), which checks the policy_id is its own; the behaviour-cloning runners never write there."""
+    row_policy = con.execute("SELECT row_policy FROM policy WHERE policy_id=?", (policy_id,)).fetchone()[0]
+    if row_policy.startswith("rust_") and not getattr(runner, "streams", False):
+        raise ValueError(f"policy {policy_id} ({row_policy[:40]}...) is a Rust search policy; "
+                         "battle it with rust_matchup_runner.RustMatchupRunner")
+
 def ensure(con, policy_id, rows, cols, per_cell, seed=None, runner=None, note=None, evaluation=False):
     """The cache entry point: make every (row, col) cell hold >= per_cell battles, running
     only the deficit. Returns the number of battles actually run (0 when fully cached).
     A held-out team (ranks 51-100) as row or column raises HeldoutLeak; only evaluate_final
-    passes evaluation=True."""
+    passes evaluation=True. A runner with streams=True records its own batches as battles finish
+    (through the sink below), so a killed run keeps what it finished."""
     if not evaluation:
         bad = H.team_ids(con) & (set(rows) | set(cols))
         if bad: raise H.HeldoutLeak(f"{len(bad)} held-out team(s) in a battle request: {sorted(bad)[:5]}")
@@ -384,14 +393,24 @@ def ensure(con, policy_id, rows, cols, per_cell, seed=None, runner=None, note=No
     jobs = jobs_for(con, need)
     runner = runner or default_runner()
     check_slot_order(con, policy_id, runner)
+    check_policy_runner(con, policy_id, runner)
+    if getattr(runner, "streams", False):
+        ran = [0]
+        def sink(results, unattributed, secs, batch_note):
+            record(con, policy_id, results, seconds=secs, seed=seed, unattributed=unattributed,
+                   note=f"{note}; {batch_note}" if note else batch_note)
+            ran[0] += sum(w + l + t for _, _, w, l, t in results)
+        runner(con, jobs, seed=seed, policy_id=policy_id, sink=sink)
+        return ran[0]
     results, unattributed, secs = runner(con, jobs, seed=seed)
     record(con, policy_id, results, seconds=secs, seed=seed, note=note, unattributed=unattributed)
     return sum(w + l + t for _, _, w, l, t in results)
 
-def score_pastes(con, pastes, per_cell=8, set_name="top50", seed=None, origin="search", policy_id=None):
+def score_pastes(con, pastes, per_cell=8, set_name="top50", seed=None, origin="search", policy_id=None, runner=None):
     """Drop-in objective for search loops: add each paste (validated), battle only the cells
-    it is missing against the set, return its score. Repeated or re-ordered teams cost nothing."""
-    policy_id = policy_id or get_policy(con)
+    it is missing against the set, return its score. Repeated or re-ordered teams cost nothing.
+    A runner with register() (rust_matchup_runner) supplies its own policy_id."""
+    policy_id = policy_id or (runner.register(con) if hasattr(runner, "register") else get_policy(con))
     val = Validator()
     try:
         with con: ids = [add_team(con, p, origin, val)[0] for p in pastes]
@@ -400,7 +419,8 @@ def score_pastes(con, pastes, per_cell=8, set_name="top50", seed=None, origin="s
     _no_heldout_set(set_name, False)
     held = H.team_ids(con)                                   # a candidate that is a held-out team is not a candidate
     legal = {t for (t,) in con.execute(f"SELECT team_id FROM team WHERE legal=1 AND team_id IN ({','.join('?' * len(ids))})", ids)} - held
-    ensure(con, policy_id, sorted(legal), set_members(con, set_name), per_cell, seed=seed, note=f"score_pastes:{origin}")
+    ensure(con, policy_id, sorted(legal), set_members(con, set_name), per_cell, seed=seed, runner=runner,
+           note=f"score_pastes:{origin}")
     return [score(con, policy_id, t, set_name) if t in legal
             else {"team_id": t, "score": None, "heldout": True} if t in held
             else {"team_id": t, "score": None, "illegal": True} for t in ids]
@@ -589,6 +609,12 @@ def cost_report(rate, n_seed, n_top=50, per_cell=(8, 24, 96), log10_legal=None):
 def main(argv=None):  # noqa: C901
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--db", default=str(DEFAULT_DB))
+    ap.add_argument("--labeler", default="bc", choices=("bc", "rust_foulplay_det", "rust_uct_rollout"),
+                    help="battle policy whose cells to read and write: behaviour cloning, or Rust search (#418)")
+    ap.add_argument("--iterations", type=int, default=30000, help="Rust search iterations per decision")
+    ap.add_argument("--samples", type=int, default=1, help="Rust search sampled battles per decision")
+    ap.add_argument("--workers", type=int, default=8, help="Rust labeler node processes")
+    ap.add_argument("--concurrency", type=int, default=1, help="Rust labeler battles at once per process")
     sub = ap.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("seed", help="import the VGCPastes Reg M-B pool and the top-50 set")
     s.add_argument("--no-validate", action="store_true")
@@ -614,17 +640,23 @@ def main(argv=None):  # noqa: C901
     a = ap.parse_args(argv)
     con = connect(a.db)
     ids = lambda spec: set_members(con, spec) if not spec[0].isdigit() else [int(x) for x in spec.split(",")]
+    runner = None
+    if a.labeler != "bc":
+        import rust_matchup_runner as R
+        runner = R.RustMatchupRunner(a.labeler, samples=a.samples, iterations=a.iterations,
+                                     workers=a.workers, concurrency=a.concurrency)
+    get_policy_for = lambda con: runner.register(con) if runner else get_policy(con)
     if a.cmd == "seed":
         print(json.dumps(seed(con, validate=not a.no_validate), indent=1))
     elif a.cmd == "ensure":
-        pid = get_policy(con)
-        n = ensure(con, pid, ids(a.rows), ids(a.cols), a.per_cell, seed=a.seed, note=a.note)
+        pid = get_policy_for(con)
+        n = ensure(con, pid, ids(a.rows), ids(a.cols), a.per_cell, seed=a.seed, note=a.note, runner=runner)
         print(f"battles run: {n}")
     elif a.cmd == "score":
-        pid = get_policy(con)
+        pid = get_policy_for(con)
         for t in ids(a.teams): print(json.dumps(score(con, pid, t, a.set)))
     elif a.cmd == "labels":
-        pid = get_policy(con)
+        pid = get_policy_for(con)
         with open(a.out, "w") as f:
             for r in labels(con, pid, a.set, a.min_coverage): f.write(json.dumps(r) + "\n")
     elif a.cmd == "stats":
@@ -634,8 +666,8 @@ def main(argv=None):  # noqa: C901
     elif a.cmd == "seed-heldout":
         print(len(seed_heldout(con)), "held-out teams in set", H.SET_NAME)
     elif a.cmd == "evaluate-final":
-        pid = get_policy(con); ts = [int(x) for x in a.teams.split(",")]
-        for r in evaluate_final(con, pid, ts, a.per_cell, seed=a.seed): print(json.dumps(r))
+        pid = get_policy_for(con); ts = [int(x) for x in a.teams.split(",")]
+        for r in evaluate_final(con, pid, ts, a.per_cell, seed=a.seed, runner=runner): print(json.dumps(r))
     elif a.cmd == "cost":
         n_seed = con.execute("SELECT COUNT(*) FROM team WHERE legal=1").fetchone()[0] or 1
         counts = Path("/Users/ramiismael/Documents/yakumsi-vault/Personal Project/Using Advance method search in the "
