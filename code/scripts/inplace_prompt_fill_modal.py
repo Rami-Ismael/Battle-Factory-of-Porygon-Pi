@@ -274,7 +274,8 @@ except ImportError:
 
 if modal is not None:
     image = (modal.Image.debian_slim(python_version='3.11').pip_install(*IMAGE_PACKAGES)
-             .env({'PYTHONUNBUFFERED': '1', 'PYTHONDONTWRITEBYTECODE': '1'}))
+             .env({'PYTHONUNBUFFERED': '1', 'PYTHONDONTWRITEBYTECODE': '1',
+                   'PYTORCH_CUDA_ALLOC_CONF': 'expandable_segments:True'}))
     for _rel in PACKAGED_FILES:
         image = image.add_local_file(FROZEN / _rel, f'{REMOTE_CODE}/{_rel}')
     hf_cache = modal.Volume.from_name(HF_CACHE_VOLUME, create_if_missing=True)

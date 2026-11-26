@@ -494,6 +494,10 @@ def fill_batch(draws: Sequence[tuple[dict[str, Any], int]], prompt: Prompt, toke
         for n in live:
             forwards[n] += 1
 
+    if device.startswith('cuda'):
+        # The ladder sized the batch on an empty cache; blocks cached by earlier batch shapes would not be reusable
+        # by this batch's shape and ran DiffuGPT medium out of memory at batch 142 (#443, 2026-11-25).
+        torch.cuda.empty_cache()
     begin = time.perf_counter()
     filled = B.fill_rows(row_forward, [c['ids'] for c in canvases], [c['slots'] for c in canvases], mask_id, active,
                          generators, device, on_step=count_step)
