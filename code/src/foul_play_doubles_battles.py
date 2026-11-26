@@ -72,12 +72,29 @@ def import_pastes(pastes):
     return json.loads(out.stdout)
 
 
-def build_spreads(out=SPREADS):
+def excluded_teams():
+    """{set name: sorted team ids} whose spreads Foul Play must never look up: the top-50 meta teams
+    (every labeling job's opponents) and the held-out evaluation teams, ranks 51-100."""
+    sys.path.insert(0, str(HERE))
+    import heldout
+    import top50 as t50
+    return {"top50": sorted(t50.ids()), "heldout51_100": sorted(heldout.ids())}
+
+
+def excluded_pastes():
+    sys.path.insert(0, str(HERE))
+    import heldout
+    import top50 as t50
+    return [Path(f).read_text() for f in (*t50.files(), *heldout.files())]
+
+
+def spreads_table():
     """Foul Play's team dataset for this format: the Stat Points each species carries on public
-    VGCPastes Reg M-B teams, by nature and item, with counts. The 49 top-50 meta teams, the
-    opponents of every matchup here, are left out so a foe's exact spread is never looked up."""
+    VGCPastes Reg M-B teams, by nature and item, with counts. A pool team whose six species match a
+    top-50 meta team or a held-out team (ranks 51-100) is left out, so a foe's exact spread is never
+    looked up and evaluation teams never feed the labeler."""
     pool = [p.read_text() for p in sorted(POOL.glob("*.txt"))]
-    held_out = {species_key(t) for t in import_pastes([paste for _, paste in top50()])}
+    held_out = {species_key(t) for t in import_pastes(excluded_pastes())}
     table, kept = {}, 0
     for team in import_pastes(pool):
         if len(team) != 6 or species_key(team) in held_out:
@@ -93,11 +110,35 @@ def build_spreads(out=SPREADS):
                 match["count"] += 1
             else:
                 rows.append({**row, "count": 1})
+    return {"_source": f"{kept} VGCPastes Reg M-B teams from {POOL}, top-50 meta teams and held-out ranks 51-100 left out",
+            "_excluded": {**excluded_teams(), "rule": "pool teams whose six species match an excluded team"},
+            **dict(sorted(table.items()))}
+
+
+def build_spreads(out=SPREADS):
+    table = spreads_table()
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps({"_source": f"{kept} VGCPastes Reg M-B teams from {POOL}, top-50 meta teams held out",
-                               **dict(sorted(table.items()))}, indent=0) + "\n")
-    print(f"{out}: {len(table)} species from {kept} teams ({len(pool) - kept} skipped)")
+    out.write_text(json.dumps(table, indent=0) + "\n")
+    print(f"{out}: {len(table) - 2} species, {table['_source']}")
     return out
+
+
+def check_spreads(path=SPREADS, rebuild=True):
+    """Raise unless the spreads file leaves out every top-50 meta team and every held-out team (ranks
+    51-100). Its `_excluded` record must list both sets in full, and with rebuild=True the file must
+    equal what spreads_table() builds from the pool now, so the record cannot be stale."""
+    got = json.loads(Path(path).read_text())
+    want = excluded_teams()
+    listed = got.get("_excluded") or {}
+    for name, ids in want.items():
+        missing = sorted(set(ids) - set(listed.get(name, [])))
+        if missing:
+            raise ValueError(f"{path} does not leave out {len(missing)} {name} team(s) ({missing[:5]}); "
+                             "rebuild it: foul_play_doubles_battles.py spreads")
+    drop = lambda t: {k: v for k, v in t.items() if k != "_source"}      # _source names the pool's folder
+    if rebuild and drop(got) != drop(spreads_table()):
+        raise ValueError(f"{path} differs from the spreads the pool gives now; rebuild it: foul_play_doubles_battles.py spreads")
+    return True
 
 
 def shuffle_paste(paste, rng):
