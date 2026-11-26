@@ -147,6 +147,11 @@ def _species_late(tmp):
     import species_late as m
     m.stored_figure(tmp); m.grid_figure(tmp)
 
+
+def _batched_fills_report(tmp):
+    import batched_fills_report as m
+    m.charts(m.report(), tmp)
+
 # script -> (recipe, inputs it reads). Scripts with no recipe:
 #   analyze_dibo_diversity_v2.py: no saved run passes its own checks (the full v4 run never chose finalists, the harness run
 #     has too few teams). Its plot() calls analyze_dibo_diversity.plot, which the first recipe covers.
@@ -174,6 +179,11 @@ RECIPES = {
                                      [DATA / f"masking_rate_{kind}_stat84_shuffled_noise_{rate}_es3_cap80.json"
                                       for kind in ("gap", "cross_rate") for rate in ("per_field", "linear")]),
     "species_late": (_species_late, [DATA / "species_late_stored.json", DATA / "species_late_grid.json"]),
+    "batched_fills_report": (_batched_fills_report,
+                             [Path.home() / f"vgc-data/inplace_prompt_grid/modal-l4-{run}/{prompt}/{key}/fills.jsonl"
+                              for run in ("239", "443") for key in ("diffugpt_s", "diffugpt_m", "qwen25c", "qwen3")
+                              for prompt in ("inplace_header", "inplace_instructions", "inplace_header_example",
+                                             "inplace_example")]),
 }
 
 

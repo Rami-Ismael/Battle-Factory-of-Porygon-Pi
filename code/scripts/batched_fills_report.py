@@ -130,14 +130,14 @@ def charts(result: dict[str, Any], out: Path) -> list[Path]:
     # Horizontal bars, top row first, so the 16 model and prompt labels read without rotating
     cells = [(key, prompt) for key, prompts in result['models'].items() for prompt in prompts
              if prompt != 'all prompts'][::-1]
-    names = [f"{LABELS[key]} · {G.PROMPTS[prompt].name.removesuffix(', values filled in place')}"
+    names = [f"{LABELS[key]}\n{G.PROMPTS[prompt].name.removesuffix(', values filled in place')}"
              for key, prompt in cells]
     side = {'type': 'bar', 'emphasis': {'focus': 'series'}, 'barGap': '10%',
             'label': {'show': True, 'position': 'right'}}
     legal = {'tooltip': {'trigger': 'axis', 'axisPointer': {'type': 'shadow'}}, 'legend': {'top': 0},
-             'grid': {'left': 8, 'right': 32, 'bottom': 32, 'top': 32, 'containLabel': True},
+             'grid': {'left': 8, 'right': 32, 'bottom': 32, 'top': 56, 'containLabel': True},
              'xAxis': {'type': 'value', 'name': 'legal first-try fills', 'nameLocation': 'middle', 'nameGap': 24},
-             'yAxis': {'type': 'category', 'data': names, 'axisLabel': {'interval': 0, 'fontSize': 11}},
+             'yAxis': {'type': 'category', 'data': names, 'axisLabel': {'interval': 0, 'fontSize': 11, 'lineHeight': 14}},
              'series': [side | {'name': ONE_AT_A_TIME, 'color': '#8a8984',
                                 'data': [result['models'][k][p]['legal_one_at_a_time'] for k, p in cells]},
                         side | {'name': BATCHED, 'color': '#2a6fdb',

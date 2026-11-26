@@ -1,0 +1,158 @@
+{
+ "batched-legal": {
+  "texts": [
+   "Batching leaves the legal counts unchanged",
+   "DiffuGPT medium\nExample team, header only",
+   "DiffuGPT medium\nExample team, task statement",
+   "DiffuGPT medium\nHeader only",
+   "DiffuGPT medium\nTask statement added",
+   "DiffuGPT small\nExample team, header only",
+   "DiffuGPT small\nExample team, task statement",
+   "DiffuGPT small\nHeader only",
+   "DiffuGPT small\nTask statement added",
+   "Legal: the fill parses, keeps every visible value, writes only names allowed in Regulation M-B (the format), and Showdown accepts the team.",
+   "Masked Qwen2.5 Coder\nExample team, header only",
+   "Masked Qwen2.5 Coder\nExample team, task statement",
+   "Masked Qwen2.5 Coder\nHeader only",
+   "Masked Qwen2.5 Coder\nTask statement added",
+   "Masked Qwen3\nExample team, header only",
+   "Masked Qwen3\nExample team, task statement",
+   "Masked Qwen3\nHeader only",
+   "Masked Qwen3\nTask statement added",
+   "Same masks, seeds and sampler on a Modal L4; McNemar finds no difference for any model and prompt (every p ≥ 0.05)",
+   "legal first-try fills",
+   "many masks per forward pass",
+   "one mask per forward pass"
+  ],
+  "points": [
+   [
+    0.0,
+    12.0
+   ],
+   [
+    0.0,
+    13.0
+   ],
+   [
+    1.0,
+    1.0
+   ],
+   [
+    1.0,
+    4.0
+   ],
+   [
+    1.0,
+    5.0
+   ],
+   [
+    2.0,
+    1.0
+   ],
+   [
+    2.0,
+    6.0
+   ],
+   [
+    3.0,
+    3.0
+   ],
+   [
+    4.0,
+    7.0
+   ],
+   [
+    5.0,
+    9.0
+   ],
+   [
+    6.0,
+    2.0
+   ],
+   [
+    7.0,
+    8.0
+   ],
+   [
+    8.0,
+    0.0
+   ],
+   [
+    8.0,
+    8.0
+   ],
+   [
+    10.0,
+    14.0
+   ],
+   [
+    20.0,
+    15.0
+   ],
+   [
+    23.0,
+    10.0
+   ],
+   [
+    24.0,
+    10.0
+   ],
+   [
+    26.0,
+    11.0
+   ],
+   [
+    27.0,
+    11.0
+   ]
+  ]
+ },
+ "batched-speed": {
+  "texts": [
+   "DiffuGPT medium",
+   "DiffuGPT small",
+   "Fills per second on a Modal L4",
+   "Masked Qwen2.5 Coder",
+   "Masked Qwen3",
+   "Sampling time only, over the masks both batchings filled; model loading left out",
+   "fills per second",
+   "js:p => p.value.toFixed(2)",
+   "many masks per forward pass",
+   "one mask per forward pass"
+  ],
+  "points": [
+   [
+    0.0,
+    1.619025
+   ],
+   [
+    0.0,
+    1.844116
+   ],
+   [
+    1.0,
+    0.719795
+   ],
+   [
+    1.0,
+    0.831565
+   ],
+   [
+    2.0,
+    0.601954
+   ],
+   [
+    2.0,
+    0.647307
+   ],
+   [
+    3.0,
+    0.37864
+   ],
+   [
+    3.0,
+    0.415217
+   ]
+  ]
+ }
+}
