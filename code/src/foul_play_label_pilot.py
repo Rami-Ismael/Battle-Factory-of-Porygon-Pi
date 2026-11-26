@@ -184,7 +184,7 @@ def rust_games(folders):
     for f in folders:
         path = Path(f) / "battles.jsonl"
         if not path.exists(): continue
-        for line in path.open():
+        for line in path.read_text().splitlines():
             g = json.loads(line)
             if "winner" not in g: continue
             winner = g["winner"]

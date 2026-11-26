@@ -136,10 +136,9 @@ class Pilot(unittest.TestCase):
         ids = [p for (p,) in self.con.execute("SELECT policy_id FROM policy WHERE row_policy LIKE '%+slots-shuffled' "
                                               "AND row_policy NOT LIKE 'rust%'")]
         self.assertEqual(ids, [8])
-        try:
-            import lossdata65 as L65
-        except ImportError:
+        if not Path("/tmp/vgc-pilot/data/pokedex.json").exists():
             self.skipTest("lossdata65 needs the /tmp/vgc-pilot runtime")
+        import lossdata65 as L65
         self.assertEqual(L65.shuffled_policy(self.con), 8)
 
 
