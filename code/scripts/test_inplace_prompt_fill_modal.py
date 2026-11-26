@@ -3,6 +3,7 @@ that compares today's-prompt fills on Modal with #237's laptop fills. No Modal, 
 import json
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 import inplace_prompt_fill_modal as M
@@ -51,6 +52,24 @@ class SameAsLaptopTest(unittest.TestCase):
                   [{'id': 'a', 'slot_ids': [[1, 2]], 'legal': True}, {'id': 'b', 'slot_ids': [[4]], 'legal': True}])
             self.assertEqual(M.same_as_laptop('qwen3', modal, laptop),
                              {'masks': 2, 'same_tokens': 1, 'legal_modal': 1, 'legal_laptop': 2})
+
+
+class GpuTest(unittest.TestCase):
+    def test_diffugpt_medium_fills_on_the_a10_and_the_other_models_on_the_l4(self):
+        with unittest.mock.patch.dict('os.environ', clear=False) as env:
+            env.pop('INPLACE_GPU', None)
+            self.assertEqual({k: M.gpu_for(k) for k in M.KEYS},
+                             {'diffugpt_s': 'L4', 'diffugpt_m': 'A10', 'qwen25c': 'L4', 'qwen3': 'L4'})
+
+    def test_inplace_gpu_overrides_every_model(self):
+        with unittest.mock.patch.dict('os.environ', {'INPLACE_GPU': 'L4'}):
+            self.assertEqual(M.gpu_for('diffugpt_m'), 'L4')
+
+    def test_a_resume_on_another_card_is_named(self):
+        rows = [{'id': 'a', 'device': 'cuda NVIDIA L4'}, {'id': 'b', 'device': 'cuda NVIDIA L4'}, {'id': 'c'}]
+        self.assertEqual(M.other_devices(rows, 'cuda NVIDIA A10'), ['cuda NVIDIA L4'])
+        self.assertEqual(M.other_devices(rows, 'cuda NVIDIA L4'), [])
+        self.assertEqual(M.other_devices([], 'cuda NVIDIA A10'), [])
 
 
 if __name__ == '__main__':
