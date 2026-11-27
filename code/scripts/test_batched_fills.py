@@ -523,5 +523,28 @@ class ReportTest(unittest.TestCase):
         self.assertTrue(R.verdict(result).startswith('incomplete'))
 
 
+class PaddingProbeTest(unittest.TestCase):
+    def test_padding_probe_flags_padding_leak_and_allows_small_rounding_with_zero_leak(self):
+        short = {'ids': [1, 2, 0, 0, 0, 3], 'slots': [2, 3, 4]}
+        long = {'ids': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 'slots': [2, 3, 4]}
+        clean = G.padding_probe(row_forward, short, long, 'cpu')
+        self.assertEqual(clean['pad_leak_max_diff'], 0.0)
+        self.assertTrue(G.padding_probe_pass(clean))
+        self.assertTrue(G.padding_probe_pass({'top1_same': 2 / 3, 'max_logit_difference': 0.27,
+                                              'pad_leak_max_diff': 0.0}))
+        self.assertFalse(G.padding_probe_pass({'top1_same': 1.0, 'max_logit_difference': 0.1,
+                                               'pad_leak_max_diff': 0.05}))
+        self.assertFalse(G.padding_probe_pass({'top1_same': 2 / 3, 'max_logit_difference': 1.5,
+                                               'pad_leak_max_diff': 0.0}))
+
+        def leaky_forward(x, _attention, keep):
+            logits = padding_blind_logits(x, torch.ones_like(x, dtype=torch.bool))
+            return logits.gather(1, keep[..., None].expand(-1, -1, logits.shape[-1]))
+
+        leaked = G.padding_probe(leaky_forward, short, long, 'cpu')
+        self.assertGreater(leaked['pad_leak_max_diff'], G.PADDING_LEAK_MAX)
+        self.assertFalse(G.padding_probe_pass(leaked))
+
+
 if __name__ == '__main__':
     unittest.main()

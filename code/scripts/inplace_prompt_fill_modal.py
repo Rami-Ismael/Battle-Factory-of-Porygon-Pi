@@ -169,7 +169,7 @@ def fill_remote(key: str, prompts: list[str], tasks: list[dict[str, Any]], done:
               'batch1_same_tokens': G.token_share(a['slot_ids'], alone['slot_ids']),
               'padding': G.padding_probe(row_forward, shortest, longest, gpu)}
     probe['pass'] = (bool(probe['sees_later_tokens']) and probe['repeat_same_tokens'] >= 0.9
-                     and probe['padding']['top1_same'] >= G.PADDING_TOP1)
+                     and G.padding_probe_pass(probe['padding']))
     yield json.dumps({'probe': probe})
     for code in dict.fromkeys(p for p, _ in todo):
         for group in groups:
