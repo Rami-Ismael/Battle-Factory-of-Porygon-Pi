@@ -49,7 +49,7 @@ FROZEN = Path(os.environ.get('INPLACE_CODE_DIR', HOME / 'run443'))
 TASKS = FROZEN / 'data/eval2.tasks.json'     # the held-out grid, copied out of the iCloud vault into the frozen run
 FITTING = FROZEN / 'data/fitting-ids.json'   # {prompt: [mask ids]} for the prompts that do not fit every mask (#239)
 TASKS_SHA256 = '596b3adc19abea7df6e82d61775b9efdf35dd54b74c77623d49165b0a31e754b'      # #237's grid file
-KEYS = ('diffugpt_s', 'diffugpt_m', 'qwen25c', 'qwen3')
+KEYS = ('diffugpt_s', 'diffugpt_m', 'qwen25c', 'qwen3', 'illada')     # iLLaDA 8B Instruct added 2026-11-27
 FOUR_PROMPTS = ('inplace_header', 'inplace_instructions', 'inplace_header_example', 'inplace_example')     # #239
 RAW = 'fills-modal-raw.jsonl'
 REMOTE_CODE = '/root/code'
@@ -61,6 +61,9 @@ REMOTE_CODE = '/root/code'
 DEFAULT_GPU = 'L40S'
 GPU_BY_KEY: dict[str, str] = {}        # a model that should fill on another card
 TIMEOUT_SECONDS = 60 * 60              # 1-hour cap per model, $1.95 on the L40S; a stopped run resumes
+# iLLaDA 8B does about 16 times Masked Qwen3 0.6B's arithmetic per forward pass, and Qwen3 took 2 min per prompt on the
+# L40S in #445, so six prompts may take 3 hours: $5.85 at most on the L40S. Each relaunch reloads 15 GB of weights.
+TIMEOUT_BY_KEY = {'illada': 3 * 60 * 60}
 HF_CACHE_VOLUME = 'vgc-hf-cache'
 DEFERRED = 'deferred: Showdown judges this fill on the laptop'
 IMAGE_PACKAGES = ('torch==2.15.0', 'transformers==4.57.3', 'accelerate==1.15.0', 'safetensors==0.8.0',
@@ -72,6 +75,11 @@ PACKAGED_FILES = ('scripts/inplace_prompt_grid.py', 'scripts/masked_diffusion_te
 VERDICT_KEYS = frozenset({'json_parses', 'reads_as_team', 'visible_kept', 'regmb_names', 'showdown_errors',
                           'showdown_accepts', 'legal', 'failed', 'reasons', 'not_regmb', 'recovered',
                           'copied_visible', 'paste', 'rules'})
+
+
+def timeout_for(key: str) -> int:
+    """The seconds a model's container may run before Modal stops it."""
+    return TIMEOUT_BY_KEY.get(key, TIMEOUT_SECONDS)
 
 
 def gpu_for(key: str) -> str:
@@ -332,7 +340,8 @@ if modal is not None:
             handles[p] = (DIRECTORY / p / key / RAW).open('a')
         begin, made = time.time(), 0
         try:
-            on_gpu = fill.with_options(gpu=gpu, volumes=VOLUMES)      # with_options replaces the volumes it is given
+            on_gpu = fill.with_options(gpu=gpu, volumes=VOLUMES,      # with_options replaces the volumes it is given
+                                       timeout=timeout_for(key))
             for line in on_gpu.remote_gen(key, order, tasks, done, limit or None,
                                           {p: sorted(i) for p, i in only.items()}, size):
                 row = json.loads(line)

@@ -24,6 +24,10 @@ value's tokens cross its quotes; slot_lengths asserts that for the tokenizer it 
     in_place_text(..., filler=FILLER_LINE)            the same text with a neutral line of matching token count (#445)
     training_target(task, ask, tokenizer, limit, pad) the same text with the real values, padded
     read_filled(text, pad, mask_token)                a filled text back into a team, by a JSON parser
+
+A chat model (CHAT_TEMPLATES, keyed by its tokenizer's repo) gets every prompt inside its own chat template: the
+header as the user turn and the team, slots and all, as the assistant turn, so its masks sit where its instruction
+tuning put the answers. iLLaDA 8B Instruct is the first (owner, 2026-11-27).
     check_filled(text, pad, mask_token, validate)     a filled text's legality, with the reason it failed
 
 The tokenizer is a Hugging Face fast tokenizer, or anything with its mask_token and
@@ -101,6 +105,30 @@ class InPlaceText:
     slots: tuple[SlotSpan, ...]
     part_tokens: dict[str, int]     # format and rules, ask, team
     version: str = VERSION
+    tail: str = ''                  # fixed text after the team's JSON: a chat template's end of turn
+
+
+@dataclass(frozen=True)
+class ChatTemplate:
+    """A chat model's turn markers around the in-place text. The header (format, rules, ask and any added line) is
+    the user turn and 'Team: ' with the masked team is the assistant turn, closed as a finished turn, which is what
+    the model's own chat template writes for [user: header, assistant: team]. The template trims each turn, so the
+    header's last newline goes."""
+    name: str           # stored in the text's version
+    user: str           # before the header
+    assistant: str      # between the header and the team
+    end: str            # after the team
+
+
+# iLLaDA 8B Instruct's chat_template.jinja at revision 5769f049: bos_token + role + '\n' + content | trim + eos_token
+# for each turn, with bos <[BOS]> and eos <[EOS]> (special_tokens_map.json). No system turn.
+ILLADA_CHAT = ChatTemplate('illada-chat-v1', '<[BOS]>user\n', '<[EOS]><[BOS]>assistant\n', '<[EOS]>')
+CHAT_TEMPLATES = {'GSAI-ML/iLLaDA-8B-Instruct': ILLADA_CHAT}
+
+
+def chat_template(tokenizer: Any) -> ChatTemplate | None:
+    """The chat template the in-place text is wrapped in for this tokenizer's model, or None for a base model."""
+    return CHAT_TEMPLATES.get(getattr(tokenizer, 'name_or_path', None))
 
 
 def ask_text(ask: float | None) -> str:
@@ -133,7 +161,7 @@ def example_text() -> str:
 
 
 def text_version(statement: str | None, example: str | None,
-                 rules: str | None = None, filler: str | None = None) -> str:
+                 rules: str | None = None, filler: str | None = None, chat: ChatTemplate | None = None) -> str:
     version = INSTRUCTIONS_VERSION if statement is not None else VERSION
     if rules is not None:
         version += RULES_SUFFIX
@@ -141,7 +169,16 @@ def text_version(statement: str | None, example: str | None,
         version += FILLER_SUFFIX
     if example is not None:
         version += EXAMPLE_SUFFIX
+    if chat is not None:
+        version += '+' + chat.name
     return version
+
+
+def in_chat(parts: dict[str, str], chat: ChatTemplate) -> dict[str, str]:
+    """The header parts as a chat's user turn, trimmed as the template trims it, and the assistant turn opened."""
+    names = list(parts)
+    trimmed = {name: text.rstrip() if name == names[-1] else text for name, text in parts.items()}
+    return {'chat user': chat.user, **trimmed, 'chat assistant': chat.assistant}
 
 
 def value_label(path: ValuePath) -> str:
@@ -263,10 +300,15 @@ def in_place_text(task: dict[str, Any], ask: float | None, tokenizer: Tokenizer,
     _check_masked_team(task, hidden)
     lengths = slot_lengths(tokenizer)
     parts = header_parts(ask, statement, example, rules, filler)
+    chat = chat_template(tokenizer)
+    if chat is not None:
+        parts = in_chat(parts, chat)
     prefix = sum(map(len, parts.values())) + len(TEAM_LABEL)
     team, where = render(json_pieces(task['masked_team']),
                          lambda path, value: tokenizer.mask_token * lengths[path[1]] if path in hidden else value_text(value))
     parts['team'] = TEAM_LABEL + team
+    if chat is not None:
+        parts['chat end'] = chat.end
     text = ''.join(parts.values())
     spans = offsets(tokenizer, text)
     part_tokens = _count_parts(spans, parts)
@@ -281,7 +323,17 @@ def in_place_text(task: dict[str, Any], ask: float | None, tokenizer: Tokenizer,
             raise ValueError(f'{value_label(path)}: {len(inside)} tokens, not {lengths[path[1]]}; '
                              f'{tokenizer.mask_token!r} is not one token')
         slots.append(SlotSpan(value_label(path), path[1], start, end, inside[0], len(inside)))
-    return InPlaceText(text, tuple(slots), part_tokens, text_version(statement, example, rules, filler))
+    return InPlaceText(text, tuple(slots), part_tokens, text_version(statement, example, rules, filler, chat),
+                       chat.end if chat is not None else '')
+
+
+def team_text(text: str, tail: str = '') -> tuple[str, bool]:
+    """The team's JSON in an in-place text, filled or not, and whether the text has a 'Team: ' line: what follows
+    the line's label, less the fixed tail after the team."""
+    _, label, team = text.partition('\n' + TEAM_LABEL)
+    if tail and team.endswith(tail):
+        team = team[:-len(tail)]
+    return team, bool(label)
 
 
 def training_target(task: dict[str, Any], ask: float | None, tokenizer: Tokenizer, limit: int, pad: str,
@@ -316,9 +368,9 @@ def _check_target_tokens(built: InPlaceText, target: str, tokenizer: Tokenizer) 
             raise ValueError(f'token {n} outside the slots reads {target[c:d]!r} in the target, not {built.text[a:b]!r}')
 
 
-def read_filled(text: str, pad: str, mask_token: str) -> Team:
-    """A filled in-place text back into a team: drop the header and padding, then parse the JSON."""
-    _, label, team = text.partition('\n' + TEAM_LABEL)
+def read_filled(text: str, pad: str, mask_token: str, tail: str = '') -> Team:
+    """A filled in-place text back into a team: drop the header, the tail and padding, then parse the JSON."""
+    team, label = team_text(text, tail)
     if not label:
         raise ValueError(f'no {TEAM_LABEL.strip()!r} line in the text')
     if mask_token in team:
@@ -356,12 +408,13 @@ def _check_value_types(team: Team) -> None:
                 raise ValueError(f'team[{i}].statPoints.{stat} is {value!r}, not a whole number')
 
 
-def check_filled(text: str, pad: str, mask_token: str, validate: Callable[[str], str | None]) -> FilledCheck:
+def check_filled(text: str, pad: str, mask_token: str, validate: Callable[[str], str | None],
+                 tail: str = '') -> FilledCheck:
     """Read a filled in-place text into a team, write its paste and validate it. validate takes paste text and
     returns None for a legal team, else its errors joined with '; ', as showdown_validator.Validator does.
     Legality is only measured here: nothing in the text or the decoder enforces it."""
     try:
-        team = read_filled(text, pad, mask_token)
+        team = read_filled(text, pad, mask_token, tail)
         _check_value_types(team)
     except ValueError as error:         # json.JSONDecodeError is a ValueError
         return FilledCheck(VERSION, None, None, unreadable=str(error))

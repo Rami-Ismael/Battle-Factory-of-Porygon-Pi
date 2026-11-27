@@ -65,7 +65,7 @@ class Candidate:
         return self.sampler.right_shift
 
 
-CANDIDATES = (                      # the seven of #162, at the revisions it pinned
+CANDIDATES = (                      # the seven of #162, at the revisions it pinned, then iLLaDA (2026-11-27)
     Candidate('qwen3', 'Masked Qwen3 0.6B', 'dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1',
               'c8d24a3f4adaeef46881b450e1bf7d1005203bd7', 151669,
               sampler=shared_sampler()),
@@ -86,6 +86,12 @@ CANDIDATES = (                      # the seven of #162, at the revisions it pin
               sampler=shared_sampler(right_shift=True)),
     Candidate('llada', 'LLaDA 8B', 'GSAI-ML/LLaDA-8B-Base',
               '0f2787f2d87eac5eed8a087d5ecd24277e6255b2', 126336, mask_token='<|mdm_mask|>',
+              sampler=shared_sampler()),
+    # Owner, 2026-11-27: the pivot to a larger model. Fully bidirectional, 8,192-token context with rotary positions;
+    # its tokenizer sets no mask token, and <[MASK]> is id 5 in tokenizer_config.json at this revision. Every prompt is
+    # wrapped in its chat template (masked_diffusion_text.CHAT_TEMPLATES).
+    Candidate('illada', 'iLLaDA 8B Instruct', 'GSAI-ML/iLLaDA-8B-Instruct',
+              '5769f049224b2cff61106ebce0429ede5deeb434', 5, mask_token='<[MASK]>',
               sampler=shared_sampler()),
 )
 

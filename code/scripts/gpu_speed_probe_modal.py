@@ -17,6 +17,7 @@ sampling loop. Nothing is judged and no result of #443 is touched: one JSON per 
 Before any Modal launch: state its estimated cost and credit left (`modal billing summary`). One GPU at a time:
 
     PROBE_GPU=L4 modal run code/scripts/gpu_speed_probe_modal.py --key diffugpt_m
+    PROBE_GPU=L40S modal run code/scripts/gpu_speed_probe_modal.py --key illada --full 1,2,4,8,16,32 --no-variants
     PROBE_GPU=L40S modal run code/scripts/gpu_speed_probe_modal.py --key diffugpt_m
     python code/scripts/gpu_speed_probe_modal.py report --key diffugpt_m
 """
@@ -38,9 +39,10 @@ GPU = os.environ.get('PROBE_GPU', 'L4')
 # Dollars per hour, modal.com/pricing read 2026-11-25 (per-second prices x 3,600).
 PRICE_PER_HOUR = {'T4': 0.59, 'L4': 0.80, 'A10': 1.10, 'L40S': 1.95, 'A100-40GB': 2.10, 'A100-80GB': 2.50,
                   'RTX-PRO-6000': 3.03, 'H100': 3.95, 'H200': 4.54, 'B200': 6.25}
-KEYS = ('diffugpt_s', 'diffugpt_m', 'qwen25c', 'qwen3')
+KEYS = ('diffugpt_s', 'diffugpt_m', 'qwen25c', 'qwen3', 'illada')
 PROMPT = os.environ.get('PROBE_PROMPT', 'inplace_header')   # the prompt whose fills are timed
 TIMEOUT_SECONDS = 20 * 60              # 20-minute cap: $0.27 on an L4, $1.32 on an H100
+TIMEOUT_BY_KEY = {'illada': 45 * 60}   # 15 GB of weights to load, and every forward pass costs 16 x Masked Qwen3's
 HF_CACHE_VOLUME = 'vgc-hf-cache'
 REMOTE_CODE = '/root/code'
 IMAGE_PACKAGES = ('torch==2.15.0', 'transformers==4.57.3', 'accelerate==1.15.0', 'safetensors==0.8.0',
@@ -81,9 +83,11 @@ def fitting(tasks: list[dict[str, Any]], build: Any) -> list[dict[str, Any]]:
     return kept
 
 
-def probe_remote(key: str, tasks: list[dict[str, Any]], batches: list[int], full_batches: list[int]) -> dict[str, Any]:
+def probe_remote(key: str, tasks: list[dict[str, Any]], batches: list[int], full_batches: list[int],
+                 variants: bool = True) -> dict[str, Any]:
     """Container side: the precision switches as the fill leaves them, a short fill per (precision, batch), and a
-    whole fill per batch in full_batches at the precision the fills ran at."""
+    whole fill per batch in full_batches at the precision the fills ran at. variants False times only the whole fills,
+    as iLLaDA needs: its float32 weights alone would take 28 GiB."""
     sys.path.insert(0, f'{REMOTE_CODE}/scripts')
     from dataclasses import replace
 
@@ -158,7 +162,7 @@ def probe_remote(key: str, tasks: list[dict[str, Any]], batches: list[int], full
                               'full': [], 'variants': []}
     for batch in full_batches:
         result['full'].append(one_fill(batch, None))
-    for name, dtype, tf32, cast in VARIANTS:
+    for name, dtype, tf32, cast in (VARIANTS if variants else ()):
         if dtype is not None:
             model.to(getattr(torch, dtype))
         torch.backends.cuda.matmul.allow_tf32 = torch.backends.cudnn.allow_tf32 = tf32
@@ -226,25 +230,28 @@ if modal is not None:
     app = modal.App('gpu-speed-probe')
 
     @app.function(image=image, gpu=GPU, timeout=TIMEOUT_SECONDS, volumes={'/root/.cache/huggingface': hf_cache})
-    def probe(key: str, tasks: list, batches: list, full_batches: list) -> str:
+    def probe(key: str, tasks: list, batches: list, full_batches: list, variants: bool = True) -> str:
         # JSON text, not objects: the laptop has no torch, so it can unpickle neither torch's version string nor a
         # torch error
         try:
-            return json.dumps(probe_remote(key, tasks, batches, full_batches))
+            return json.dumps(probe_remote(key, tasks, batches, full_batches, variants))
         except Exception:
             import traceback
             return json.dumps({'error': traceback.format_exc()})
 
     @app.local_entrypoint()
-    def main(key: str = 'diffugpt_m', batches: str = '1,32', full: str = '1,142') -> None:
-        """batches: fills per forward pass for the precision timings; full: for the whole fills."""
+    def main(key: str = 'diffugpt_m', batches: str = '1,32', full: str = '1,142', variants: bool = True) -> None:
+        """batches: fills per forward pass for the precision timings; full: for the whole fills; --no-variants
+        skips the precision timings."""
         if GPU not in PRICE_PER_HOUR:
             raise SystemExit(f'PROBE_GPU={GPU}: no price recorded; add it to PRICE_PER_HOUR')
         tasks = json.loads(TASKS.read_bytes())['tasks']
         print(f'{key}: probing Modal {GPU} at ${PRICE_PER_HOUR[GPU]:.2f} an hour', flush=True)
         begin = time.time()
-        result = json.loads(probe.remote(key, tasks, [int(b) for b in batches.split(',') if b],
-                                         [int(b) for b in full.split(',')]))
+        timed = probe.with_options(timeout=TIMEOUT_BY_KEY.get(key, TIMEOUT_SECONDS),
+                                   volumes={'/root/.cache/huggingface': hf_cache})
+        result = json.loads(timed.remote(key, tasks, [int(b) for b in batches.split(',') if b],
+                                         [int(b) for b in full.split(',')], variants))
         if 'error' in result:
             raise SystemExit(f'{key} on {GPU}: THE PROBE FAILED\n{result["error"]}')
         result['wall_minutes'] = (time.time() - begin) / 60

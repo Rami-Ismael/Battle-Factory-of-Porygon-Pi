@@ -73,5 +73,9 @@ class GpuTest(unittest.TestCase):
         self.assertEqual(M.other_devices([], 'cuda NVIDIA A10'), [])
 
 
+    def test_illada_gets_three_hours_and_the_small_models_one(self):
+        self.assertEqual(M.timeout_for('illada'), 3 * 60 * 60)
+        self.assertEqual({M.timeout_for(k) for k in M.KEYS if k != 'illada'}, {M.TIMEOUT_SECONDS})
+
 if __name__ == '__main__':
     unittest.main()
