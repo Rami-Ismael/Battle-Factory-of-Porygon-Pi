@@ -435,15 +435,7 @@ def _mean_sd(xs):
     return m, sd
 
 
-def build_report(con, spec, fp_pid, bc_pid, boot=BOOTSTRAP):
-    meta_weights = {int(k): float(v) for k, v in spec["meta_weights"].items()}
-    per_cell = spec["per_cell"]
-    all_meta = sorted(meta_weights)
-    all_variants = [b["arms"][arm]["team_id"] for b in spec["bases"] for arm in ARMS]
-
-    policies = {"foul_play": fp_pid, "behaviour_cloning": bc_pid}
-    cells_by_lab = {lab: directed_cells(con, pid, all_variants, all_meta) for lab, pid in policies.items()}
-
+def _incomplete_cells(cells_by_lab, spec, meta_weights, per_cell):
     incomplete = {}
     for lab, cells in cells_by_lab.items():
         miss = 0
@@ -455,6 +447,78 @@ def build_report(con, spec, fp_pid, bc_pid, boot=BOOTSTRAP):
                     if sum(cells.get((tid, opp), (0, 0, 0))) < per_cell:
                         miss += 1
         incomplete[lab] = miss
+    return incomplete
+
+
+def _team_arm_scores(cells, base, opps):
+    arm_scores = {}
+    for arm in ARMS:
+        tid = base["arms"][arm]["team_id"]
+        wr, se = weighted_win_rate(cells, tid, opps)
+        arm_scores[arm] = {"win_rate": wr, "battle_noise_se": se}
+    stored_wr = arm_scores["stored"]["win_rate"]
+    stored_se = arm_scores["stored"]["battle_noise_se"]
+    for arm in ARMS:
+        d = arm_scores[arm]["win_rate"] - stored_wr
+        cse = 0.0 if arm == "stored" else math.hypot(arm_scores[arm]["battle_noise_se"], stored_se)
+        arm_scores[arm]["delta_vs_stored"] = d
+        arm_scores[arm]["contrast_se"] = cse
+    return arm_scores
+
+
+def _arm_summary(per_team, lab, arm, boot):
+    wrs = [t[lab][arm]["win_rate"] for t in per_team]
+    deltas = [t[lab][arm]["delta_vs_stored"] for t in per_team]
+    cses = [t[lab][arm]["contrast_se"] for t in per_team]
+    l1s = [t["l1_distance"][arm] for t in per_team]
+    wm, wsd = _mean_sd(wrs)
+    dm, dsd = _mean_sd(deltas)
+    entry = {
+        "reader_name": ARM_NAMES[arm],
+        "win_rate": {"mean": wm, "sd": wsd, "ci95": paired_bootstrap_ci(wrs, SEED + 1, boot)},
+        "mean_l1_distance": sum(l1s) / len(l1s),
+        "mean_battle_noise_se": sum(t[lab][arm]["battle_noise_se"] for t in per_team) / len(per_team),
+    }
+    if arm != "stored":
+        entry["delta_vs_stored"] = {
+            "mean": dm,
+            "sd": dsd,
+            "ci95": paired_bootstrap_ci(deltas, SEED + 2, boot),
+            "mean_contrast_se": sum(cses) / len(cses),
+            "teams_dropped": sum(1 for d in deltas if d < 0),
+            "teams_dropped_gt_2se": sum(1 for d, s in zip(deltas, cses) if s > 0 and d < -2.0 * s),
+            "teams_gained": sum(1 for d in deltas if d > 0),
+        }
+    return entry
+
+
+def _labeler_gap(per_team, arm, boot):
+    fp_d = [t["foul_play"][arm]["delta_vs_stored"] for t in per_team]
+    bc_d = [t["behaviour_cloning"][arm]["delta_vs_stored"] for t in per_team]
+    gaps = [f - b for f, b in zip(fp_d, bc_d)]
+    gm, gsd = _mean_sd(gaps)
+    bc_m = sum(bc_d) / len(bc_d)
+    fp_m = sum(fp_d) / len(fp_d)
+    gap = {
+        "reader_name": ARM_NAMES[arm],
+        "mean": gm,
+        "sd": gsd,
+        "ci95": paired_bootstrap_ci(gaps, SEED + 3, boot),
+        "ratio_fp_over_bc": None if abs(bc_m) < 1e-6 else fp_m / bc_m,
+        "teams_fp_dropped_more": sum(1 for g in gaps if g < 0),
+    }
+    return gap, pearson(fp_d, bc_d)
+
+
+def build_report(con, spec, fp_pid, bc_pid, boot=BOOTSTRAP):
+    meta_weights = {int(k): float(v) for k, v in spec["meta_weights"].items()}
+    per_cell = spec["per_cell"]
+    all_meta = sorted(meta_weights)
+    all_variants = [b["arms"][arm]["team_id"] for b in spec["bases"] for arm in ARMS]
+
+    policies = {"foul_play": fp_pid, "behaviour_cloning": bc_pid}
+    cells_by_lab = {lab: directed_cells(con, pid, all_variants, all_meta) for lab, pid in policies.items()}
+    incomplete = _incomplete_cells(cells_by_lab, spec, meta_weights, per_cell)
 
     per_team = []
     for b in spec["bases"]:
@@ -465,71 +529,20 @@ def build_report(con, spec, fp_pid, bc_pid, boot=BOOTSTRAP):
             "species": b.get("species", []),
             "l1_distance": {arm: b["arms"][arm]["l1_distance"] for arm in ARMS},
             "total_sp": {arm: b["arms"][arm]["total_sp"] for arm in ARMS},
-            "foul_play": {},
-            "behaviour_cloning": {},
         }
         for lab, cells in cells_by_lab.items():
-            arm_scores = {}
-            for arm in ARMS:
-                tid = b["arms"][arm]["team_id"]
-                wr, se = weighted_win_rate(cells, tid, opps)
-                arm_scores[arm] = {"win_rate": wr, "battle_noise_se": se}
-            stored_wr = arm_scores["stored"]["win_rate"]
-            stored_se = arm_scores["stored"]["battle_noise_se"]
-            for arm in ARMS:
-                d = arm_scores[arm]["win_rate"] - stored_wr
-                cse = 0.0 if arm == "stored" else math.hypot(arm_scores[arm]["battle_noise_se"], stored_se)
-                arm_scores[arm]["delta_vs_stored"] = d
-                arm_scores[arm]["contrast_se"] = cse
-            row[lab] = arm_scores
+            row[lab] = _team_arm_scores(cells, b, opps)
         per_team.append(row)
 
-    arms_summary = {}
-    for lab in ("foul_play", "behaviour_cloning"):
-        arms_summary[lab] = {}
-        for arm in ARMS:
-            wrs = [t[lab][arm]["win_rate"] for t in per_team]
-            deltas = [t[lab][arm]["delta_vs_stored"] for t in per_team]
-            cses = [t[lab][arm]["contrast_se"] for t in per_team]
-            l1s = [t["l1_distance"][arm] for t in per_team]
-            wm, wsd = _mean_sd(wrs)
-            dm, dsd = _mean_sd(deltas)
-            entry = {
-                "reader_name": ARM_NAMES[arm],
-                "win_rate": {"mean": wm, "sd": wsd, "ci95": paired_bootstrap_ci(wrs, SEED + 1, boot)},
-                "mean_l1_distance": sum(l1s) / len(l1s),
-                "mean_battle_noise_se": sum(t[lab][arm]["battle_noise_se"] for t in per_team) / len(per_team),
-            }
-            if arm != "stored":
-                entry["delta_vs_stored"] = {
-                    "mean": dm,
-                    "sd": dsd,
-                    "ci95": paired_bootstrap_ci(deltas, SEED + 2, boot),
-                    "mean_contrast_se": sum(cses) / len(cses),
-                    "teams_dropped": sum(1 for d in deltas if d < 0),
-                    "teams_dropped_gt_2se": sum(1 for d, s in zip(deltas, cses) if s > 0 and d < -2.0 * s),
-                    "teams_gained": sum(1 for d in deltas if d > 0),
-                }
-            arms_summary[lab][arm] = entry
+    arms_summary = {
+        lab: {arm: _arm_summary(per_team, lab, arm, boot) for arm in ARMS}
+        for lab in ("foul_play", "behaviour_cloning")
+    }
 
     labeler_gap = {}
     team_drop_corr = {}
     for arm in EDITED_ARMS:
-        fp_d = [t["foul_play"][arm]["delta_vs_stored"] for t in per_team]
-        bc_d = [t["behaviour_cloning"][arm]["delta_vs_stored"] for t in per_team]
-        gaps = [f - b for f, b in zip(fp_d, bc_d)]
-        gm, gsd = _mean_sd(gaps)
-        bc_m = sum(bc_d) / len(bc_d)
-        fp_m = sum(fp_d) / len(fp_d)
-        labeler_gap[arm] = {
-            "reader_name": ARM_NAMES[arm],
-            "mean": gm,
-            "sd": gsd,
-            "ci95": paired_bootstrap_ci(gaps, SEED + 3, boot),
-            "ratio_fp_over_bc": None if abs(bc_m) < 1e-6 else fp_m / bc_m,
-            "teams_fp_dropped_more": sum(1 for g in gaps if g < 0),
-        }
-        team_drop_corr[arm] = pearson(fp_d, bc_d)
+        labeler_gap[arm], team_drop_corr[arm] = _labeler_gap(per_team, arm, boot)
 
     held = held_out_battled(con, fp_pid) + held_out_battled(con, bc_pid)
     battles_total = {

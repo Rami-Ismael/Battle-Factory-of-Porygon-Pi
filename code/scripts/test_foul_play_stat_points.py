@@ -3,7 +3,6 @@
 Tests the issue #448 Stat-Point sensitivity experiment (src/foul_play_stat_points.py) at its public seams:
 base-team selection, Stat-Point arm transforms, opponent schedule isolation, paired battle/report statistics,
 and ECharts storyboard generation. Each test fails on one concrete planted bug."""
-import json
 import random
 import sys
 import tempfile
