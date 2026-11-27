@@ -201,9 +201,13 @@ def report(results: list[dict[str, Any]]) -> str:
             lines.append(f"| {r['device']} | ${PRICE_PER_HOUR[r['gpu_asked']]:.2f} | {f['batch']} | "
                          f"{f['seconds_per_fill']:.3f} | ${dollars_per_thousand(r, f):.3f} | "
                          f"{f['forward_share']:.0%} | {f['peak_gib']:.1f} GiB |")
+    if not any(r['variants'] for r in results):         # --no-variants: no precision timings to show
+        return '\n'.join(lines)
     lines += ['', '| GPU | Precision | Fills per forward pass | Real tokens per second through the model | '
               'Against the fills\' own setting |', '|---|---|---|---|---|']
     for r in results:
+        if not r['variants']:
+            continue
         base = {f['batch']: f['tokens_per_second'] for f in r['variants'][0]['fills'] if f['status'] == 'ok'}
         for v in r['variants']:
             for f in v['fills']:
