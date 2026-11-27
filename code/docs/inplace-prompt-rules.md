@@ -14,6 +14,35 @@ Searched `code/docs/` and the web for spelling out team-building rules with a to
 
 The header today states only `Item Clause` and says nothing about the 66-point total or 32-point single-stat cap. Adding a neutral line of the exact same token count separates what the rules say (content) from where the team tokens sit (position/length).
 
+## Result, 2026-11-27
+
+**Refuted for all four models.** Spelling out the three team-building rules moves no model's first-try legal fills beyond noise, neither against the neutral line of the same length (content effect, all McNemar p ≥ 0.50) nor against header only (total effect, all McNemar p ≥ 0.50). Nor does it reduce violations of the three named rules on parsed fills. Every model filled all three arms in one Modal L40S container at batch size 8 on all 270 held-out masks (3,240 fills total, 21.4 min combined L40S time, $0.60 actual Modal credit used).
+
+| Model | No rules (`inplace_header`) | Neutral line (`inplace_filler`) | Rules spelled out (`inplace_rules`) | Content (rules vs filler, p) | Total (rules vs header, p) |
+| --- | --- | --- | --- | --- | --- |
+| DiffuGPT small (flagged: 512 window) | 18/270 (6.7%) | 20/270 (7.4%) | 20/270 (7.4%) | +1 / −1 (p = 1.00) | +4 / −2 (p = 0.69) |
+| DiffuGPT medium | 23/270 (8.5%) | 23/270 (8.5%) | 21/270 (7.8%) | +3 / −5 (p = 0.73) | +3 / −5 (p = 0.73) |
+| Masked Qwen2.5 Coder 0.5B | 3/270 (1.1%) | 1/270 (0.4%) | 2/270 (0.7%) | +1 / −0 (p = 1.00) | +0 / −1 (p = 1.00) |
+| Masked Qwen3 0.6B | 3/270 (1.1%) | 3/270 (1.1%) | 1/270 (0.4%) | +0 / −2 (p = 0.50) | +0 / −2 (p = 0.50) |
+
+**Three named rules broken (% of parsed fills, `none / filler / rules`):**
+
+| Model | Item used more than once | Stat Points over 66 | A Stat Point over 32 |
+| --- | --- | --- | --- |
+| DiffuGPT small (flagged) | 1.3% / 1.4% / 1.5% | 5.2% / 2.9% / 4.5% | 5.2% / 5.8% / 3.0% |
+| DiffuGPT medium | 4.5% / 3.7% / 2.8% | 5.5% / 6.5% / 6.5% | 2.7% / 0.0% / 2.8% |
+| Masked Qwen2.5 Coder 0.5B | 20.3% / 16.4% / 16.2% | 7.6% / 6.0% / 14.7% | 0.0% / 0.0% / 0.0% |
+| Masked Qwen3 0.6B | 15.7% / 12.0% / 17.6% | 2.6% / 1.7% / 2.5% | 0.9% / 0.9% / 0.0% |
+
+- **No evidence the models read the rules:** Masked Qwen2.5 Coder's drop in `item used more than once` (20.3% → 16.2%) appears equally under the neutral line (16.4%), and its `Stat Points over 66` rises from 6.0% (4/67) under the neutral line to 14.7% (10/68) under the rules line (writing two-digit numbers such as `32`, `20`, `13`, `10` that each stay ≤ 32 but sum past 66). Masked Qwen3's `item used more than once` ticks up under `inplace_rules` (17.6% vs 12.0% under `inplace_filler`).
+- **DiffuGPT small did not drop at +39 tokens:** unlike #238's +71 tokens (which dropped it 20 → 10), +39 tokens leaves 24 of its 30 Stat Points masks at or below 512 tokens and leaves legal count at 20 on both `inplace_filler` and `inplace_rules`.
+- **Prediction check:** held on content effect (all four within 2 masks, all p ≥ 0.50), held on total effect for DiffuGPT medium and both Qwen models, held on cost ($0.60 actual vs $0.55–$0.85 estimated, peak 0.59–1.92 GiB). Missed on DiffuGPT small's predicted drop (−3 to −10 expected; actually +2, within noise) and on Masked Qwen2.5 Coder's `Stat Points over 66` uptick (+8.7 percentage points vs filler).
+- **Rule audit (`inplace_rule_audit.py`):** all 3,240 fills re-judged from saved values. Zero rejudge mismatches, zero legal-but-broken fills, zero illegal-but-clean fills across all four models. Two `step_without_rule` notes appeared on `qwen3` (mask `b847f9f0bd0716f1`, `pokemon k=4`, in `inplace_header` and `inplace_filler`): the model wrote `"---------"` for all four hidden species, which has Showdown ID `""`; Showdown reports Species Clause on the four empty species IDs while `_own_check` skips empty IDs. Every team rule and all three named rules match cleanly.
+
+## Deviations
+
+- **Padding probe updated before Masked Qwen3 0.6B (`5a8dea2c`, `run445/CHANGES`).** `qwen3`'s initial L40S container stopped before filling any mask because its shortest mask has only 3 slots (`team[4].nature`) and slot 1 has a 1-ULP bfloat16 near-tie (12.000 vs 11.938), causing a single-slot tie flip between batch 1 and batch 2 (`top1_same = 2/3`, `max_logit_difference = 0.266`, smaller than #443's 0.289). A local MPS test confirmed `0.0` logit change when varying padded token IDs. `padding_probe` was updated to test padding-token invariance directly (`pad_id` 0 vs 1, requiring `pad_leak_max_diff <= 1e-3`) alongside small batch-shape rounding (`< 1.0`). On the relaunched L40S container, `qwen3` measured `pad_leak_max_diff = 0.0` and passed. No fill, sampler, prompt, or batching logic changed.
+
 ## The rules line and the length-control line
 
 Both lines are fixed strings placed on their own line between the ask line and `Team: `, using the exact same wording for all four models and naming no model's mask token.

@@ -170,6 +170,7 @@ def compare_figure(directory: Path, out: Path) -> Path:
     """Matrix of models x 3 arms: first-try legal fills of 270."""
     keys = [k for k in G.SMALL_FOUR if all((directory / p / k / 'fills.jsonl').exists() for p, _ in ARMS)]
     all_stats = {k: model_stats(directory, k) for k in keys}
+    peak = max([all_stats[k]['summaries'][code]['legal'] for k in keys for code, _ in ARMS] + [1])
     data = []
     for y, k in enumerate(keys):
         for x, (code, label) in enumerate(ARMS):
@@ -179,7 +180,8 @@ def compare_figure(directory: Path, out: Path) -> Path:
             if code == 'inplace_rules':
                 pf = all_stats[k]['vs_filler']['paired']
                 text += f"\nvs filler +{pf['gained']}/−{pf['lost']}"
-            data.append({'value': [x, y, n], 'label': {'formatter': text, 'color': '#fff' if n > 18 else '#0b0b0b'},
+            data.append({'value': [x, y, n], 'label': {'formatter': text,
+                                                       'color': '#fff' if n >= peak * 0.55 else '#0b0b0b'},
                          'tip': f"{LABELS[k]}<br>{label}: {n} of {s['masks']} masks legal"})
     moved_content = [k for k in keys if all_stats[k]['vs_filler']['paired']['p_value'] < ALPHA]
     if not moved_content:
@@ -215,6 +217,9 @@ def three_rules_figure(directory: Path, out: Path) -> Path:
     keys = [k for k in G.SMALL_FOUR if all((directory / p / k / 'fills.jsonl').exists() for p, _ in ARMS)]
     columns = [(k, code) for k in keys for code, _ in ARMS]
     counts = {(k, code): G.rule_counts(rows_for(directory, k, code)) for k, code in columns}
+    raw_shares = [100.0 * counts[col][rule]['broken'] / counts[col][rule]['of']
+                  for rule in NAMED_RULES for col in columns if counts[col][rule]['of']]
+    peak = max([*raw_shares, 10.0])
     data = []
     for y, rule in enumerate(NAMED_RULES):
         for x, col in enumerate(columns):
@@ -223,8 +228,7 @@ def three_rules_figure(directory: Path, out: Path) -> Path:
             data.append({'value': [x, y, None if share is None else round(share, 1)],
                          'tip': f"{LABELS[col[0]]}, {ARM_NAMES[col[1]]}<br><b>{rule}</b><br>"
                                 f"{c['broken']} of {c['of']} parsed fills",
-                         'label': {'color': '#fff' if share and share > 15 else '#0b0b0b'}})
-    peak = max([d['value'][2] for d in data if d['value'][2] is not None] + [10.0])
+                         'label': {'color': '#fff' if share and share >= peak * 0.55 else '#0b0b0b'}})
     option = {
         'tooltip': {'trigger': 'item', 'formatter': 'js:p => p.data.tip'},
         'grid': {'left': 190, 'right': 10, 'top': 64, 'bottom': 12},
