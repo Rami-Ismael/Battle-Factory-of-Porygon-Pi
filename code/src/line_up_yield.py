@@ -15,6 +15,16 @@ LY_PER_CELL sets the re-battle depth, battles per meta team: 4 (default, the sto
 on its own seed, into its own database and results file ("..._d16"), so its battles share none with the 4-battle re-battle's.
 `flips` reads both depths and counts the line-ups whose held / not-held verdict changes.
 
+LY_POLICY=foulplay re-battles under Foul Play deterministic argmax (the Rust labeler, src/rust_matchup_runner.py) on both sides,
+issue #460: both depths battle afresh (the stored 4-battle re-battles are behaviour cloning), each in its own database
+(~/vgc-data/deep_evaluation_foulplay/fresh_fp_d<depth>.sqlite) on its own seed, results "..._fp_d<depth>.json". A line-up holds at
+the Foul Play elite cut, FP_CUT; the grid's candidates are still the teams at or above the behaviour-cloning cut, as #345 chose them.
+Every battle must land under the same Rust policy row as policy 10 of the labels database (#447).
+
+    LY_POLICY=foulplay LY_PER_CELL=16 LY_MODEL=sched_species_first python line_up_yield.py preflight
+    LY_POLICY=foulplay LY_PER_CELL=4  LY_MODEL=sched_species_first python line_up_yield.py rebattle | predict
+    LY_POLICY=foulplay LY_PER_CELL=16 LY_MODEL=sched_species_first python line_up_yield.py rebattle | flips
+
 LY_MODEL is the name of a grid's results file after "stat_points_84_", so a grid at another guidance is
 LY_MODEL=sched_species_first_g4. LY_TABLE names the table whose training teams are the novelty reference (default: the
 older table); LY_LABELLED=1 keeps only its labelled teams, as the labelled-teams trainings do. Ported on 2026-11-12 from
@@ -47,11 +57,20 @@ DEPTH = int(os.environ.get("LY_PER_CELL", PER_CELL))
 if DEPTH not in (PER_CELL, DEEP_DEPTH):
     raise SystemExit(f"LY_PER_CELL={DEPTH}: the re-battle runs at {PER_CELL} or {DEEP_DEPTH} battles per meta team")
 DEEP = Path.home() / "vgc-data" / "deep_evaluation"
+POLICY = os.environ.get("LY_POLICY", "bc")
+if POLICY not in ("bc", "foulplay"):
+    raise SystemExit(f"LY_POLICY={POLICY}: bc (behaviour cloning, the default) or foulplay (Foul Play deterministic argmax)")
+FOUL_PLAY = POLICY == "foulplay"
+FP_DIR = Path.home() / "vgc-data" / "deep_evaluation_foulplay"
+LABELS_DB = Path(os.environ.get("LY_LABELS_DB", Path.home() / "vgc-data" / "matchup_regmb.sqlite"))   # holds #447's policy 10
+FP_REFERENCE_POLICY = 10                                  # Foul Play deterministic argmax as #447 registered it
 SHALLOW_DB = Path.home() / "vgc-data" / "masking_rate_battles" / "fresh.sqlite"   # the 4-battle re-battles of DEEP_GRIDS
 DEEP_GRIDS = {"sched_species_first": 2, "sched_species_first_g4": 4, "sched_species_first_g8": 8}   # grid ID: guidance
 COLUMNS = 49                                              # distinct top-50 meta teams; the duplicated one is weighted twice
-DB = Path(os.environ.get("LY_DB", Path.home() / "vgc-data" / "line_up_deletion_84" / "fresh.sqlite" if DEPTH == PER_CELL
-                         else DEEP / f"fresh_d{DEPTH}{'_smoke' if os.environ.get('LY_SMOKE') else ''}.sqlite"))   # a smoke never claims the real one
+SMOKE_TAG = "_smoke" if os.environ.get("LY_SMOKE") else ""   # a smoke never claims the real database
+DB = Path(os.environ.get("LY_DB", FP_DIR / f"fresh_fp_d{DEPTH}{SMOKE_TAG}.sqlite" if FOUL_PLAY
+                         else Path.home() / "vgc-data" / "line_up_deletion_84" / "fresh.sqlite" if DEPTH == PER_CELL
+                         else DEEP / f"fresh_d{DEPTH}{SMOKE_TAG}.sqlite"))
 MODEL = os.environ.get("LY_MODEL", "gen84_all_ep21")
 TABLE, LABELLED = os.environ.get("LY_TABLE", "lossdata84.npz"), bool(os.environ.get("LY_LABELLED"))
 SPECIES_COLUMNS = [s * 8 for s in range(6)]
@@ -59,7 +78,14 @@ SMOKE = bool(os.environ.get("LY_SMOKE"))
 CUT, DRAW_SEED, DRAW_TEAMS, DRAWS, NEAR = 0.531, 7521, 1000, 2000, 0.036
 # Worker seeds run from seed + job id, so deep evaluation starts far from 7520 and the two re-battles never share one.
 SHALLOW_SEED, DEEP_SEED = 7520, 1_007_520
-SEED = int(os.environ.get("LY_SEED", SHALLOW_SEED if DEPTH == PER_CELL else DEEP_SEED))
+# Foul Play seeds the game, not the worker: game g of cell (lo, hi) plays from hash(seed, lo, hi, g), so any two seeds are apart.
+FP_SEEDS = {PER_CELL: 2_007_520, DEEP_DEPTH: 3_007_520}
+SEED = int(os.environ.get("LY_SEED", FP_SEEDS[DEPTH] if FOUL_PLAY else SHALLOW_SEED if DEPTH == PER_CELL else DEEP_SEED))
+# Issue #460: the elite cut is a top-50 meta team's mean win rate against the other 49 (docs/cem-v3-loop.md), here from #447's
+# 1,176 meta x meta pairs at 8 battles under policy 10: 0.5001 with the duplicated team weighted twice. A complete round robin
+# without ties averages 0.500 under any policy (policy 8 on the same pairs: 0.500), so 0.531 is not this definition's value.
+FP_CUT = 0.500
+VERDICT_CUT = FP_CUT if FOUL_PLAY else CUT                # the cut a re-battled team must reach to hold
 FLIP_RULE = 0.10                                          # issue #345: 16 becomes the depth when the flip share's interval lies above this
 VERDICTS = {"16": "16 battles per meta team becomes the re-battle depth",
             "4": "4 battles per meta team stays the re-battle depth",
@@ -104,9 +130,10 @@ def fresh_db(path=None):
     path = path or DB
     path.parent.mkdir(parents=True, exist_ok=True)
     con = MDB.connect(path)
-    pid = MDB.get_policy(con, note="elite line-up yield re-battle, slots shuffled, 2026-11-02")
-    if "+slots-shuffled" not in con.execute("SELECT row_policy FROM policy WHERE policy_id=?", (pid,)).fetchone()[0]:
-        raise SystemExit("these battles must shuffle slots")
+    if not FOUL_PLAY:                                     # the Rust runner registers its own policy row (check_foul_play_policy)
+        pid = MDB.get_policy(con, note="elite line-up yield re-battle, slots shuffled, 2026-11-02")
+        if "+slots-shuffled" not in con.execute("SELECT row_policy FROM policy WHERE policy_id=?", (pid,)).fetchone()[0]:
+            raise SystemExit("these battles must shuffle slots")
     val = Validator()
     try:
         with con:
@@ -122,12 +149,62 @@ def fresh_db(path=None):
 
 def fresh_path(model, depth=None):
     depth = DEPTH if depth is None else depth
-    return RES / f"line_up_yield_{model}{'' if depth == PER_CELL else f'_d{depth}'}{'_smoke' if SMOKE else ''}.json"
+    tag = f"_fp_d{depth}" if FOUL_PLAY else "" if depth == PER_CELL else f"_d{depth}"
+    return RES / f"line_up_yield_{model}{tag}{'_smoke' if SMOKE else ''}.json"
 
 
 def views_for(depth=None):
-    """The stored re-battle covers every view; deep evaluation only the all-23-asks view, which the flip count reads."""
-    return VIEWS if (DEPTH if depth is None else depth) == PER_CELL else {"all_23_asks": VIEWS["all_23_asks"]}
+    """The stored re-battle covers every view; deep evaluation, and both Foul Play depths, only the all-23-asks view, which the
+    flip count reads."""
+    return VIEWS if (DEPTH if depth is None else depth) == PER_CELL and not FOUL_PLAY else {"all_23_asks": VIEWS["all_23_asks"]}
+
+
+def shallow_seed():
+    return FP_SEEDS[PER_CELL] if FOUL_PLAY else SHALLOW_SEED
+
+
+def rust_runner(workers=None):
+    import rust_matchup_runner as R
+    return R.RustMatchupRunner("rust_foulplay_det", samples=1, iterations=30000,
+                               workers=int(workers or os.environ.get("LY_WORKERS", 8)))
+
+
+def reference_policy():
+    """(row_policy, simulator) of policy 10 in the labels database, read only."""
+    import sqlite3
+    con = sqlite3.connect(f"file:{LABELS_DB}?mode=ro", uri=True)
+    try:
+        got = con.execute("SELECT row_policy, col_policy, simulator FROM policy WHERE policy_id=?", (FP_REFERENCE_POLICY,)).fetchone()
+    finally:
+        con.close()
+    if got is None or got[0] != got[1] or not got[0].startswith("rust_foulplay_det:"):
+        raise SystemExit(f"{LABELS_DB}: policy {FP_REFERENCE_POLICY} is {got}, not Foul Play deterministic argmax")
+    return got[0], got[2]
+
+
+def check_foul_play_policy(con, runner):
+    """This runner's policy row in `con`: refused unless it is #447's policy 10 (same engine, dex, spreads, agent and runtime)."""
+    pid = runner.register(con)
+    row, sim = con.execute("SELECT row_policy, simulator FROM policy WHERE policy_id=?", (pid,)).fetchone()
+    if (row, sim) != reference_policy():
+        raise SystemExit(f"the Rust runner's inputs differ from policy {FP_REFERENCE_POLICY}: {row} on {sim}")
+    return pid, row
+
+
+def meta_cut(con, policy_id):
+    """A top-50 meta team's mean win rate against the other 49 (docs/cem-v3-loop.md), each team and opponent weighted as listed,
+    from the meta x meta cells of one policy. Returns (cut, pairs, fewest battles in a pair)."""
+    w = dict(con.execute("SELECT team_id, weight FROM team_set WHERE set_name='top50'"))
+    wr, fewest = {}, None
+    for lo, hi, lw, hw, t, n in con.execute("SELECT lo, hi, lo_wins, hi_wins, ties, battles FROM cell WHERE policy_id=?", (policy_id,)):
+        if lo in w and hi in w and lo != hi and n:
+            wr[lo, hi], wr[hi, lo] = (lw + t / 2) / n, (hw + t / 2) / n
+            fewest = n if fewest is None else min(fewest, n)
+    pairs = len(wr) // 2
+    if pairs != len(w) * (len(w) - 1) // 2:
+        raise SystemExit(f"policy {policy_id}: {pairs} meta x meta pairs, not {len(w) * (len(w) - 1) // 2}")
+    per = {i: sum(w[j] * wr[i, j] for j in w if j != i) / sum(w[j] for j in w if j != i) for i in w}
+    return sum(w[i] * per[i] for i in w) / sum(w.values()), pairs, fewest
 
 
 def teams_to_battle(teams, depth=None):
@@ -142,8 +219,9 @@ def cohort(model):
 def shallow_rows(model):
     """The 4-battle re-battle's row for each line-up of the cohort, refused unless it ran at 4 per meta team on seed 7520."""
     data = json.load(open(fresh_path(model, PER_CELL)))
-    if (data["per_cell"], data["seed"]) != (PER_CELL, SHALLOW_SEED):
-        raise SystemExit(f"{model}: the stored re-battle ran at {data['per_cell']} per meta team on seed {data['seed']}")
+    if (data["per_cell"], data["seed"], data.get("policy", "bc")) != (PER_CELL, shallow_seed(), POLICY):
+        raise SystemExit(f"{model}: the stored re-battle ran at {data['per_cell']} per meta team on seed {data['seed']} "
+                         f"under {data.get('policy', 'bc')}")
     fresh = {r["paste"]: r for r in data["fresh"]}
     rows = {lu: fresh.get(t["paste"]) for lu, t in cohort(model).items()}
     if None in rows.values():
@@ -155,8 +233,9 @@ def shallow_rows(model):
 
 def deep_rows(model, data):
     """{line-up: row} of the deep re-battle as it was battled, refused unless its depth, seed and battle counts match."""
-    if (data["per_cell"], data["seed"]) != (DEPTH, SEED) or SEED == SHALLOW_SEED:
-        raise SystemExit(f"{model}: the deep re-battle ran at {data['per_cell']} per meta team on seed {data['seed']}")
+    if (data["per_cell"], data["seed"], data.get("policy", "bc")) != (DEPTH, SEED, POLICY) or SEED == shallow_seed():
+        raise SystemExit(f"{model}: the deep re-battle ran at {data['per_cell']} per meta team on seed {data['seed']} "
+                         f"under {data.get('policy', 'bc')}")
     rows = {line_up(r["paste"]): r for r in data["fresh"]}
     if len(rows) != len(data["fresh"]):
         raise SystemExit(f"{model}: the deep re-battle holds two teams of one line-up")
@@ -172,15 +251,22 @@ def effective_columns():
     return float(w.sum() ** 2 / (w ** 2).sum())
 
 
-def claim_depth(con, depth):
-    """One depth per database: a cell asked for 16 battles that already holds 4 would be topped up, not battled afresh.
-    A database with battles and no recorded depth holds stored 4-battle re-battles."""
+def claim_depth(con, depth, policy=None):
+    """One depth and one policy per database: a cell asked for 16 battles that already holds 4 would be topped up, not battled
+    afresh. A database with battles and no recorded depth holds stored 4-battle behaviour-cloning re-battles."""
+    policy = policy or POLICY
     got = con.execute("SELECT value FROM meta WHERE key='line_up_yield_per_cell'").fetchone()
-    had = got[0] if got else (str(PER_CELL) if con.execute("SELECT 1 FROM cell LIMIT 1").fetchone() else None)
+    any_cell = con.execute("SELECT 1 FROM cell LIMIT 1").fetchone()
+    had = got[0] if got else (str(PER_CELL) if any_cell else None)
     if had is not None and int(had) != depth:
         raise SystemExit(f"this database holds {had}-battle re-battles; a {depth}-battle re-battle needs its own (LY_DB)")
+    got = con.execute("SELECT value FROM meta WHERE key='line_up_yield_policy'").fetchone()
+    had = got[0] if got else ("bc" if any_cell else None)
+    if had is not None and had != policy:
+        raise SystemExit(f"this database holds {had} re-battles; a {policy} re-battle needs its own (LY_DB)")
     with con:
         con.execute("INSERT OR REPLACE INTO meta VALUES ('line_up_yield_per_cell', ?)", (str(depth),))
+        con.execute("INSERT OR REPLACE INTO meta VALUES ('line_up_yield_policy', ?)", (policy,))
 
 
 def stored(path):
@@ -207,17 +293,27 @@ def rebattle():
     if SMOKE:
         pastes = pastes[:2]
     per_cell = 1 if SMOKE else DEPTH
-    print(f"{MODEL}: {len(cand)} elite line-ups, {len(pastes)} teams, {len(pastes) * per_cell * 49} battles", flush=True)
+    print(f"{MODEL}: {len(cand)} elite line-ups, {len(pastes)} teams, {len(pastes) * per_cell * 49} battles ({POLICY})", flush=True)
     con = fresh_db()
     claim_depth(con, per_cell)
-    scores = MDB.score_pastes(con, pastes, per_cell=per_cell, seed=SEED, origin=f"line-up-yield:{MODEL}") if pastes else []
+    extra, runner = {}, None
+    if FOUL_PLAY:
+        runner = rust_runner()
+        pid, row = check_foul_play_policy(con, runner)
+        extra = dict(policy_row=row, policy_id_in_db=pid, reference_policy_id=FP_REFERENCE_POLICY, verdict_cut=VERDICT_CUT)
+    scores, chunk = [], int(os.environ.get("LY_CHUNK", 16)) if FOUL_PLAY else len(pastes)
+    for i in range(0, len(pastes), max(chunk, 1)):      # Foul Play reports progress per chunk; a rerun plays only the deficit
+        part = pastes[i:i + chunk]
+        scores += MDB.score_pastes(con, part, per_cell=per_cell, seed=SEED, origin=f"line-up-yield:{MODEL}", runner=runner)
+        if FOUL_PLAY:
+            print(f"{MODEL}: {i + len(part)}/{len(pastes)} teams at {per_cell} per meta team", flush=True)
     if not all(s["score"] is not None and s["coverage"] == s["columns"] and s["battles"] >= per_cell * s["columns"] for s in scores):
         raise SystemExit(f"{MODEL}: a team lacks some fresh battles")
-    if DEPTH != PER_CELL and not all(s["battles"] == per_cell * s["columns"] for s in scores):
+    if (DEPTH != PER_CELL or FOUL_PLAY) and not all(s["battles"] == per_cell * s["columns"] for s in scores):
         raise SystemExit(f"{MODEL}: a team holds more than {per_cell} battles per meta team; its database was not fresh")
-    keep = {k: v for k, v in stored(fresh_path(MODEL)).items() if k == "preflight"}
+    keep = {k: v for k, v in stored(fresh_path(MODEL)).items() if k in ("preflight", "prediction")}
     save_yield(fresh_path(MODEL), dict(
-        model=MODEL, cut=CUT, per_cell=per_cell, seed=SEED, db=str(DB), **keep,
+        model=MODEL, cut=CUT, per_cell=per_cell, seed=SEED, db=str(DB), policy=POLICY, **extra, **keep,
         fresh=[dict(paste=p, fresh=s["score"], battles=s["battles"]) for p, s in zip(pastes, scores)],
     ))
     print("LY_REBATTLE_DONE", flush=True)
@@ -324,18 +420,19 @@ def depth_verdict(interval):
     return "16" if lo > FLIP_RULE else "4" if hi < FLIP_RULE else "undecided"
 
 
-def predicted_flip_share(p4, n4, battles, draws=2000, seed=DRAW_SEED + 3, prior=None):
+def predicted_flip_share(p4, n4, battles, draws=2000, seed=DRAW_SEED + 3, prior=None, cut=None):
     """The flip share battle noise alone predicts from the 4-battle scores: each team's true win rate drawn from a normal
     empirical-Bayes posterior (prior fitted to the spread of the 4-battle scores unless given), then a `battles`-battle score.
     n4 and battles are effective battle counts, per meta team times effective_columns(), since the score weights one team twice."""
     p4, n4, battles = np.asarray(p4, float), np.asarray(n4, float), round(float(battles))
+    cut = VERDICT_CUT if cut is None else cut
     se2 = p4 * (1 - p4) / n4
     mu, tau = prior if prior else (float(p4.mean()), float(np.sqrt(max(np.var(p4) - se2.mean(), 1e-6))))
     w = tau ** 2 / (tau ** 2 + se2)
     m, sd = mu + w * (p4 - mu), np.sqrt(w * se2)
     rng = np.random.default_rng(seed)
-    v4 = p4 >= CUT
-    shares = [np.mean((rng.binomial(battles, np.clip(rng.normal(m, sd), 0.001, 0.999)) / battles >= CUT) != v4) for _ in range(draws)]
+    v4 = p4 >= cut
+    shares = [np.mean((rng.binomial(battles, np.clip(rng.normal(m, sd), 0.001, 0.999)) / battles >= cut) != v4) for _ in range(draws)]
     return dict(mean=float(np.mean(shares)), interval_90=[float(x) for x in np.percentile(shares, [5, 95])],
                 prior_mean=mu, prior_sd=tau)
 
@@ -353,21 +450,56 @@ def flips(model=None):
     lus = sorted(deep)
     p4 = np.array([shallow[lu]["fresh"] for lu in lus])
     p16 = np.array([deep[lu]["fresh"] for lu in lus])
-    s = flip_summary(p4 >= CUT, p16 >= CUT)
+    s = flip_summary(p4 >= VERDICT_CUT, p16 >= VERDICT_CUT)
     k = effective_columns()
     s.update(depth=DEPTH, verdict=depth_verdict(s["flip_share_interval"]), rule=f"{DEPTH} when the interval lies above {FLIP_RULE}",
-             near_cut_at_4=int((abs(p4 - CUT) < NEAR).sum()), mean_at_4=float(p4.mean()), mean_at_deep=float(p16.mean()),
-             correlation=float(np.corrcoef(p4, p16)[0, 1]), seeds=dict(shallow=SHALLOW_SEED, deep=SEED),
+             policy=POLICY, cut=VERDICT_CUT,
+             near_cut_at_4=int((abs(p4 - VERDICT_CUT) < NEAR).sum()), mean_at_4=float(p4.mean()), mean_at_deep=float(p16.mean()),
+             correlation=float(np.corrcoef(p4, p16)[0, 1]), seeds=dict(shallow=shallow_seed(), deep=SEED),
              scores=[[float(a), float(b)] for a, b in zip(p4, p16)],          # each line-up's score at 4 and at 16, for the figures
              predicted_from_4=predicted_flip_share(p4, np.full(len(lus), PER_CELL * k), DEPTH * k))
+    if FOUL_PLAY:
+        before = json.load(open(fresh_path(model, PER_CELL))).get("prediction")   # written by `predict` before the 16-battle arm
+        if not before or before["predicted"]["mean"] != s["predicted_from_4"]["mean"]:
+            raise SystemExit(f"{model}: the prediction made before the {DEPTH}-battle re-battle is missing or differs")
+        # Exploratory: the same battles read at the behaviour-cloning cut, which #345 used
+        s["at_bc_cut"] = dict(cut=CUT, **{key: v for key, v in flip_summary(p4 >= CUT, p16 >= CUT).items()},
+                              predicted=predicted_flip_share(p4, np.full(len(lus), PER_CELL * k), DEPTH * k, cut=CUT)["mean"])
     data["flips"] = s
-    json.dump(data, open(path, "w"))
+    save_yield(path, data)
     a, b = s["flip_share_interval"]
     print(f"guidance {DEEP_GRIDS.get(model, model)}: {s['flips']} of {s['line_ups']} elite line-ups change verdict between "
           f"{PER_CELL} and {DEPTH} battles per meta team, share {s['flip_share']:.3f} (95% interval {a:.3f} to {b:.3f}); "
           f"held {s['held_at_4']} at {PER_CELL} and {s['held_at_16']} at {DEPTH} per meta team; predicted {s['predicted_from_4']['mean']:.3f}; "
           f"{VERDICTS[s['verdict']]}", flush=True)
     return s
+
+
+def predict(model=None):
+    """Foul Play only, after the 4-battle re-battle and before the 16: the flip share battle noise alone predicts from the 4-battle
+    scores, written into the 4-battle results file with the time it was made."""
+    if not FOUL_PLAY or DEPTH != PER_CELL:
+        raise SystemExit(f"predict reads the Foul Play 4-battle re-battle: set LY_POLICY=foulplay LY_PER_CELL={PER_CELL}")
+    import time
+    model = model or MODEL
+    rows = shallow_rows(model)
+    if fresh_path(model, DEEP_DEPTH).exists() and "fresh" in json.load(open(fresh_path(model, DEEP_DEPTH))):
+        raise SystemExit(f"{model}: the {DEEP_DEPTH}-battle re-battle has results already; a prediction now is not a prediction")
+    p4 = np.array([rows[lu]["fresh"] for lu in sorted(rows)])
+    k = effective_columns()
+    out = dict(made=time.strftime("%Y-%m-%d %H:%M"), line_ups=len(p4), cut=VERDICT_CUT, held_at_4=int((p4 >= VERDICT_CUT).sum()),
+               near_cut_at_4=int((abs(p4 - VERDICT_CUT) < NEAR).sum()), mean_at_4=float(p4.mean()), sd_at_4=float(p4.std()),
+               effective_columns=k, predicted=predicted_flip_share(p4, np.full(len(p4), PER_CELL * k), DEEP_DEPTH * k),
+               predicted_flat_prior=predicted_flip_share(p4, np.full(len(p4), PER_CELL * k), DEEP_DEPTH * k, prior=(0.5, 1.0)),
+               predicted_at_bc_cut=predicted_flip_share(p4, np.full(len(p4), PER_CELL * k), DEEP_DEPTH * k, cut=CUT)["mean"])
+    path = fresh_path(model, PER_CELL)
+    data = json.load(open(path)); data["prediction"] = out
+    save_yield(path, data)
+    a, b = out["predicted"]["interval_90"]
+    print(f"guidance {DEEP_GRIDS.get(model, model)}: {out['line_ups']} elite line-ups, {out['held_at_4']} held at {PER_CELL} per meta team "
+          f"(Foul Play cut {VERDICT_CUT:.3f}), {out['near_cut_at_4']} within {NEAR} of it; battle noise alone predicts a flip share of "
+          f"{out['predicted']['mean']:.3f} (90% of draws {a:.3f} to {b:.3f})", flush=True)
+    return out
 
 
 def compare(boot=400, draws=20):
@@ -418,6 +550,9 @@ if __name__ == "__main__":
     elif what == "flips":
         flips()
         print("LY_FLIPS_DONE", flush=True)
+    elif what == "predict":
+        predict()
+        print("LY_PREDICT_DONE", flush=True)
     elif what == "preflight":
         import deep_evaluation_preflight
         deep_evaluation_preflight.main()

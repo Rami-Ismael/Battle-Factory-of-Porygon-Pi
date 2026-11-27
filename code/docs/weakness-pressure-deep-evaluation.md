@@ -80,6 +80,64 @@ Predicted before any 16-battle result (the `prediction` probe, 2026-11-17): batt
 
 Time: the 4-battle re-battle ran 60,564 battles in about 9 minutes on 2026-11-13, so guidance 2 at 16 takes about 35 minutes and all three about 2 hours on the laptop. A cheaper design, re-battling only line-ups within 0.036 of the cut (124 of 272 at guidance 2), would answer the held counts but not the flip share the rule reads, so the run keeps every line-up.
 
+## Part A under Foul Play (issue #460, 2026-11-27)
+
+Owner, 2026-11-27: Foul Play deterministic argmax replaces behaviour cloning as the scorer everywhere; #345's depth was set from behaviour-cloning battles. Written before any Foul Play battle of either arm. Prior work searched: this doc's part A (#345) and #447's pilot, which measured one Foul Play battle as noisy as one behaviour-cloning battle (single-game SD 0.453 against 0.483) with matchups spread wider (true matchup SD 0.209 against 0.126).
+
+| Row | Value |
+| --- | --- |
+| Claim | Under Foul Play, re-battling elite line-ups at 4 battles per meta team flips the held / not-held verdict at 16 for at least 10% of line-ups. Refuted if the flip share's 95% interval lies below 10%; then 4 becomes the Foul Play re-battle depth and Foul Play re-battles cost a quarter. If it holds, Foul Play re-battles run at 16, as behaviour-cloning ones do since #345. Scope: win rate under Foul Play deterministic argmax against the top-50 meta. |
+| Fields | No generation. The teams are #345's: the stored best team per elite line-up of the control grid (`line_up_yield_sched_species_first*.json`), chosen by the grid's behaviour-cloning scores at the behaviour-cloning cut 0.531. |
+| Vocabulary | Not applicable: no model runs. |
+| Training teams | Not applicable. |
+| Scorer | `matchup_db.score_pastes` with `rust_matchup_runner.RustMatchupRunner("rust_foulplay_det", iterations=30000, samples=1)`, 8 workers, on both sides; `line_up_yield.check_foul_play_policy` refuses any battle whose policy row differs from policy 10 in `~/vgc-data/matchup_regmb.sqlite` (engine, dex, spreads, agent and Showdown runtime hashes). Slots shuffled; the 49 distinct top-50 meta teams, the duplicated one weighted twice. Both depths battle afresh, each in its own database with its depth and policy recorded (`claim_depth`): 4 per meta team on seed 2,007,520 into `~/vgc-data/deep_evaluation_foulplay/fresh_fp_d4.sqlite`, 16 per meta team on seed 3,007,520 into `fresh_fp_d16.sqlite`. Game g of a cell plays from hash(seed, lo, hi, g), so the two arms share no game. Results `line_up_yield_<grid>_fp_d4.json` and `_fp_d16.json`. |
+| Search region | #345's cohort: 272 line-ups at guidance 2, 334 at 4, 352 at 8 (the `all_23_asks` view). Both arms battle only these teams. |
+| Settings | Scientific: battles per meta team (4, 16). Nuisance: the battle seed (one per arm). Fixed: the Foul Play policy, the teams, the opponents, the elite cut. |
+| Elite cut | A top-50 meta team's mean win rate against the other 49 (`docs/cem-v3-loop.md`), recomputed from #447's 1,176 meta x meta pairs at 8 battles under policy 10: **0.500** (0.5001 with the duplicated team weighted twice; `line_up_yield.FP_CUT`). The same computation on behaviour cloning's cells for the same pairs (policy 8) also gives 0.500, and policy 1's gives 0.500: a complete round robin without ties averages one half under any policy, so this definition cannot give 0.531, and 0.531 came from an older computation. The verdict uses 0.500; the same battles read at 0.531 are reported beside it as exploratory. |
+| Plan | Primary measure (`line_up_yield.py flips`): the share of line-ups whose verdict at 16 differs from the verdict at 4, both under Foul Play, with a 95% bootstrap interval over line-ups (2,000 resamples). Second: held counts at each depth. A single measure nothing trades against except cost, so the question is whether the flip share exceeds 10%. Rule (#345's, fixed on #460): 16 when the interval lies above 0.10, 4 when it lies below. Prediction: `line_up_yield.py predict` after the 4-battle arm and before any 16-battle battle, posted on #460. Budget: guidance 2 is 272 x 49 x 4 = 53,312 battles and 272 x 49 x 16 = 213,248, 266,560 in all; all three guidances 938,840. Stop after guidance 2 if its interval lies below 0.10. **Confirmatory.** |
+
+### Arms
+
+- **4 battles per meta team under Foul Play** `rebattle_4_foulplay`
+- **16 battles per meta team under Foul Play** `rebattle_16_foulplay`
+
+### Probes
+
+`LY_POLICY=foulplay LY_PER_CELL=16 LY_MODEL=sched_species_first python line_up_yield.py preflight`, run as the queue's first step; results under `preflight` in `line_up_yield_sched_species_first_fp_d16.json`. Probes battle at 4 per meta team, in private databases.
+
+| Probe | Pass |
+| --- | --- |
+| Policy | The runner's policy row equals policy 10 of the labels database. Checked 2026-11-27 on the frozen copy, no battles: identical row. |
+| Cut | The recomputed cut is within 0.0005 of `FP_CUT`, over 1,176 pairs with at least 8 battles each |
+| Separation | No held-out team among the 958 teams |
+| Independence | Two databases and two seeds of their own, apart from the behaviour-cloning re-battles' |
+| Controls | 5 top-50 teams between 0.40 and 0.60; 5 uniform-legal teams below 0.10 (Foul Play may play weak teams better than behaviour cloning, so not "near 0.015") |
+| Repeat | One line-up twice at one seed in two fresh databases: the same games and game seeds, scores within the 99% bound; `same_winners` records whether the games replay exactly |
+
+Skipped with the reason saved: invariance (every battle shuffles slots), and the generation probes (no model runs).
+
+### Noise and budget
+
+At 196 battles one line-up's win rate has standard error 0.036, at 784 it has 0.018 (p = 0.5); #447 measured Foul Play battles at binomial noise (single-game SD 0.453). The bootstrap over 272 line-ups resolves a flip share to about +-0.05, enough to tell 0.10 from 0.20. Time: #447 ran about 410 Foul Play battles a minute with 8 workers, so guidance 2 takes about 11 hours (2.2 for the 4-battle arm, 8.7 for the 16) and all three about 38.
+
+### Figures
+
+The storyboard of part A, unchanged: scores at 4 against 16, the flip share with its interval, prediction and rule, and the held counts. The cut drawn is 0.500, and the comment adds the reading at 0.531.
+
+### Commands
+
+The queue `~/vgc-data/deep_evaluation_foulplay/fp_rebattle.zsh` (launchd `com.rami.vgc.fp_rebattle_460`, frozen copy in `run/`) runs, per guidance: the 4-battle arm, the prediction (posted), the 16-battle arm, flips, the figures and comment (posted). Tests: `scripts/test_deep_evaluation.py`.
+
+### Deviations
+
+Written 2026-11-27, before any Foul Play battle of this run:
+
+- #460's cost (213,248 battles for guidance 2) counted the 16-battle arm only; the 4-battle arm must battle afresh too, since the stored one is behaviour cloning. Guidance 2 is 266,560 battles.
+- The recomputed cut is 0.500, not a Foul Play-specific number (see Elite cut). The verdict uses it as #460 says; the 0.531 reading is exploratory.
+- The prediction moves after the 4-battle arm, because it needs the 4-battle Foul Play scores; it still comes before any 16-battle battle.
+- Controls run at 4 per meta team instead of 16, and the uniform-legal band is "below 0.10".
+- The `report` step (novelty views of held line-ups) is not run: the flip count and held counts answer #460, and `report` reads the training tables under `~/Documents`, which launchd cannot read.
+
 ## Part B: weakness pressure in an 84-field elite loop
 
 | Row | Value |

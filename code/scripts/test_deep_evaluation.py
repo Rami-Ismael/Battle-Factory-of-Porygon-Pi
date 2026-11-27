@@ -20,7 +20,7 @@ PILOT_STAGED = Path("/tmp/vgc-pilot/src/hps_generate.py").exists() and Path("/tm
 
 def load(**env):
     """line_up_yield reads its settings from the environment at import."""
-    for k in ("LY_PER_CELL", "LY_SEED", "LY_DB", "LY_MODEL", "LY_SMOKE"):
+    for k in ("LY_PER_CELL", "LY_SEED", "LY_DB", "LY_MODEL", "LY_SMOKE", "LY_POLICY"):
         os.environ.pop(k, None)
     os.environ.update(env)
     import line_up_yield
@@ -190,6 +190,88 @@ class Comment(unittest.TestCase):
         self.assertIn("the run stops here", P.comment([(2, self.block(0.04, 0.02, 0.07, "4"))]).splitlines()[0])
         later = P.comment([(2, self.block(0.22, 0.17, 0.27, "16")), (4, self.block(0.04, 0.02, 0.07, "4"))]).splitlines()[0]
         self.assertNotIn("stops", later); self.assertIn("below the rule at this guidance", later)
+
+
+
+@unittest.skipUnless(PILOT_STAGED, "needs the /tmp/vgc-pilot staging")
+class FoulPlay(unittest.TestCase):
+    """Issue #460: both depths battle afresh under Foul Play, in databases and on seeds of their own, judged at the Foul Play cut."""
+
+    def test_each_depth_gets_its_own_file_seed_and_database(self):
+        a = load(LY_POLICY="foulplay", LY_PER_CELL="4")              # reload returns the same module: read before the next load
+        self.assertEqual((a.fresh_path("m").name, a.DB.name, a.SEED), ("line_up_yield_m_fp_d4.json", "fresh_fp_d4.sqlite", 2_007_520))
+        seed4, db4 = a.SEED, a.DB
+        b = load(LY_POLICY="foulplay", LY_PER_CELL="16")
+        self.assertEqual((b.fresh_path("m").name, b.DB.name, b.SEED), ("line_up_yield_m_fp_d16.json", "fresh_fp_d16.sqlite", 3_007_520))
+        self.assertEqual(b.fresh_path("m", 4).name, "line_up_yield_m_fp_d4.json")
+        self.assertEqual(len({seed4, b.SEED, b.SHALLOW_SEED, b.DEEP_SEED}), 4)
+        self.assertEqual(len({db4, b.DB, b.SHALLOW_DB, b.DEEP / "fresh_d16.sqlite"}), 4)
+        self.assertEqual(load(LY_POLICY="foulplay", LY_PER_CELL="16", LY_SMOKE="1").DB.name, "fresh_fp_d16_smoke.sqlite")
+
+    def test_the_verdict_uses_the_foul_play_cut_and_the_candidates_the_grid_cut(self):
+        L = load(LY_POLICY="foulplay", LY_PER_CELL="16")
+        self.assertEqual((L.VERDICT_CUT, L.CUT), (0.500, 0.531))
+        self.assertEqual(load().VERDICT_CUT, 0.531)
+        t = dict(ask=1, seed=1, pos=0, paste="A", y=0.52, line_up=("a",))  # above the Foul Play cut, below the grid's
+        self.assertEqual(L.candidates([t]), {})
+
+    def test_both_foul_play_depths_battle_only_the_cohort(self):
+        a = dict(ask=1, seed=1, pos=0, paste="A", y=0.6, line_up=("a",))
+        b = dict(ask=23, seed=1, pos=0, paste="B", y=0.7, line_up=("a",))
+        L = load(LY_POLICY="foulplay", LY_PER_CELL="4")
+        self.assertEqual(L.teams_to_battle([a, b]), ["B"])
+
+    def test_unknown_policy_is_refused(self):
+        with self.assertRaises(SystemExit):
+            load(LY_POLICY="random")
+
+    def test_a_database_keeps_one_policy(self):
+        L = load(LY_POLICY="foulplay", LY_PER_CELL="4")
+        con = OneDepthPerDatabase.con(None)
+        L.claim_depth(con, 4)
+        with self.assertRaises(SystemExit):
+            L.claim_depth(con, 4, "bc")
+        con2 = OneDepthPerDatabase.con(None); con2.execute("INSERT INTO cell VALUES (1, 1, 2, 4)")   # stored behaviour-cloning battles
+        with self.assertRaises(SystemExit):
+            L.claim_depth(con2, 4)
+
+    def test_shallow_and_deep_rows_refuse_behaviour_cloning_results(self):
+        L = load(LY_POLICY="foulplay", LY_PER_CELL="16")
+        team = "Pikachu @ Light Ball\nAbility: Static\n- Protect"
+        good = dict(per_cell=16, seed=L.SEED, policy="foulplay", fresh=[dict(paste=team, fresh=0.5, battles=16 * 49)])
+        self.assertEqual(len(L.deep_rows("m", good)), 1)
+        for bad in (dict(policy="bc"), dict(seed=L.DEEP_SEED)):
+            with self.assertRaises(SystemExit):
+                L.deep_rows("m", {**good, **bad})
+
+    def test_meta_cut_of_a_round_robin_is_one_half(self):
+        L = load(LY_POLICY="foulplay", LY_PER_CELL="16")
+        con = sqlite3.connect(":memory:")
+        con.executescript("CREATE TABLE team_set (set_name TEXT, team_id INTEGER, weight REAL);"
+                          "CREATE TABLE cell (policy_id INTEGER, lo INTEGER, hi INTEGER, lo_wins INTEGER, hi_wins INTEGER, ties INTEGER, battles INTEGER);")
+        con.executemany("INSERT INTO team_set VALUES ('top50', ?, ?)", [(1, 1), (2, 1), (3, 2)])
+        con.executemany("INSERT INTO cell VALUES (10, ?, ?, ?, ?, 0, 8)", [(1, 2, 6, 2), (1, 3, 1, 7), (2, 3, 4, 4)])
+        cut, pairs, fewest = L.meta_cut(con, 10)
+        self.assertEqual((pairs, fewest), (3, 8))
+        # team 3 (weight 2) beats 1 at 7/8 and splits with 2: weighted mean of per-team rates
+        per = {1: (6 / 8 + 2 * 1 / 8) / 3, 2: (2 / 8 + 2 * 4 / 8) / 3, 3: (7 / 8 + 4 / 8) / 2}
+        self.assertAlmostEqual(cut, (per[1] + per[2] + 2 * per[3]) / 4)
+        con.execute("DELETE FROM cell WHERE lo=2 AND hi=3")
+        with self.assertRaises(SystemExit):
+            L.meta_cut(con, 10)
+
+    def test_the_foul_play_comment_names_the_scorer_and_the_bc_cut_reading(self):
+        load(LY_POLICY="foulplay", LY_PER_CELL="16")
+        import deep_evaluation_post as P
+        P = importlib.reload(P)
+        blk = {**Comment.block(None, 0.22, 0.17, 0.27, "16"), "at_bc_cut": dict(flips=50, flip_share=0.18, flip_share_interval=[0.14, 0.23],
+                                                                              predicted=0.2, held_at_4=90, held_at_16=88)}
+        text = P.comment([(2, blk)])
+        self.assertTrue(text.startswith("**Foul Play deep evaluation, guidance 2:"))
+        self.assertIn("elite cut 0.500", text); self.assertIn("Foul Play deterministic argmax", text)
+        self.assertIn("| 2 | 50 | 0.180 (0.140 to 0.230) | 0.200 | 90 | 88 |", text)
+        self.assertNotIn("behaviour-cloning policy on both sides", text)
+        self.assertEqual(P.group_of(0.505, 0.495), 1)                    # held at 4, lost at 16, at the Foul Play cut
 
 
 if __name__ == "__main__":

@@ -2,6 +2,8 @@
 
     LY_PER_CELL=16 python deep_evaluation_post.py figure <folder>          # scores.html, flip-share.html, held.html
     LY_PER_CELL=16 python deep_evaluation_post.py comment [<image url>]    # the url holds {name} and {theme} placeholders
+    LY_POLICY=foulplay LY_PER_CELL=16 ... figure | comment                 # the Foul Play re-battles (issue #460)
+    LY_POLICY=foulplay LY_PER_CELL=4 LY_MODEL=<grid> python deep_evaluation_post.py prediction   # before the 16-battle arm
 
 All read the `flips` block of every guidance's deep results file written so far. The storyboard is in the pre-registration:
   scores      each elite line-up's score at 4 and at 16 battles per meta team, by what happened to its verdict (the teaser)
@@ -16,6 +18,9 @@ from pathlib import Path
 import line_up_yield as L
 
 RULE = f"{L.FLIP_RULE:.2f}"
+CUT = L.VERDICT_CUT                                        # the cut a re-battled team must reach to hold, under this run's policy
+CUT_TEXT = f"{CUT:.3f}"
+SCORER = "Foul Play deterministic argmax" if L.FOUL_PLAY else "behaviour-cloning policy"
 SHALLOW, DEEP = f"{L.PER_CELL} battles per meta team", f"{L.DEEP_DEPTH} battles per meta team"
 # One meaning per color across the three figures (categorical slots 1-4 and 7, validated light and dark by the dataviz validator).
 BOTH, LOST, GAINED, NEITHER = "#2a78d6", "#eb6834", "#1baf7a", "#a3a29d"
@@ -32,7 +37,7 @@ FIGURES = ("scores", "flip-share", "held")
 
 
 def group_of(a, b):
-    held4, held16 = a >= L.CUT, b >= L.CUT
+    held4, held16 = a >= CUT, b >= CUT
     return 0 if held4 and held16 else 1 if held4 else 2 if held16 else 3
 
 
@@ -61,9 +66,9 @@ def scores_option(results):
                              "nameLocation": "middle", "nameGap": 40})
         opt["series"].append({"type": "line", "xAxisIndex": i, "yAxisIndex": i, "silent": True, "symbol": "none", "tooltip": {"show": False},
                               "lineStyle": {"color": NEITHER, "width": 1, "type": "dotted"}, "data": [[lo, lo], [hi, hi]],
-                              "markLine": {"symbol": "none", "silent": True, "label": {"show": i == n - 1, "formatter": f"cut {L.CUT}", "position": "end"},
+                              "markLine": {"symbol": "none", "silent": True, "label": {"show": i == n - 1, "formatter": f"cut {CUT_TEXT}", "position": "end"},
                                            "lineStyle": {"color": NEITHER, "type": "dashed", "width": 1},
-                                           "data": [{"xAxis": L.CUT, "label": {"show": False}}, {"yAxis": L.CUT}]}})
+                                           "data": [{"xAxis": CUT, "label": {"show": False}}, {"yAxis": CUT}]}})
         for k, (name, color) in enumerate(GROUPS):
             opt["series"].append({"name": name, "type": "scatter", "xAxisIndex": i, "yAxisIndex": i, "symbolSize": 8,
                                   # the flips carry the idea; the two kept verdicts recede
@@ -115,7 +120,7 @@ def held_option(results):
 def near_cut_share(results, width=0.07):
     """Share of flipped line-ups whose 4-battle score sat within `width` (two standard errors at 196 battles) of the cut."""
     flips = [a for _, s in results for a, b in s["scores"] if group_of(a, b) in (1, 2)]
-    return sum(abs(a - L.CUT) <= width for a in flips) / max(len(flips), 1)
+    return sum(abs(a - CUT) <= width for a in flips) / max(len(flips), 1)
 
 
 def scores_title(results):
@@ -139,10 +144,10 @@ def figure(results, folder):
     folder = Path(folder)
     write_chart(scores_option(results), folder / "scores.html", height=480, dark=DARK, title=scores_title(results),
                 subtitle=f"Each dot is an elite line-up's best team, scored in a {SHALLOW} re-battle (across) and a {DEEP} re-battle (up). "
-                         f"Dashed lines: the elite cut {L.CUT}. Dots off the dotted diagonal moved; dots across a dashed line changed verdict.")
+                         f"Dashed lines: the elite cut {CUT_TEXT} under {SCORER}. Dots off the dotted diagonal moved; dots across a dashed line changed verdict.")
     write_chart(flip_share_option(results), folder / "flip-share.html", height=440, dark=DARK,
                 title=f"How often {SHALLOW} and {DEEP} disagree on an elite line-up",
-                subtitle=f"A verdict is held when the line-up's best team scores at least the elite cut {L.CUT} in its re-battle. "
+                subtitle=f"A verdict is held when the line-up's best team scores at least the elite cut {CUT_TEXT} in its {SCORER} re-battle. "
                          f"Above the dashed rule at {RULE}, {DEEP} becomes the re-battle depth.")
     write_chart(held_option(results), folder / "held.html", height=120 + 70 * len(results), dark=DARK,
                 title=held_title(results),
@@ -166,14 +171,14 @@ def picture(url, name, alt):
 def comment(results, url=None):
     g, last = results[-1]
     lo, hi = last["flip_share_interval"]
-    lines = [f"**Deep evaluation, guidance {g}: {last['flips']} of {last['line_ups']} elite line-ups change verdict between "
+    lines = [f"**{'Foul Play deep evaluation' if L.FOUL_PLAY else 'Deep evaluation'}, guidance {g}: {last['flips']} of {last['line_ups']} elite line-ups change verdict between "
              f"{SHALLOW} and {DEEP} (share {last['flip_share']:.3f}, 95% interval {lo:.3f} to {hi:.3f}); "
              f"by the rule fixed on this ticket, {verdict_line(g, last)}.**", ""]
     if url:
         lines += [picture(url, "scores", f"Each elite line-up's score at {SHALLOW} against {DEEP}, by what happened to its verdict"), "",
                   picture(url, "flip-share", f"Measured flip share with its 95% interval, the prediction from battle noise alone and the {RULE} rule"), "",
                   picture(url, "held", "Line-ups held at each depth: at both, at 4 only, at 16 only"), ""]
-    lines += [f"A verdict is held or not held: whether the line-up's best team scores at least the elite cut {L.CUT} in its re-battle. "
+    lines += [f"A verdict is held or not held: whether the line-up's best team scores at least the elite cut {CUT_TEXT} in its re-battle. "
               f"A flip is a line-up held at one depth and not at the other. The prediction draws each team's true win rate from its "
               f"{SHALLOW} score and adds battle noise alone.", "",
               f"| Guidance | Elite line-ups | Flips | Flip share (95% interval) | Predicted flip share | Held at {SHALLOW} | "
@@ -184,11 +189,41 @@ def comment(results, url=None):
         lines.append(f"| {gg} | {s['line_ups']} | {s['flips']} | {s['flip_share']:.3f} ({a:.3f} to {b:.3f}) | {s['predicted_from_4']['mean']:.3f} | "
                      f"{s['held_at_4']} | {s['held_at_16']} | {s['held_to_not_held']} | {s['not_held_to_held']} | {s['correlation']:.2f} | "
                      f"{verdict_line(gg, s)} |")
-    lines += ["", f"Scorer: behaviour-cloning policy on both sides, slots shuffled, the 49 distinct top-50 meta teams with the duplicated one "
-              f"weighted twice. The {SHALLOW} re-battle ran on seed {L.SHALLOW_SEED}; the {DEEP} re-battle on seed {L.DEEP_SEED} in a "
-              f"database of its own. Results: `~/vgc-data/results/line_up_yield_<grid>_d{L.DEEP_DEPTH}.json`. "
-              "Pre-registration: `code/docs/weakness-pressure-deep-evaluation.md` part A."]
+    if L.FOUL_PLAY:
+        lines += ["", "Read at the behaviour-cloning cut 0.531 instead (exploratory, same battles):", "",
+                  "| Guidance | Flips | Flip share (95% interval) | Predicted | Held at 4 | Held at 16 |", "| --- | --- | --- | --- | --- | --- |"]
+        for gg, s in results:
+            b = s["at_bc_cut"]; lo2, hi2 = b["flip_share_interval"]
+            lines.append(f"| {gg} | {b['flips']} | {b['flip_share']:.3f} ({lo2:.3f} to {hi2:.3f}) | {b['predicted']:.3f} | {b['held_at_4']} | {b['held_at_16']} |")
+        lines += ["", f"Scorer: Foul Play deterministic argmax (30,000 iterations, 1 sample) on both sides, the same policy row as policy "
+                  f"{L.FP_REFERENCE_POLICY} of #447; slots shuffled; the 49 distinct top-50 meta teams with the duplicated one weighted twice. "
+                  f"Elite cut {CUT_TEXT}: a top-50 meta team's mean win rate against the other 49 from #447's 1,176 meta x meta pairs. "
+                  f"Both depths battled afresh: {SHALLOW} on seed {L.FP_SEEDS[L.PER_CELL]}, {DEEP} on seed {L.FP_SEEDS[L.DEEP_DEPTH]}, each in a "
+                  f"database of its own. Teams: #345's, the stored best team per elite line-up. Results: "
+                  f"`~/vgc-data/results/line_up_yield_<grid>_fp_d4.json` and `_fp_d16.json`. "
+                  "Pre-registration: `code/docs/weakness-pressure-deep-evaluation.md`, part A under Foul Play."]
+    else:
+        lines += ["", f"Scorer: behaviour-cloning policy on both sides, slots shuffled, the 49 distinct top-50 meta teams with the duplicated one "
+                  f"weighted twice. The {SHALLOW} re-battle ran on seed {L.SHALLOW_SEED}; the {DEEP} re-battle on seed {L.DEEP_SEED} in a "
+                  f"database of its own. Results: `~/vgc-data/results/line_up_yield_<grid>_d{L.DEEP_DEPTH}.json`. "
+                  "Pre-registration: `code/docs/weakness-pressure-deep-evaluation.md` part A."]
     return "\n".join(lines) + "\n"
+
+
+def prediction_comment(model):
+    """Foul Play: the flip share battle noise predicts, posted after the 4-battle re-battle and before any 16-battle result."""
+    pr = json.load(open(L.fresh_path(model, L.PER_CELL)))["prediction"]
+    a, b = pr["predicted"]["interval_90"]
+    g = L.DEEP_GRIDS.get(model, model)
+    return "\n".join([
+        f"**Prediction before the {DEEP} re-battle, guidance {g}: battle noise alone predicts {pr['predicted']['mean']:.3f} of "
+        f"{pr['line_ups']} elite line-ups flip verdict (90% of draws {a:.3f} to {b:.3f}).**", "",
+        f"Made {pr['made']} from the {SHALLOW} Foul Play re-battle, before any {DEEP} battle. {pr['held_at_4']} line-ups hold at the "
+        f"Foul Play elite cut {pr['cut']:.3f}; {pr['near_cut_at_4']} score within 0.036 of it. Each team's true win rate is drawn from a "
+        f"normal empirical-Bayes posterior fitted to the spread of the {SHALLOW} scores (mean {pr['mean_at_4']:.3f}, SD {pr['sd_at_4']:.3f}), "
+        f"then given a fresh {DEEP} score. A flat prior gives {pr['predicted_flat_prior']['mean']:.3f}; at the behaviour-cloning cut 0.531 "
+        f"the prediction is {pr['predicted_at_bc_cut']:.3f}. The rule fixed on this ticket: {DEEP} stays the depth when the measured "
+        f"share's 95% interval lies above {RULE}."]) + "\n"
 
 
 def results_so_far():
@@ -201,6 +236,8 @@ def results_so_far():
 
 
 if __name__ == "__main__":
+    if sys.argv[1:2] == ["prediction"]:
+        sys.stdout.write(prediction_comment(L.MODEL)); sys.exit(0)
     r = results_so_far()
     if not r:
         sys.exit("no guidance has a flips block yet")
