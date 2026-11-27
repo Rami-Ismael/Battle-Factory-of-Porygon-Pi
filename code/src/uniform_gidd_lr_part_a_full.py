@@ -92,7 +92,8 @@ def _normalize_paste(paste: str):
 def _build_reference():
     import udlm_pass_count84 as UPC
 
-    return UPC.load_training_reference()
+    reference, _, _ = UPC._build_training_reference()
+    return reference
 
 
 def _cell_diversity(pastes, reference, parser):
