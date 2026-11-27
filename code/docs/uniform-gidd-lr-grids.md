@@ -60,3 +60,23 @@ Join each model's measured points in order of error. The equal-error verdict use
 - **Sentence.** At the same error on asks 1/24 to 17/24, pooled win rate shows how the two models fare overall across the full dial.
 - **Expected.** Pooled win rates are similar through the shared error range.
 - **Surprising.** Pooled win rates differ at similar levels of calibration error.
+
+## Full #438 evaluation coverage (Part A items 1–4 and Part B items 5–12)
+
+Beyond the coarse `{1, 2, 4, 8}` ask grids above, issue #438 runs the full masked-model evaluation suite on the shared-recipe **Uniform, no filter** checkpoint (`stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80`), compared in three columns against the 4e-4 **Uniform, no filter** checkpoint (`stat84_udlm_loglinear_es3_cap80`) and the recipe-matched **Masked, full filter** control (`stat84_shuffled_noise_linear_filtered_lr5e4_min5e5_es3_cap80`):
+
+- **Battle-free probes (`src/uniform_gidd_lr_probes.py`):**
+  - Item 5 (Pokémon-to-field matching probe at epochs 45, 49, 55, 61, 80);
+  - Item 6 (slot-swap sensitivity: species-swap tracking of Ability, First Move, and Stat Points plus full-slot permutation equivariance at epoch 80);
+  - Item 7 (generation speed per Showdown-valid team including validator redraws, and peak MPS memory in isolated subprocesses against the 17.76 GiB ceiling of `docs/generation-memory-spec.md`);
+  - Part A item 2 validation-loss bound recomputed on the identical 4,368 filtered validation rows (`seed = 12345`).
+- **Part A completion (`src/uniform_gidd_lr_part_a_full.py`):**
+  - Item 1 pass-count selection comment with storyboard figures (`udlm_pass_count84.py`);
+  - Item 2 unguided (`γ = 0`, 192 teams × 49 = 9,408 battles) and conditional (`γ = 1`) comparison;
+  - Items 3 & 4 rule-selected bend points (up to 2 via `uniform_preflight84.bend_points_to_add`), full `diversity_metrics.py` within-ask and pooled measures, mean species replacement distance, dominated area `HV`, equal-error advantage `Δm_eq`, highest usable guidance `g_max`, 5-axis combined Pareto front, and the three pre-registered revision numbers + exploratory revision diagnostics.
+- **Part B battled evaluations reusing Part A grids (`src/uniform_gidd_lr_part_b_battled.py`):**
+  - Items 8 & 11: elite line-up re-battles at 4 and 16 battles per meta team (`line_up_yield.py`), flip share, and worst-5-matchup weakness-pressure win rates on the 16-battle matrix;
+  - Item 9: unbiased Pass@k for `k = 1..64` (noting Fang et al. App. E's `n ≥ 4k` mark at `k = 48`) and Pass@NFE accounting for validator redraws;
+  - Item 10: held-out meta teams ranks 51–100 (`heldout.py`) scored once on the final selected top elite line-ups;
+  - Item 12: high asks `18/24–23/24` win rates, MSE, exact-copy rate, and nearest-training-team swap distribution.
+- **Deferred (items 13 & 14):** in-place infilling and temperature/species-repulsion sampling stay excluded until pre-registered separately, per #438.
