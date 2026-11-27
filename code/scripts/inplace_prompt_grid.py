@@ -6,7 +6,7 @@ Alignments, Stat Points and whole Pokemon at 1 to 6 hidden, moves at 1 to 24. Ea
 seed derived from the run seed and the mask's id, so a mask's draw does not depend on which masks ran before it and
 a stopped run resumes where it stopped. #237 to #239 filled one mask per forward pass. From #443 (owner, 2026-11-25:
 batch size 1 is no longer required) run fills a batch of masks per forward pass, the largest batch that fits the
-device: rows are right-padded and grouped shortest text first, and each keeps its own seed, slots and schedule
+device up to that card's speed_batch_cap: rows are right-padded and grouped shortest text first, and each keeps its own seed, slots and schedule
 (fill_batch, masked_diffusion_memory_bench.fill_rows). The batch size is in run.json's setting.
 
 Prompts are stacked (#237 to #240); each later ticket adds one entry to PROMPTS:
@@ -652,6 +652,37 @@ def redraw_grid(tasks: Iterable[dict[str, Any]], first: Path, prompt: Prompt, to
 
 
 CPU_BATCH = 8               # the CPU has no memory ladder; it is used only by tests and smoke runs
+# The most fills one forward pass takes, by the GPU the fills run on, however many fit in memory. Timed on Modal on
+# 2026-11-25 and 2026-11-26 for all four models, on the header-only and the example-team prompts. A batch runs as
+# many passes as its row with the most masks, so a larger batch makes the rows with fewer masks wait longer; the cap
+# is the size where tokens per second through the model stop rising. On the A10 they rise to 32 and 64 was slower
+# per fill for every model and prompt. On the L4 they peak at 4 and fall to about 75% of that by 32, whichever sizes
+# run first. The L40S (both prompts) and both A100 cards (header-only prompt) were timed once on
+# 2026-11-26: the L40S peaks between 4 and 16 by model and prompt, and 8 loses the least across them (at most 19%,
+# where 4 loses up to 39%); the A100 cards rise to 32 and stay within 5% of that to 128. A card that was never timed takes DEFAULT_SPEED_BATCH_CAP.
+# Readings: ~/vgc-data/inplace_prompt_grid/gpu-probe-batch-sweep*.
+SPEED_BATCH_CAP_BY_GPU = {'A10': 32, 'L4': 4, 'L40S': 8, 'A100': 32}
+DEFAULT_SPEED_BATCH_CAP = 32
+
+
+def gpu_name(device: str) -> str:
+    """The card's name as torch reports it ('NVIDIA A10G'), or the device string off CUDA."""
+    if not device.startswith('cuda'):
+        return device
+    import torch
+    return torch.cuda.get_device_name(torch.device(device))
+
+
+def speed_batch_cap(name: str) -> tuple[int, str]:
+    """(the most fills per forward pass on the card called name, the timed card that set it or 'default'). A word of
+    the name matches a timed card when it is that card plus letters only: 'NVIDIA A10G' takes the A10's cap, while
+    'NVIDIA L40S' is not an L4 and 'NVIDIA A100' is not an A10."""
+    for word in name.upper().replace('-', ' ').split():
+        for card, cap in SPEED_BATCH_CAP_BY_GPU.items():
+            rest = word[len(card):]
+            if word.startswith(card.upper()) and (not rest or rest.isalpha()):
+                return cap, card
+    return DEFAULT_SPEED_BATCH_CAP, 'default'
 
 
 def device_memory(device: str) -> tuple[Callable[[], None], Callable[[], int], int]:
@@ -673,7 +704,8 @@ def choose_batch(row_forward: Any, longest: dict[str, Any], mask_id: int, active
     """The largest batch that fits the device (#443): masked_diffusion_memory_bench.largest_batch, one step each, at
     the worst shape a batch of the run can take: as wide as the longest text and as deep as the text with the most
     masks (b - 1 copies of the longest beside the deepest; at b = 1 each alone). cap is the number of fills to make.
-    On the CPU, CPU_BATCH."""
+    On a GPU the batch never passes that card's speed_batch_cap, the size past which a fill gets slower. On the CPU,
+    CPU_BATCH."""
     import torch
 
     import masked_diffusion_memory_bench as B
@@ -682,6 +714,7 @@ def choose_batch(row_forward: Any, longest: dict[str, Any], mask_id: int, active
         return {'batch': CPU_BATCH if cap is None else min(CPU_BATCH, cap), 'ladder': [],
                 'longest_tokens': len(longest['ids']), 'most_masks': len(deepest['slots'])}
     reset, peak, capacity = device_memory(device)
+    speed_cap, cap_card = speed_batch_cap(gpu_name(device))
     one_step = replace(active, steps=1)
 
     def one(texts: list[dict[str, Any]]) -> int:
@@ -700,14 +733,16 @@ def choose_batch(row_forward: Any, longest: dict[str, Any], mask_id: int, active
         return one([longest] * (batch - 1) + [deepest])
 
     try:
-        result = B.largest_batch(peak_at, capacity, headroom=headroom, cap=cap)
+        result = B.largest_batch(peak_at, capacity, headroom=headroom,
+                                 cap=speed_cap if cap is None else min(cap, speed_cap))
     finally:
         if device.startswith('cuda'):
             torch.cuda.empty_cache()
         elif device == 'mps':
             torch.mps.empty_cache()
         reset()                             # the rows' peak readings start after the ladder, not at its last rung
-    return result | {'longest_tokens': len(longest['ids']), 'most_masks': len(deepest['slots'])}
+    return result | {'longest_tokens': len(longest['ids']), 'most_masks': len(deepest['slots']),
+                     'speed_cap': speed_cap, 'speed_cap_card': cap_card}
 
 
 def extreme_texts(texts: Iterable[dict[str, Any]]) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
@@ -871,7 +906,7 @@ def record_batching(meta: dict[str, Any], sizing: dict[str, Any], redraw: bool) 
 def run(prompt_code: str, key: str, directory: Path, limit: int | None, device: str, redraw: bool = False,
         sampler_name: str | None = None, batch: int | None = None) -> int:
     """Fill (or redraw) the grid with one prompt and model, batch at a time: batch masks per forward pass, or with
-    batch None the largest batch that fits the device (#443)."""
+    batch None the largest batch that fits the device, up to its card's speed_batch_cap (#443)."""
     import torch
 
     import masked_diffusion_memory_bench as B

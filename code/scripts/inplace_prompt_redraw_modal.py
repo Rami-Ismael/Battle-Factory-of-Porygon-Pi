@@ -1,9 +1,9 @@
 """Redraw today's in-place prompt on the held-out grid on a Modal GPU, then judge the draws on the laptop (#171).
 
 #171's queue redraws every mask that failed its first try up to 4 more times (#169) on the laptop's GPU. This
-moves the drawing for one model to a Modal L4 with the same seeds (inplace_prompt_grid.redraw_seed) and the same
+moves the drawing for one model to a Modal L40S with the same seeds (inplace_prompt_grid.redraw_seed) and the same
 sampler setting. Showdown does not run on Modal, so the container cannot tell a legal draw and makes all 4 redraws
-of each failing mask, batch at a time (#443): the largest batch that fits the GPU, every draw with its own seed;
+of each failing mask, batch at a time (#443): the largest batch that fits the GPU (up to the card's speed cap: 8 on an L40S, 4 on an L4), every draw with its own seed;
 --batch N fixes the size, and --batch 1 draws one at a time as #171 did. Each row streams back to
 D/inplace_header/<key>/redraws-modal-raw.jsonl as it is drawn, so a stopped run resumes. The code the container runs
 is the frozen copy in INPLACE_CODE_DIR (default D/run443, the first with batched fills; #171 ran from D/run171).
@@ -38,8 +38,8 @@ PROMPT = 'inplace_header'
 REDRAWS = 4
 RAW = 'redraws-modal-raw.jsonl'
 REMOTE_CODE = '/root/code'
-GPU = 'L4'
-TIMEOUT_SECONDS = 3 * 60 * 60          # 3-hour cap, about $2.40 at L4's $0.80 an hour
+GPU = 'L40S'                           # owner, 2026-11-27: see DEFAULT_GPU in inplace_prompt_fill_modal.py
+TIMEOUT_SECONDS = 90 * 60              # 90-minute cap, about $2.93 at the L40S's $1.95 an hour; a stopped run resumes
 HF_CACHE_VOLUME = 'vgc-hf-cache'
 DEFERRED = 'deferred: Showdown judges this draw on the laptop'
 IMAGE_PACKAGES = ('torch==2.15.0', 'transformers==4.57.3', 'accelerate==1.15.0', 'safetensors==0.8.0',
@@ -89,7 +89,7 @@ def loop_keeps(judged: Iterable[dict[str, Any]], existing: list[dict[str, Any]])
 def draw_remote(key: str, tasks: list[dict[str, Any]], first: list[dict[str, Any]], done: list[dict[str, Any]],
                 limit: int | None, batch: int | None = None, gpu: str = 'cuda') -> Iterator[str]:
     """Container side: a determinism probe line, then one raw row per (mask, draw) as a JSON line, batch at a time
-    (#443): the largest batch that fits the GPU at the longest text, or batch if given. Each draw keeps its own seed
+    (#443): the largest batch that fits the GPU (up to the card's speed cap) at the longest text, or batch if given. Each draw keeps its own seed
     (inplace_prompt_grid.redraw_seed)."""
     sys.path.insert(0, f'{REMOTE_CODE}/scripts')
     import torch
@@ -219,7 +219,7 @@ if modal is not None:
 
     @app.local_entrypoint()
     def main(key: str, limit: int = 0, batch: int = 0) -> None:
-        """batch 0 (the default) takes the largest batch that fits the GPU; any other value fixes it."""
+        """batch 0 (the default) takes the largest batch that fits the GPU, up to the card's speed cap; any other value fixes it."""
         out = DIRECTORY / PROMPT / key
         tasks = json.loads(TASKS.read_text())['tasks']
         first = read_rows(out / 'fills.jsonl')

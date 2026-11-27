@@ -317,6 +317,36 @@ class BatchedGridTest(unittest.TestCase):
         self.assertEqual(G.choose_batch(None, longest, MASK_ID, MS.SHARED_SAMPLER, 'cpu')['batch'], G.CPU_BATCH)
         self.assertEqual(G.choose_batch(None, longest, MASK_ID, MS.SHARED_SAMPLER, 'cpu', cap=2)['batch'], 2)
 
+    def test_gpu_batch_stops_at_its_cards_speed_cap_however_much_memory_is_free(self):
+        tokenizer = FakeTokenizer()
+        longest = G.extreme_texts([G.canvas(t, PROMPT, tokenizer, MASK_ID) for t in TASKS])[0]
+        asked: list[int] = []
+        memory = (lambda: None, lambda: 1, 10**12)
+        with unittest.mock.patch.object(G, 'device_memory', return_value=memory), \
+                unittest.mock.patch.object(G, 'SPEED_BATCH_CAP_BY_GPU', {'A10': 32, 'L4': 16}), \
+                unittest.mock.patch.object(B, 'fill_rows', lambda forward, rows, *rest: asked.append(len(rows))):
+            with unittest.mock.patch.object(G, 'gpu_name', return_value='NVIDIA A10G'):
+                free = G.choose_batch(None, longest, MASK_ID, MS.SHARED_SAMPLER, 'cuda')
+                few = G.choose_batch(None, longest, MASK_ID, MS.SHARED_SAMPLER, 'cuda', cap=5)
+            a10_asked, asked[:] = max(asked), []
+            with unittest.mock.patch.object(G, 'gpu_name', return_value='NVIDIA L4'):
+                smaller = G.choose_batch(None, longest, MASK_ID, MS.SHARED_SAMPLER, 'cuda')
+        self.assertEqual((free['batch'], free['speed_cap'], free['speed_cap_card']), (32, 32, 'A10'))
+        self.assertEqual(few['batch'], 5)
+        self.assertEqual((smaller['batch'], smaller['speed_cap_card']), (16, 'L4'))
+        self.assertEqual((a10_asked, max(asked)), (32, 16))        # the ladder never tries a larger batch
+
+    def test_speed_cap_matches_a_card_by_name_and_falls_back_for_an_untimed_card(self):
+        with unittest.mock.patch.object(G, 'SPEED_BATCH_CAP_BY_GPU', {'A10': 32, 'L4': 16, 'L40S': 8, 'A100': 64}):
+            self.assertEqual(G.speed_batch_cap('NVIDIA A10'), (32, 'A10'))
+            self.assertEqual(G.speed_batch_cap('NVIDIA A10G'), (32, 'A10'))
+            self.assertEqual(G.speed_batch_cap('NVIDIA L4'), (16, 'L4'))
+            self.assertEqual(G.speed_batch_cap('NVIDIA L40S'), (8, 'L40S'))
+            self.assertEqual(G.speed_batch_cap('NVIDIA A100-SXM4-40GB'), (64, 'A100'))
+            self.assertEqual(G.speed_batch_cap('NVIDIA A100 80GB PCIe'), (64, 'A100'))
+            for untimed in ('NVIDIA H100 80GB HBM3', 'NVIDIA RTX A1000', 'fake-gpu'):
+                self.assertEqual(G.speed_batch_cap(untimed), (G.DEFAULT_SPEED_BATCH_CAP, 'default'))
+
     def test_mask_groups_give_shared_masks_the_same_neighbours(self):
         tokenizer = FakeTokenizer()
         groups = G.mask_groups(TASKS, tokenizer, MASK_ID, None, 2)

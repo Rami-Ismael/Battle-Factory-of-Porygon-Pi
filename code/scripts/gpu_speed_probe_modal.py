@@ -39,7 +39,7 @@ GPU = os.environ.get('PROBE_GPU', 'L4')
 PRICE_PER_HOUR = {'T4': 0.59, 'L4': 0.80, 'A10': 1.10, 'L40S': 1.95, 'A100-40GB': 2.10, 'A100-80GB': 2.50,
                   'RTX-PRO-6000': 3.03, 'H100': 3.95, 'H200': 4.54, 'B200': 6.25}
 KEYS = ('diffugpt_s', 'diffugpt_m', 'qwen25c', 'qwen3')
-PROMPT = 'inplace_header'
+PROMPT = os.environ.get('PROBE_PROMPT', 'inplace_header')   # the prompt whose fills are timed
 TIMEOUT_SECONDS = 20 * 60              # 20-minute cap: $0.27 on an L4, $1.32 on an H100
 HF_CACHE_VOLUME = 'vgc-hf-cache'
 REMOTE_CODE = '/root/code'
@@ -54,6 +54,7 @@ SHORT_STEPS = 8                        # forwards per precision timing; the full
 # (name, weights dtype or None to leave the loaded weights, TF32 switches, bfloat16 autocast)
 VARIANTS = ((AS_RUN, None, False, False),
             ('as run, TF32 on', None, True, False),
+            ('as run, bfloat16 autocast', None, False, True),
             ('bfloat16 weights', 'bfloat16', False, False),
             ('float32 weights, TF32 off', 'float32', False, False),
             ('float32 weights, TF32 on', 'float32', True, False),
@@ -66,6 +67,18 @@ def median_rows(order: list[str], batch: int) -> list[str]:
         raise ValueError(f'batch {batch} of {len(order)} masks')
     start = (len(order) - batch) // 2
     return order[start:start + batch]
+
+
+def fitting(tasks: list[dict[str, Any]], build: Any) -> list[dict[str, Any]]:
+    """The tasks whose text build can make: a text over the model's token limit is not a fill the grid makes."""
+    kept = []
+    for task in tasks:
+        try:
+            build(task)
+        except Exception:
+            continue
+        kept.append(task)
+    return kept
 
 
 def probe_remote(key: str, tasks: list[dict[str, Any]], batches: list[int], full_batches: list[int]) -> dict[str, Any]:
@@ -90,6 +103,7 @@ def probe_remote(key: str, tasks: list[dict[str, Any]], batches: list[int], full
              'cudnn_tf32': torch.backends.cudnn.allow_tf32,
              'float32_matmul_precision': torch.get_float32_matmul_precision(),
              'autocast_on': torch.is_autocast_enabled('cuda')}
+    tasks = fitting(tasks, lambda t: G.canvas(t, G.PROMPTS[PROMPT], tokenizer, candidate.mask_id, start_id))
     order = G.length_order(tasks, G.PROMPTS[PROMPT], tokenizer, candidate.mask_id, start_id)
     by_id = {t['id']: t for t in tasks}
     texts = {i: G.canvas(by_id[i], G.PROMPTS[PROMPT], tokenizer, candidate.mask_id, start_id) for i in order}
@@ -108,6 +122,8 @@ def probe_remote(key: str, tasks: list[dict[str, Any]], batches: list[int], full
         return out
 
     def one_fill(batch: int, steps: int | None) -> dict[str, Any]:
+        if batch > len(order):
+            return {'batch': batch, 'status': f'only {len(order)} masks'}
         ids = median_rows(order, batch)
         chosen = [texts[i] for i in ids]
         setting = active if steps is None else replace(active, steps=steps)
@@ -137,7 +153,7 @@ def probe_remote(key: str, tasks: list[dict[str, Any]], batches: list[int], full
 
     result: dict[str, Any] = {'gpu_asked': GPU, 'device': torch.cuda.get_device_name(),
                               'memory_gib': torch.cuda.get_device_properties(0).total_memory / 2**30,
-                              'torch': str(torch.__version__), 'candidate': key, 'prompt': PROMPT,
+                              'torch': str(torch.__version__), 'candidate': key, 'prompt': PROMPT, 'masks_that_fit': len(order),
                               'sampler_setting': active.to_dict(), 'found': found, 'short_steps': SHORT_STEPS,
                               'full': [], 'variants': []}
     for batch in full_batches:
@@ -203,7 +219,7 @@ except ImportError:
 
 if modal is not None:
     image = (modal.Image.debian_slim(python_version='3.11').pip_install(*IMAGE_PACKAGES)
-             .env({'PYTHONUNBUFFERED': '1', 'PYTHONDONTWRITEBYTECODE': '1', 'PROBE_GPU': GPU}))
+             .env({'PYTHONUNBUFFERED': '1', 'PYTHONDONTWRITEBYTECODE': '1', 'PROBE_GPU': GPU, 'PROBE_PROMPT': PROMPT}))
     for _rel in PACKAGED_FILES:
         image = image.add_local_file(FROZEN / _rel, f'{REMOTE_CODE}/{_rel}')
     hf_cache = modal.Volume.from_name(HF_CACHE_VOLUME, create_if_missing=True)
@@ -227,7 +243,7 @@ if modal is not None:
         tasks = json.loads(TASKS.read_bytes())['tasks']
         print(f'{key}: probing Modal {GPU} at ${PRICE_PER_HOUR[GPU]:.2f} an hour', flush=True)
         begin = time.time()
-        result = json.loads(probe.remote(key, tasks, [int(b) for b in batches.split(',')],
+        result = json.loads(probe.remote(key, tasks, [int(b) for b in batches.split(',') if b],
                                          [int(b) for b in full.split(',')]))
         if 'error' in result:
             raise SystemExit(f'{key} on {GPU}: THE PROBE FAILED\n{result["error"]}')
