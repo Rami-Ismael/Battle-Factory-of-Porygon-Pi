@@ -3,8 +3,8 @@
 Tests the issue #419 matchup predictor (src/foul_play_matchup_predictor.py) at its public seams:
   1. make_folds / make_grouped_folds: deterministic, disjoint, complete, balanced folds; grouped folds keep lineups together.
   2. FeatureMap: slot-order invariant; built strictly from training teams (ignores test-only tokens and test stats).
-  3. fit_ridge_loocv / predict_ridge: closed-form LOOCV matches brute-force leave-one-out refits; intercept and BC slope
-     stay unpenalized; recovers exact linear multi-fidelity signal; team-only ignores BC input.
+  3. solve_ridge_with_loocv / fit_ridge_arm / RidgePredictor.predict: closed-form LOOCV matches brute-force leave-one-out
+     refits; intercept and BC slope stay unpenalized; recovers exact linear multi-fidelity signal; team-only ignores BC.
   4. evaluate_arms / paired_bootstrap_ci: shared five folds across all arms; gap sign convention (arm - guess_bc_label < 0
      is better); verdict logic; deployment-noise 1-battle draw helper.
   5. End-to-end report + ECharts figure builder on synthetic results (no laptop DB needed).
@@ -245,9 +245,9 @@ class TestFiguresAndReport(unittest.TestCase):
                 text = p.read_text()
                 self.assertIn("echarts", text)
             md = MP.format_markdown_report(payload)
-            self.assertIn("Team + behaviour-cloning win rate", md)
+            self.assertIn("Team and behaviour-cloning win rate", md)
             self.assertIn("Team only, no behaviour-cloning win rate", md)
-            self.assertIn("Behaviour-cloning win rate as the guess", md)
+            self.assertIn("No training, behaviour-cloning win rate as the guess", md)
 
 
 if __name__ == "__main__":

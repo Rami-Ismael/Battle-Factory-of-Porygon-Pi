@@ -1239,12 +1239,12 @@ Shared by every arm: the 84-field transformer (256 wide, 6 layers, 8 heads) trai
 
 Source: [`foul-play-matchup-predictor.md`](foul-play-matchup-predictor.md) (issue #419, map #416)
 
-Shared by every arm: 5-fold cross-validation on the 500 pilot teams from issue #447 (`pilot_teams.json`, seed 447), using the same five disjoint 100-team folds (`seed = 419`), scored against each team's Foul Play deterministic argmax win rate over the 39 training opponents (`policy_id = 10`, 2 battles per cell = 78 battles per team; irreducible 2-battle noise RMSE floor `0.0423`). Both trained arms use ridge regression on fold-local 84-field features (single-field indicators, species pairs appearing ≥ 5 times, and 10 permutation-invariant Stat Point summaries) with exact inner-LOOCV regularization selection.
+Shared by every arm: 5-fold cross-validation on the 500 pilot teams from issue #447 (`pilot_teams.json`, seed 447), using the same five disjoint 100-team folds (`seed = 419`), scored against each team's Foul Play deterministic argmax win rate over the 39 training opponents (`policy_id = 10`, 2 battles per cell = 78 battles per team; irreducible two-battle noise root mean squared error floor `0.0423`). Both trained arms use ridge regression on fold-local 84-field features (single-field indicators, species pairs appearing ≥ 5 times, and 10 permutation-invariant Stat Point summaries) with exact inner leave-one-out cross-validation regularization selection.
 
 | Reader name | Code ID |
 | --- | --- |
-| Team + behaviour-cloning win rate | `predictor_team_bc` |
+| Team and behaviour-cloning win rate | `predictor_team_bc` |
 | Team only, no behaviour-cloning win rate | `predictor_team_only` |
-| Behaviour-cloning win rate as the guess | `guess_bc_label` |
-| Linear-calibrated behaviour-cloning win rate | `calibrate_bc_only` |
-| Training-fold mean as the guess | `guess_train_mean` |
+| No training, behaviour-cloning win rate as the guess | `guess_bc_label` |
+| No team features, linear behaviour-cloning calibration | `calibrate_bc_only` |
+| No features, training-fold mean as the guess | `guess_train_mean` |

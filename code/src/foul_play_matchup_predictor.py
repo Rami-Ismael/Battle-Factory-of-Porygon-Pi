@@ -46,11 +46,18 @@ BOOTSTRAP = 10000
 SMALLEST_EFFECT = 0.005
 STATS = ("HP", "Atk", "Def", "SpA", "SpD", "Spe")
 ARM_LABELS = {
-    "predictor_team_bc": "Team + behaviour-cloning win rate",
+    "predictor_team_bc": "Team and behaviour-cloning win rate",
     "predictor_team_only": "Team only, no behaviour-cloning win rate",
-    "guess_bc_label": "Behaviour-cloning win rate as the guess",
-    "calibrate_bc_only": "Linear-calibrated behaviour-cloning win rate",
-    "guess_train_mean": "Training-fold mean as the guess",
+    "guess_bc_label": "No training, behaviour-cloning win rate as the guess",
+    "calibrate_bc_only": "No team features, linear behaviour-cloning calibration",
+    "guess_train_mean": "No features, training-fold mean as the guess",
+}
+SHORT_LABELS = {
+    "predictor_team_bc": "Team + old win rate",
+    "predictor_team_only": "Team only",
+    "guess_bc_label": "No training (old win rate)",
+    "calibrate_bc_only": "No team features (linear fit)",
+    "guess_train_mean": "No features (fold mean)",
 }
 
 
@@ -216,6 +223,14 @@ def solve_ridge_with_loocv(X_unpen, X_pen, y, lam_vec):
     return float(np.mean(loo_err**2)), w_unpen, w_pen
 
 
+def _unpenalized_matrix(n, bc_wr, use_bc):
+    if not use_bc:
+        return np.ones((n, 1), dtype=np.float64)
+    if bc_wr is None:
+        raise ValueError("use_bc=True requires bc_wr")
+    return np.column_stack([np.ones(n, dtype=np.float64), np.asarray(bc_wr, dtype=np.float64)])
+
+
 @dataclass
 class RidgePredictor:
     """Trained ridge matchup predictor with fold-local FeatureMap and chosen regularization."""
@@ -230,26 +245,15 @@ class RidgePredictor:
 
     def predict(self, teams, bc_wr=None):
         X_pen = self.fmap.transform(teams)
-        if self.use_bc:
-            if bc_wr is None:
-                raise ValueError("predictor_team_bc requires bc_wr")
-            U = np.column_stack([np.ones(len(teams)), np.asarray(bc_wr, dtype=np.float64)])
-        else:
-            U = np.ones((len(teams), 1), dtype=np.float64)
-        raw = U @ self.w_unpen + X_pen @ self.w_pen
-        return np.clip(raw, 0.0, 1.0)
+        U = _unpenalized_matrix(len(teams), bc_wr, self.use_bc)
+        return np.clip(U @ self.w_unpen + X_pen @ self.w_pen, 0.0, 1.0)
 
 
 def fit_ridge_arm(teams, y, bc_wr=None, *, use_bc=False, min_pair=MIN_PAIR, lam_grid=LAM_GRID):
     """Fit a ridge arm with inner exact LOOCV selecting lam_s from lam_grid (lam_p = PAIR_MULT * lam_s)."""
     fmap = FeatureMap.fit(teams, min_pair=min_pair)
     X_pen = fmap.transform(teams)
-    if use_bc:
-        if bc_wr is None:
-            raise ValueError("use_bc=True requires bc_wr")
-        U = np.column_stack([np.ones(len(teams)), np.asarray(bc_wr, dtype=np.float64)])
-    else:
-        U = np.ones((len(teams), 1), dtype=np.float64)
+    U = _unpenalized_matrix(len(teams), bc_wr, use_bc)
 
     best = None
     for lam_s in lam_grid:
@@ -359,8 +363,9 @@ def paired_bootstrap_ci(pred_a, pred_b, target, indices, *, margin=SMALLEST_EFFE
     }
 
 
-def _run_fold_predictions(team_ids, teams, fp_target, bc_input, folds, min_pair, lam_grid):
+def _run_fold_predictions(team_ids, teams, fp_target, bc_input, folds, min_pair, lam_grid, *, bc_test_input=None):
     idx_of = {tid: i for i, tid in enumerate(team_ids)}
+    bc_eval = bc_input if bc_test_input is None else bc_test_input
     n = len(team_ids)
     preds = {name: np.zeros(n, dtype=np.float64) for name in ARM_LABELS}
     fold_meta = []
@@ -372,7 +377,7 @@ def _run_fold_predictions(team_ids, teams, fp_target, bc_input, folds, min_pair,
         te_teams = [teams[t] for t in test_ids]
         y_tr = np.array([fp_target[t] for t in train_ids], dtype=np.float64)
         bc_tr = np.array([bc_input[t] for t in train_ids], dtype=np.float64)
-        bc_te = np.array([bc_input[t] for t in test_ids], dtype=np.float64)
+        bc_te = np.array([bc_eval[t] for t in test_ids], dtype=np.float64)
 
         m_bc = fit_ridge_arm(tr_teams, y_tr, bc_tr, use_bc=True, min_pair=min_pair, lam_grid=lam_grid)
         m_only = fit_ridge_arm(tr_teams, y_tr, None, use_bc=False, min_pair=min_pair, lam_grid=lam_grid)
@@ -411,12 +416,26 @@ def _run_fold_predictions(team_ids, teams, fp_target, bc_input, folds, min_pair,
     return preds, fold_meta
 
 
-def evaluate_arms(team_ids, teams, fp_target, bc_input, folds, *, min_pair=MIN_PAIR, lam_grid=LAM_GRID, boot=BOOTSTRAP, seed=SEED):
+def evaluate_arms(
+    team_ids,
+    teams,
+    fp_target,
+    bc_input,
+    folds,
+    *,
+    bc_test_input=None,
+    min_pair=MIN_PAIR,
+    lam_grid=LAM_GRID,
+    boot=BOOTSTRAP,
+    seed=SEED,
+):
     """Run 5-fold CV for all arms on identical folds, returning metrics, CIs, per-fold errors, and paired gaps."""
     team_ids = [int(t) for t in team_ids]
     idx_of = {tid: i for i, tid in enumerate(team_ids)}
     y_all = np.array([fp_target[t] for t in team_ids], dtype=np.float64)
-    preds, fold_meta = _run_fold_predictions(team_ids, teams, fp_target, bc_input, folds, min_pair, lam_grid)
+    preds, fold_meta = _run_fold_predictions(
+        team_ids, teams, fp_target, bc_input, folds, min_pair, lam_grid, bc_test_input=bc_test_input
+    )
 
     rng = np.random.default_rng(seed)
     boot_idx = rng.integers(0, len(team_ids), size=(boot, len(team_ids)))
@@ -838,9 +857,12 @@ def run_experiment(con, *, pilot_dir=PILOT_DIR, out_dir=OUT, run_mlp=True):
     preflight["repeat"] = {"max_pred_diff": repeat_diff, "passed": repeat_diff == 0.0}
     preflight["all_passed"] = all(v["passed"] for k, v in preflight.items() if k != "all_passed")
 
-    # Sensitivity 1: 1-battle-per-cell BC deployment noise
+    # Sensitivity 1: 1-battle-per-cell behaviour-cloning deployment noise (both 1-battle train/test and 2-battle train -> 1-battle test)
     bc_one = draw_one_battle_labels(data["bc_cells"], data["team_ids"], data["train_opps"], seed=SEED)
     sens_one = evaluate_arms(data["team_ids"], data["teams"], data["fp_train"], bc_one, folds)
+    sens_deploy = evaluate_arms(
+        data["team_ids"], data["teams"], data["fp_train"], data["bc_train"], folds, bc_test_input=bc_one
+    )
 
     # Sensitivity 2: score primary OOF predictions (trained on 39 train opps) against 10 unseen validation opponents
     oof_map = {a: primary["arms"][a]["oof_pred"] for a in ARM_LABELS}
@@ -878,6 +900,7 @@ def run_experiment(con, *, pilot_dir=PILOT_DIR, out_dir=OUT, run_mlp=True):
         "primary": primary,
         "sensitivity": {
             "one_battle_bc": {k: v for k, v in sens_one.items() if k not in ("oof_pred", "target_fp", "input_bc")},
+            "train_2b_test_1b_bc": {k: v for k, v in sens_deploy.items() if k not in ("oof_pred", "target_fp", "input_bc")},
             "validation_opponents": sens_val,
             "grouped_lineup_folds": {k: v for k, v in sens_group.items() if k not in ("oof_pred", "target_fp", "input_bc")},
         },
@@ -906,13 +929,7 @@ def _arm_rmse_chart(payload, path):
     arms = payload["primary"]["arms"]
     floor = payload["battle_noise_floor"]["fp_rmse_floor"]
     order = ["predictor_team_bc", "predictor_team_only", "calibrate_bc_only", "guess_bc_label", "guess_train_mean"]
-    labels = [
-        "Team + behaviour-cloning\n(predictor_team_bc)",
-        "Team only, no BC\n(predictor_team_only)",
-        "Linear BC calibration\n(diagnostic control)",
-        "Behaviour-cloning guess\n(guess_bc_label)",
-        "Training-fold mean\n(zero-signal ceiling)",
-    ]
+    labels = [SHORT_LABELS[k] for k in order]
     series = []
     for key, label in zip(order, labels):
         a = arms[key]
@@ -929,7 +946,7 @@ def _arm_rmse_chart(payload, path):
             }
         )
         entry = {
-            "name": label.replace("\n", " "),
+            "name": ARM_LABELS[key],
             "type": "scatter",
             "data": [[round(a["rmse"], 4), label]],
             "symbolSize": 15,
@@ -961,13 +978,13 @@ def _arm_rmse_chart(payload, path):
             }
         series.append(entry)
     option = {
-        "tooltip": {"trigger": "item", "formatter": "js:p => p.seriesName + ': RMSE ' + p.value[0].toFixed(4)"},
+        "tooltip": {"trigger": "axis", "axisPointer": {"type": "line"}},
         "grid": {"left": 210, "right": 56, "top": 42, "bottom": 54},
         "xAxis": {
             "type": "value",
             "min": 0.03,
             "max": 0.17,
-            "name": "5-fold out-of-fold RMSE against Foul Play win rate (lower is better)",
+            "name": "5-fold out-of-fold root mean squared error (lower is better)",
             "nameLocation": "middle",
             "nameGap": 34,
         },
@@ -978,15 +995,15 @@ def _arm_rmse_chart(payload, path):
     tb_rmse = arms["predictor_team_bc"]["rmse"]
     to_rmse = arms["predictor_team_only"]["rmse"]
     title = (
-        f"Team + behaviour-cloning predictor cuts RMSE from {bc_rmse:.3f} to {tb_rmse:.3f}"
+        f"Team and behaviour-cloning win rate cuts error from {bc_rmse:.3f} to {tb_rmse:.3f}"
         if tb_rmse < bc_rmse
         else f"Neither predictor beats the {bc_rmse:.3f} behaviour-cloning guess"
     )
     subtitle = (
-        f"5-fold CV on 500 pilot teams (issue #419). Team-only scores {to_rmse:.3f}; "
-        f"an oracle on infinite battles cannot beat the {floor:.3f} 2-battle noise floor."
+        f"5-fold cross-validation on 500 pilot teams (issue #419). Team only scores {to_rmse:.3f}; "
+        f"an oracle on infinite battles cannot beat the {floor:.3f} two-battle noise floor."
     )
-    note = "Points show out-of-fold RMSE with 95% paired bootstrap intervals (10,000 resamples over the 500 teams)."
+    note = "Points show out-of-fold root mean squared error with 95% bootstrap intervals (10,000 resamples over the 500 teams)."
     return write_chart(option, path, title=title, subtitle=subtitle, note=note, height=370)
 
 
@@ -996,9 +1013,9 @@ def _scatter_panels_chart(payload, path):
     y = payload["primary"]["target_fp"]
     arms = payload["primary"]["arms"]
     panels = [
-        ("guess_bc_label", "Behaviour-cloning guess", COLORS["guess_bc_label"]),
-        ("predictor_team_only", "Team only, no BC", COLORS["predictor_team_only"]),
-        ("predictor_team_bc", "Team + behaviour-cloning", COLORS["predictor_team_bc"]),
+        ("guess_bc_label", SHORT_LABELS["guess_bc_label"], COLORS["guess_bc_label"]),
+        ("predictor_team_only", SHORT_LABELS["predictor_team_only"], COLORS["predictor_team_only"]),
+        ("predictor_team_bc", SHORT_LABELS["predictor_team_bc"], COLORS["predictor_team_bc"]),
     ]
     grids, xaxes, yaxes, titles, series = [], [], [], [], []
     for i, (key, label, color) in enumerate(panels):
@@ -1007,7 +1024,7 @@ def _scatter_panels_chart(payload, path):
         grids.append({"left": f"{left}%", "width": "26%", "top": 52, "bottom": 54})
         titles.append(
             {
-                "text": f"{label}\nRMSE {a['rmse']:.3f} · r {a['pearson_r']:.3f}",
+                "text": f"{label}\nerror {a['rmse']:.3f} · r {a['pearson_r']:.3f}",
                 "left": f"{left + 13}%",
                 "top": 6,
                 "textAlign": "center",
@@ -1020,7 +1037,7 @@ def _scatter_panels_chart(payload, path):
                 "type": "value",
                 "min": 0,
                 "max": 0.75,
-                "name": "predicted" if i == 1 else "",
+                "name": "predicted win rate" if i == 1 else "",
                 "nameLocation": "middle",
                 "nameGap": 32,
             }
@@ -1039,7 +1056,7 @@ def _scatter_panels_chart(payload, path):
         pts = [[round(p, 4), round(t, 4)] for p, t in zip(a["oof_pred"], y)]
         series.append(
             {
-                "name": label,
+                "name": ARM_LABELS[key],
                 "type": "scatter",
                 "xAxisIndex": i,
                 "yAxisIndex": i,
@@ -1063,7 +1080,7 @@ def _scatter_panels_chart(payload, path):
         )
     option = {
         "title": titles,
-        "tooltip": {"trigger": "item", "formatter": "js:p => p.seriesName + '<br>pred ' + p.value[0].toFixed(3) + ' · actual ' + p.value[1].toFixed(3)"},
+        "tooltip": {"trigger": "item", "formatter": "js:p => p.seriesName + '<br>predicted ' + p.value[0].toFixed(3) + ' · actual ' + p.value[1].toFixed(3)"},
         "grid": grids,
         "xAxis": xaxes,
         "yAxis": yaxes,
@@ -1073,8 +1090,8 @@ def _scatter_panels_chart(payload, path):
         option,
         path,
         title="Predicted vs measured Foul Play win rate across all 500 out-of-fold teams",
-        subtitle="The raw behaviour-cloning guess sits right of the dashed diagonal (over-rating teams by +0.047 on average); the trained predictor centers on the diagonal.",
-        note="Each dot is one of the 500 pilot teams, predicted by the fold that did not train on it.",
+        subtitle="The unadjusted behaviour-cloning win rate sits right of the dashed diagonal (over-rating teams by +0.047 on average); the trained predictor centers on the diagonal.",
+        note="Each dot is one of the 500 pilot teams, predicted by the fold that did not train on it. Panel error is root mean squared error; r is Pearson correlation.",
         height=390,
     )
 
@@ -1082,18 +1099,20 @@ def _scatter_panels_chart(payload, path):
 def _sensitivity_chart(payload, path):
     from echarts_chart import write_chart
 
+    sens = payload["sensitivity"]
+    deploy = sens.get("train_2b_test_1b_bc", sens["one_battle_bc"])
     cases = [
-        ("Primary (2-battle BC,\n39 train opps)", payload["primary"]["arms"]),
-        ("1-battle BC input\n(deployment noise)", payload["sensitivity"]["one_battle_bc"]["arms"]),
-        ("Lineup-grouped folds\n(unseen lineups)", payload["sensitivity"]["grouped_lineup_folds"]["arms"]),
-        ("10 unseen validation\nopponents", payload["sensitivity"]["validation_opponents"]["arms"]),
+        ("Primary\n(2-battle input,\n39 training opponents)", payload["primary"]["arms"]),
+        ("Deployment mismatch\n(2-battle train,\n1-battle test input)", deploy["arms"]),
+        ("Lineup-grouped folds\n(unseen 6-species\nlineups)", sens["grouped_lineup_folds"]["arms"]),
+        ("10 unseen validation\nopponents\n(20 battles/team)", sens["validation_opponents"]["arms"]),
     ]
     cats = [c[0] for c in cases]
     bar_arms = [
-        ("guess_bc_label", "Behaviour-cloning guess", COLORS["guess_bc_label"]),
-        ("calibrate_bc_only", "Linear BC calibration", COLORS["calibrate_bc_only"]),
-        ("predictor_team_only", "Team only, no BC", COLORS["predictor_team_only"]),
-        ("predictor_team_bc", "Team + behaviour-cloning", COLORS["predictor_team_bc"]),
+        ("guess_bc_label", SHORT_LABELS["guess_bc_label"], COLORS["guess_bc_label"]),
+        ("calibrate_bc_only", SHORT_LABELS["calibrate_bc_only"], COLORS["calibrate_bc_only"]),
+        ("predictor_team_only", SHORT_LABELS["predictor_team_only"], COLORS["predictor_team_only"]),
+        ("predictor_team_bc", SHORT_LABELS["predictor_team_bc"], COLORS["predictor_team_bc"]),
     ]
     series = []
     for key, label, color in bar_arms:
@@ -1110,18 +1129,18 @@ def _sensitivity_chart(payload, path):
     option = {
         "legend": {"top": 0},
         "tooltip": {"trigger": "axis", "axisPointer": {"type": "shadow"}},
-        "grid": {"left": 58, "right": 24, "top": 46, "bottom": 62},
+        "grid": {"left": 66, "right": 24, "top": 46, "bottom": 76},
         "xAxis": {"type": "category", "data": cats},
-        "yAxis": {"type": "value", "name": "RMSE (lower is better)", "min": 0, "max": 0.18},
+        "yAxis": {"type": "value", "name": "root mean squared error (lower is better)", "min": 0, "max": 0.18},
         "series": series,
     }
     return write_chart(
         option,
         path,
         title="Does the predictor hold up under deployment conditions?",
-        subtitle="RMSE under 1-battle behaviour-cloning noise (the ~439,600 corpus), lineup-grouped splits, and the 10 held-back validation opponents.",
-        note="Lower bars are better. Validation-opponent labels have 20 battles/team (10 opps × 2), so their battle-noise floor is higher.",
-        height=400,
+        subtitle="Root mean squared error when predicting on single-battle corpus inputs, unseen 6-species lineups, and the 10 held-back validation opponents.",
+        note="Lower bars are better. Validation-opponent labels have 20 battles per team (10 opponents × 2), so their battle-noise floor is higher.",
+        height=420,
     )
 
 
@@ -1132,18 +1151,20 @@ def _teaser_chart(payload, path):
     comps = payload["primary"]["comparisons"]
     floor = payload["battle_noise_floor"]["fp_rmse_floor"]
     order = ["predictor_team_bc", "predictor_team_only", "calibrate_bc_only", "guess_bc_label"]
-    names = ["Team + BC", "Team only", "Linear BC cal.", "BC guess"]
+    names = [SHORT_LABELS[k] for k in order]
     gap_rows = [
-        ("Team + BC vs BC guess", comps["predictor_team_bc_minus_guess_bc_label"]["rmse"], COLORS["predictor_team_bc"]),
-        ("Team only vs BC guess", comps["predictor_team_only_minus_guess_bc_label"]["rmse"], COLORS["predictor_team_only"]),
-        ("Team + BC vs Linear cal.", comps["predictor_team_bc_minus_calibrate_bc_only"]["rmse"], COLORS["calibrate_bc_only"]),
+        ("Team + old vs old guess", comps["predictor_team_bc_minus_guess_bc_label"]["rmse"], COLORS["predictor_team_bc"]),
+        ("Team only vs old guess", comps["predictor_team_only_minus_guess_bc_label"]["rmse"], COLORS["predictor_team_only"]),
+        ("Team + old vs linear fit", comps["predictor_team_bc_minus_calibrate_bc_only"]["rmse"], COLORS["calibrate_bc_only"]),
     ]
     series = [
         {
+            "name": "5-fold root mean squared error",
             "type": "bar",
             "xAxisIndex": 0,
             "yAxisIndex": 0,
             "barWidth": 22,
+            "emphasis": {"focus": "series"},
             "data": [{"value": round(arms[k]["rmse"], 4), "itemStyle": {"color": COLORS[k]}} for k in order[::-1]],
             "label": {"show": True, "position": "right", "formatter": "js:p => p.value.toFixed(3)"},
             "markLine": {
@@ -1178,6 +1199,7 @@ def _teaser_chart(payload, path):
                 "data": [[round(stat["diff"], 4), lab]],
                 "symbolSize": 13,
                 "itemStyle": {"color": color},
+                "emphasis": {"focus": "series"},
                 "label": {
                     "show": True,
                     "position": "top",
@@ -1203,13 +1225,13 @@ def _teaser_chart(payload, path):
     )
     option = {
         "title": [
-            {"text": "5-fold out-of-fold RMSE (lower is better)", "left": "3%", "top": 0, "textStyle": {"fontSize": 13, "fontWeight": "normal"}},
-            {"text": "paired RMSE gap (< 0 means lower error)", "left": "54%", "top": 0, "textStyle": {"fontSize": 13, "fontWeight": "normal"}},
+            {"text": "5-fold root mean squared error (lower is better)", "left": "2%", "top": 0, "textStyle": {"fontSize": 13, "fontWeight": "normal"}},
+            {"text": "paired error gap (< 0 means lower error)", "left": "54%", "top": 0, "textStyle": {"fontSize": 13, "fontWeight": "normal"}},
         ],
-        "tooltip": {"trigger": "item"},
+        "tooltip": {"trigger": "axis", "axisPointer": {"type": "line"}},
         "grid": [
-            {"left": 115, "width": "32%", "top": 52, "bottom": 34},
-            {"left": "68%", "right": 34, "top": 52, "bottom": 34},
+            {"left": 182, "width": "27%", "top": 52, "bottom": 34},
+            {"left": "69%", "right": 34, "top": 52, "bottom": 34},
         ],
         "xAxis": [
             {"gridIndex": 0, "type": "value", "min": 0, "max": 0.15},
@@ -1224,18 +1246,18 @@ def _teaser_chart(payload, path):
     gap_tb = comps["predictor_team_bc_minus_guess_bc_label"]["rmse"]
     gap_cal = comps["predictor_team_bc_minus_calibrate_bc_only"]["rmse"]
     verdict = (
-        "Team + behaviour-cloning beats the old label, and team features beat linear rescaling alone"
+        "Team and behaviour-cloning beats the old label, and team features beat linear rescaling alone"
         if gap_tb["verdict"] == "better" and gap_cal["verdict"] == "better"
-        else "Team + behaviour-cloning beats the old label, mostly by rescaling behaviour cloning"
+        else "Team and behaviour-cloning beats the old label, mostly by rescaling behaviour cloning"
         if gap_tb["verdict"] == "better"
         else "Neither matchup predictor beats reusing the behaviour-cloning win rate"
     )
     subtitle = (
-        f"500 pilot teams, 5-fold CV (issue #419). Gap to guess_bc_label: {gap_tb['diff']:+.3f} "
-        f"[{gap_tb['ci95'][0]:+.3f}, {gap_tb['ci95'][1]:+.3f}]; gap to linear BC calibration: "
+        f"500 pilot teams, 5-fold cross-validation (issue #419). Gap to reusing the old label: {gap_tb['diff']:+.3f} "
+        f"[{gap_tb['ci95'][0]:+.3f}, {gap_tb['ci95'][1]:+.3f}]; gap to linear calibration alone: "
         f"{gap_cal['diff']:+.3f} [{gap_cal['ci95'][0]:+.3f}, {gap_cal['ci95'][1]:+.3f}]."
     )
-    return write_chart(option, path, title=verdict, subtitle=subtitle, note="Error bars are 95% paired bootstrap intervals over the 500 teams.", height=310)
+    return write_chart(option, path, title=verdict, subtitle=subtitle, note="Error bars on the right are 95% paired bootstrap intervals over the 500 teams.", height=310)
 
 
 def write_storyboard_figures(payload, out_dir):
@@ -1250,7 +1272,7 @@ def write_storyboard_figures(payload, out_dir):
     ]
 
 
-def format_markdown_report(payload, figure_urls=None):
+def format_markdown_report(payload):
     """Format a result-first Markdown summary for issue #419."""
     arms = payload["primary"]["arms"]
     comps = payload["primary"]["comparisons"]
@@ -1262,28 +1284,18 @@ def format_markdown_report(payload, figure_urls=None):
     g_tb = comps["predictor_team_bc_minus_guess_bc_label"]["rmse"]
     g_to = comps["predictor_team_only_minus_guess_bc_label"]["rmse"]
     g_cal = comps["predictor_team_bc_minus_calibrate_bc_only"]["rmse"]
+    cal_verb = {"better": "beats", "worse": "trails", "same": "matches", "undecided": "is undecided against"}[g_cal["verdict"]]
 
     lines = [
-        f"**Verdict:** **Team + behaviour-cloning win rate** (`predictor_team_bc`) beats **Behaviour-cloning win rate as the guess** (`guess_bc_label`) with 5-fold RMSE **{tb['rmse']:.4f}** [{tb['ci95']['rmse'][0]:.4f}, {tb['ci95']['rmse'][1]:.4f}] vs **{gb['rmse']:.4f}** [{gb['ci95']['rmse'][0]:.4f}, {gb['ci95']['rmse'][1]:.4f}] (paired gap **{g_tb['diff']:+.4f}** [{g_tb['ci95'][0]:+.4f}, {g_tb['ci95'][1]:+.4f}], lower in {comps['predictor_team_bc_minus_guess_bc_label']['folds_better']}/5 folds). "
-        f"**Team only, no behaviour-cloning win rate** (`predictor_team_only`) scores **{to['rmse']:.4f}** [{to['ci95']['rmse'][0]:.4f}, {to['ci95']['rmse'][1]:.4f}] (gap **{g_to['diff']:+.4f}** [{g_to['ci95'][0]:+.4f}, {g_to['ci95'][1]:+.4f}]). "
-        f"Compared against **Linear-calibrated behaviour-cloning win rate** (`calibrate_bc_only`, RMSE **{cal['rmse']:.4f}**), adding team features changes RMSE by **{g_cal['diff']:+.4f}** [{g_cal['ci95'][0]:+.4f}, {g_cal['ci95'][1]:+.4f}] ({g_cal['verdict']}).",
+        f"**Verdict:** **{tb['reader_name']}** (`predictor_team_bc`) beats **{gb['reader_name']}** (`guess_bc_label`) with 5-fold root mean squared error (RMSE) **{tb['rmse']:.4f}** [{tb['ci95']['rmse'][0]:.4f}, {tb['ci95']['rmse'][1]:.4f}] vs **{gb['rmse']:.4f}** [{gb['ci95']['rmse'][0]:.4f}, {gb['ci95']['rmse'][1]:.4f}] (paired gap **{g_tb['diff']:+.4f}** [{g_tb['ci95'][0]:+.4f}, {g_tb['ci95'][1]:+.4f}], lower in {comps['predictor_team_bc_minus_guess_bc_label']['folds_better']}/5 folds). "
+        f"**{to['reader_name']}** (`predictor_team_only`) scores **{to['rmse']:.4f}** [{to['ci95']['rmse'][0]:.4f}, {to['ci95']['rmse'][1]:.4f}] (gap **{g_to['diff']:+.4f}** [{g_to['ci95'][0]:+.4f}, {g_to['ci95'][1]:+.4f}]). "
+        f"Adding team features {cal_verb} **{cal['reader_name']}** (`calibrate_bc_only`, RMSE **{cal['rmse']:.4f}**) by **{g_cal['diff']:+.4f}** [{g_cal['ci95'][0]:+.4f}, {g_cal['ci95'][1]:+.4f}].",
         "",
-    ]
-    if figure_urls:
-        for alt, light_url, dark_url in figure_urls:
-            lines += [
-                "<picture>",
-                f'  <source media="(prefers-color-scheme: dark)" srcset="{dark_url}">',
-                f'  <img alt="{alt}" src="{light_url}">',
-                "</picture>",
-                "",
-            ]
-    lines += [
         "### 5-fold cross-validation on the 500 pilot teams (39 training opponents)",
         "",
-        f"Shared five disjoint folds of 100 teams (`seed = 419`), scored against Foul Play deterministic argmax win rate (`policy_id = 10`, 2-battle noise RMSE floor **{floor:.4f}**).",
+        f"Shared five disjoint folds of 100 teams (`seed = 419`), scored against Foul Play deterministic argmax win rate (`policy_id = 10`, two-battle noise RMSE floor **{floor:.4f}**).",
         "",
-        "| Arm | Code ID | RMSE [95% CI] | Gap vs `guess_bc_label` [95% CI] | MAE | R² | Pearson *r* | Spearman ρ |",
+        "| Arm | Code ID | RMSE [95% CI] | Gap vs no-training guess [95% CI] | MAE | R² | Pearson *r* | Spearman ρ |",
         "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for key in ("predictor_team_bc", "predictor_team_only", "guess_bc_label", "calibrate_bc_only", "guess_train_mean"):
