@@ -780,6 +780,8 @@ def repeat_draw(task: dict[str, Any], seed: int, prompt: Prompt, tokenizer: Any,
 
 
 PADDING_TOP1 = 0.95         # the padding probe: share of a padded row's slots whose most likely token is unchanged
+PADDING_LEAK_MAX = 1e-3     # max logit shift when padded token ids change (0 vs 1): 0.0 when padding is masked
+PADDING_LOGIT_MAX = 1.0     # max bfloat16 GEMM rounding shift between batch 1 alone and right-padded batch 2
 
 
 def token_share(a: Sequence[Sequence[int]], b: Sequence[Sequence[int]]) -> float:
@@ -790,13 +792,14 @@ def token_share(a: Sequence[Sequence[int]], b: Sequence[Sequence[int]]) -> float
 
 def padding_probe(row_forward: Any, short: dict[str, Any], long: dict[str, Any], device: str) -> dict[str, Any]:
     """The first step's logits for the short text alone and right-padded beside the long one: how often the most
-    likely token at a slot is the same, and the largest logit difference. A padding mask that let the padding in
-    would move them far more than the arithmetic of a wider batch does."""
+    likely token at a slot is the same, the largest logit difference, and the largest logit shift when the padded
+    positions hold token id 1 instead of 0 (0.0 when the attention mask hides padding completely). A padding mask
+    that let the padding in moves pad_leak_max_diff and max_logit_difference far past batch-shape rounding."""
     import torch
 
-    def first_step(texts: list[dict[str, Any]]) -> torch.Tensor:
+    def first_step(texts: list[dict[str, Any]], pad_id: int = 0) -> torch.Tensor:
         width, depth = max(len(c['ids']) for c in texts), max(len(c['slots']) for c in texts)
-        x = torch.zeros(len(texts), width, dtype=torch.long)
+        x = torch.full((len(texts), width), pad_id, dtype=torch.long)
         attention = torch.zeros(x.shape, dtype=torch.bool)
         keep = torch.zeros(len(texts), depth, dtype=torch.long)
         for n, c in enumerate(texts):
@@ -805,10 +808,20 @@ def padding_probe(row_forward: Any, short: dict[str, Any], long: dict[str, Any],
         with torch.no_grad():
             return row_forward(x.to(device), attention.to(device), keep.to(device))[0, :len(texts[0]['slots'])].float()
 
-    alone, padded = first_step([short]), first_step([short, long])
-    return {'short_tokens': len(short['ids']), 'long_tokens': len(long['ids']),
+    alone, padded, other_pad = first_step([short], 0), first_step([short, long], 0), first_step([short, long], 1)
+    return {'short_tokens': len(short['ids']), 'long_tokens': len(long['ids']), 'short_slots': len(short['slots']),
             'top1_same': float((alone.argmax(-1) == padded.argmax(-1)).float().mean()),
-            'max_logit_difference': float((alone - padded).abs().max())}
+            'max_logit_difference': float((alone - padded).abs().max()),
+            'pad_leak_max_diff': float((padded - other_pad).abs().max())}
+
+
+def padding_probe_pass(reading: dict[str, Any]) -> bool:
+    """Padding passes when changing padded token ids leaves logits unchanged (<= PADDING_LEAK_MAX) and either
+    top-1 matches (>= PADDING_TOP1) or batch-shape rounding stays under PADDING_LOGIT_MAX (a 3-slot mask can have
+    a 1-ULP bfloat16 tie flip on one slot between batch 1 and batch 2 even with zero padding leakage)."""
+    if reading.get('pad_leak_max_diff', 0.0) > PADDING_LEAK_MAX:
+        return False
+    return reading['top1_same'] >= PADDING_TOP1 or reading['max_logit_difference'] < PADDING_LOGIT_MAX
 
 
 def final_draws(first: Path, redraws: Path | None) -> dict[str, dict[str, Any]]:

@@ -129,14 +129,16 @@ def model_figure(directory: Path, key: str, out: Path) -> Path:
             'emphasis': {'focus': 'series'},
         })
     max_legal = max([s[code]['legal'] for code, _ in ARMS] + [10])
-    max_rule = max([rule_pct(s[code], r)[0] or 0.0 for code, _ in ARMS for r in NAMED_RULES] + [20.0])
+    legal_top = ((int(max_legal * 1.2) + 4) // 5) * 5
+    max_rule = max([rule_pct(s[code], r)[0] or 0.0 for code, _ in ARMS for r in NAMED_RULES] + [15.0])
+    rule_top = min(100, ((int(max_rule * 1.25) + 9) // 5) * 5)
     option = {
         'tooltip': {'trigger': 'item', 'formatter': 'js:p => p.data.tip'},
         'legend': {'top': 0, 'data': [label for _, label in ARMS]},
-        'grid': [{'left': 56, 'right': '63%', 'top': 64, 'bottom': 68},
-                 {'left': '44%', 'right': 18, 'top': 64, 'bottom': 68}],
-        'title': [{'text': 'Legal on the first try (of 270)', 'left': 56, 'top': 34, 'textStyle': {'fontSize': 13}},
-                  {'text': 'Three named rules broken (% of parsed fills)', 'left': '44%', 'top': 34,
+        'grid': [{'left': 48, 'right': '63%', 'top': 72, 'bottom': 56},
+                 {'left': '44%', 'right': 18, 'top': 72, 'bottom': 56}],
+        'title': [{'text': 'Legal on the first try (of 270)', 'left': 44, 'top': 36, 'textStyle': {'fontSize': 13}},
+                  {'text': 'Three named rules broken (% of parsed fills)', 'left': '43.5%', 'top': 36,
                    'textStyle': {'fontSize': 13}}],
         'xAxis': [
             {'type': 'category', 'gridIndex': 0, 'data': ['No rules', 'Neutral line', 'Rules'],
@@ -146,10 +148,9 @@ def model_figure(directory: Path, key: str, out: Path) -> Path:
              'axisLabel': {'interval': 0, 'fontSize': 11, 'lineHeight': 14}},
         ],
         'yAxis': [
-            {'type': 'value', 'gridIndex': 0, 'min': 0, 'max': int(max_legal * 1.25) + 2,
-             'name': 'masks', 'nameGap': 12},
-            {'type': 'value', 'gridIndex': 1, 'min': 0, 'max': min(100, int(max_rule * 1.25) + 5),
-             'name': '% parsed', 'nameGap': 12},
+            {'type': 'value', 'gridIndex': 0, 'min': 0, 'max': legal_top},
+            {'type': 'value', 'gridIndex': 1, 'min': 0, 'max': rule_top,
+             'axisLabel': {'formatter': '{value}%'}},
         ],
         'series': series,
     }
