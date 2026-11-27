@@ -2,7 +2,7 @@
 
 Each new arm must call its trainer exactly as its control does, except for the learning-rate fields of
 lr_schedule84.GIDD_LR_RECIPE, and must save under a new checkpoint name.
-  Uniform, no filter    udlm_loglinear            -> udlm_loglinear_gidd_lr
+  Uniform               udlm_loglinear            -> udlm_loglinear_gidd_lr
   Masked, full filter   shuffled_linear_filtered  -> shuffled_linear_filtered_gidd_lr
 Laptop-only (skipped without /tmp/vgc-pilot): the trainers import the pinned data at import time.
 

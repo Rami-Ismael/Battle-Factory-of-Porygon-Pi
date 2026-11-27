@@ -110,7 +110,7 @@ MODELS["linear_masked_filter"] = dict(checkpoint="stat84_shuffled_noise_linear_f
                                       labelled=True, decoder="species_first", table=DEFAULT_TABLE)
 # Map #270 / issue #275: paper-faithful UDLM (Schiff et al. 2024, alpha(t) = 1 - t, unconstrained sampling, Showdown checks after pass K).
 # passes=None until #277 locks K* in {84, 128, 256}: require AG84_PASSES explicitly so no grid silently runs at an unchosen K.
-MODELS["udlm_loglinear_nofilter"] = dict(checkpoint="stat84_udlm_loglinear_es3_cap80", reader="Uniform, no filter",
+MODELS["udlm_loglinear_nofilter"] = dict(checkpoint="stat84_udlm_loglinear_es3_cap80", reader="Uniform",
                                          epochs=dict(labelled_teams=80),
                                          stopped="early stopping on validation loss (patience 3, threshold 0, cap 80)",
                                          labelled=True, decoder="uniform_nofilter", uniform=True, passes=None,
@@ -123,7 +123,7 @@ MODELS["shuffled_linear_filtered_gidd_lr"] = dict(MODELS["linear_masked_filter"]
                                                   reader="Masked, full filter, shared GIDD-style recipe", stopped=GIDD_LR_STOPPED,
                                                   seed0=grid_seeds.LEGACY)
 MODELS["udlm_loglinear_gidd_lr"] = dict(MODELS["udlm_loglinear_nofilter"], checkpoint="stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80",
-                                        reader="Uniform, no filter, shared GIDD-style recipe", stopped=GIDD_LR_STOPPED, max_tries=20_000)
+                                        reader="Uniform, shared GIDD-style recipe", stopped=GIDD_LR_STOPPED, max_tries=20_000)
 for _passes in (84, 128, 256):
     MODELS[f"udlm_loglinear_gidd_lr_k{_passes}"] = dict(MODELS["udlm_loglinear_gidd_lr"], passes=_passes)
 MODEL = os.environ.get("AG84_MODEL", "gen84_all_ep21")

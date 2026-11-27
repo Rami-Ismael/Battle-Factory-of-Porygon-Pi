@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Share of drawn teams breaking each rule, every epoch, no filter</title>
+<title>Share of drawn teams breaking each rule, every epoch (without legality tables)</title>
 <style>
 :root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
 @media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
@@ -18,10 +18,10 @@ h1,.sub,.note{white-space:pre-line}
 </head>
 <body>
 <main>
-<h1>Share of drawn teams breaking each rule, every epoch, no filter</h1>
-<p class="sub">One line per rule; pick the run under the chart. A team can break several rules. No filter means the draws skip the legal Pokémon construction filter; all 214,055 training teams pass it.</p>
+<h1>Share of drawn teams breaking each rule, every epoch (without legality tables)</h1>
+<p class="sub">One line per rule; pick the run under the chart. A team can break several rules. Without legality tables means the draws skip the legal Pokémon construction filter; all 214,055 training teams pass it.</p>
 <div id="chart"></div>
-<p class="note">64 teams per epoch at the elite cut and guidance 1, drawn without the legal Pokémon construction filter, the same seed every epoch (Uniform, no filter: 128 passes over all fields; Masked, full filter: one field per pass, species first). Masked, full filter&#x27;s draws are a redraw of its saved epoch checkpoints with the filter off. Old recipe: 4e-4 cosine to 0. Shared GIDD-style recipe: 5e-4 cosine to 5e-5.</p>
+<p class="note">64 teams per epoch at the elite cut and guidance 1, drawn without the legal Pokémon construction filter, the same seed every epoch (Uniform: 128 passes over all fields; Masked, full filter: one field per pass, species first). Masked, full filter&#x27;s draws are a redraw of its saved epoch checkpoints with the filter off. Old recipe: 4e-4 cosine to 0. Shared GIDD-style recipe: 5e-4 cosine to 5e-5.</p>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
 <script>

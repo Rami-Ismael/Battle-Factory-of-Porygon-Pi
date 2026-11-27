@@ -4,7 +4,7 @@ Masked, full filter trained with the shared recipe (peak `5e-4`, cosine to a `5e
 `stat84_shuffled_noise_linear_filtered_lr5e4_min5e5_es3_cap80`, row `shuffled_linear_filtered_gidd_lr`) against the
 same model on the old recipe (`4e-4` cosine to 0, row `linear_masked_filter`, grids from #385). Guidance 2, 4 and 8;
 23 asks × 3 seeds × 64 teams per grid; one battle per top-50 meta team (49 distinct), slots shuffled, behaviour-cloning
-policy. Both rows draw on sampling seed base 7300. Uniform, no filter's grids belong to #438.
+policy. Both rows draw on sampling seed base 7300. Uniform's grids belong to #438.
 
 ## Storyboard
 

@@ -92,7 +92,7 @@ class UniformGiddLrProbesTest(unittest.TestCase):
             "rows": [
                 {
                     "arm_id": "uniform_gidd_lr",
-                    "reader": "Uniform, no filter (shared recipe)",
+                    "reader": "Uniform (shared recipe)",
                     "passes": 84,
                     "guidance": 1.0,
                     "first_try_legality": 0.44,

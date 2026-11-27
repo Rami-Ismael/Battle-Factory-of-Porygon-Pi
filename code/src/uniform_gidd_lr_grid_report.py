@@ -11,7 +11,7 @@ from echarts_chart import band, write_chart
 
 UNIFORM_ROW = "udlm_loglinear_gidd_lr"
 MASKED_ROW = "shuffled_linear_filtered_gidd_lr"
-UNIFORM = "Uniform, no filter"
+UNIFORM = "Uniform"
 MASKED = "Masked, full filter"
 GUIDANCES = (1, 2, 4, 8)
 COLORS = {UNIFORM: "#0f766e", MASKED: "#365d93"}
@@ -247,7 +247,7 @@ def build_grid_figure(metrics, out_dir):
         "series": series,
     }
     return write_chart(
-        option, out_dir / f"grid-g{guidance}.html", title=f"Uniform, no filter at guidance {guidance}",
+        option, out_dir / f"grid-g{guidance}.html", title=f"Uniform at guidance {guidance}",
         subtitle=f"Shared recipe, {metrics['passes']} passes. Shading shows 95% bootstrap intervals.",
         note="The error averages the squared gaps on asks 1/24 to 17/24.", dark=DARK,
     )
@@ -336,9 +336,9 @@ def shortfall_note(point):
 def format_grid_comment(metrics, base):
     guidance = metrics["guidance"]
     return "\n".join([
-        picture(base, f"grid-g{guidance}", f"Uniform, no filter at guidance {guidance}, measured against requested win rate"),
+        picture(base, f"grid-g{guidance}", f"Uniform at guidance {guidance}, measured against requested win rate"),
         "",
-        f"Uniform, no filter used {metrics['passes']} passes with the shared recipe at guidance {guidance}.",
+        f"Uniform used {metrics['passes']} passes with the shared recipe at guidance {guidance}.",
         f"The grid scored {metrics['teams']:,} teams across {metrics['cells']} ask-by-seed cells in {metrics['battles']:,} battles.",
         shortfall_note(metrics),
         "",
@@ -380,7 +380,7 @@ def format_verdict(arms):
 
 def format_final_comment(summary, base):
     lines = [picture(base, stem, f"{label} at equal ask-versus-got error") for label, stem, _ in METRICS.values()]
-    lines += ["", f"Uniform, no filter used {summary['uniform_passes']} passes. Both models used the shared learning-rate recipe."]
+    lines += ["", f"Uniform used {summary['uniform_passes']} passes. Both models used the shared learning-rate recipe."]
     lines += ["", "### Novel line-up share at equal error", "", *format_verdict(summary["arms"])]
     lines += [
         "",

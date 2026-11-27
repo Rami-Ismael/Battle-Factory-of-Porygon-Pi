@@ -1,6 +1,6 @@
-"""Pass-count selection and tabulation for Uniform, no filter at guidance 1 (issue #277, map #270).
+"""Pass-count selection and tabulation for Uniform at guidance 1 (issue #277, map #270).
 
-Evaluates Uniform, no filter (udlm_loglinear_nofilter) across K in {84, 128, 256} reverse passes
+Evaluates Uniform (udlm_loglinear_nofilter) across K in {84, 128, 256} reverse passes
 at guidance 1 (asks 1/24 to 17/24, 3 sampling seeds, 64 validator-accepted teams per cell, no battles):
   - First-try legality (Showdown validator) and rejection-reason breakdown;
   - Simultaneous-update diagnostics (mean_fields_changed_per_pass, duplicate_species_pass_share,
@@ -41,7 +41,7 @@ import uniform_math84 as UMath
 import uniform_preflight84 as UP
 
 MODEL_ID = "udlm_loglinear_nofilter"
-ARM_READER = "Uniform, no filter"
+ARM_READER = "Uniform"
 PASS_COUNTS = (84, 128, 256)
 SCORED_ASKS = tuple(range(1, 18))
 SEEDS = (1, 2, 3)
@@ -70,7 +70,7 @@ REP_KEYS = ("categorical_48", "with_spreads", "composition")
 
 
 def grid_path(passes, res_dir=RES_DIR, model=MODEL_ID):
-    """Default ask_grid84 results path for Uniform, no filter at guidance 1 and explicit pass count K."""
+    """Default ask_grid84 results path for Uniform at guidance 1 and explicit pass count K."""
     return Path(res_dir) / f"stat_points_84_{model}_g1_k{int(passes)}.json"
 
 
@@ -656,10 +656,10 @@ def build_selection_figure(report):
         series=[leg_bar, leg_dots, uniq_bar, uniq_dots, srd_bar, srd_dots],
     )
     if report["decision"]["short_circuit"]:
-        title = f"Uniform, no filter stays below the 5% legality floor at all three pass counts ({leg_means[0]:.1f}%–{leg_means[-1]:.1f}%)"
+        title = f"Uniform stays below the 5% legality floor at all three pass counts ({leg_means[0]:.1f}%–{leg_means[-1]:.1f}%)"
     else:
         title = (
-            f"Pass-count selection locks {chosen} passes for Uniform, no filter at guidance 1 "
+            f"Pass-count selection locks {chosen} passes for Uniform at guidance 1 "
             f"(legality {leg_means[0]:.1f}%, {leg_means[1]:.1f}%, {leg_means[2]:.1f}%)"
         )
     subtitle = (
@@ -796,7 +796,7 @@ def format_markdown_tables(report):
     lines = [
         "### Pass-count comparison at guidance 1 (asks 1/24 to 17/24, 3 seeds, no battles)",
         "",
-        f"Uniform, no filter (`{report['arm_id']}`) uses checkpoint `{report['checkpoint']}` at guidance 1. Each cell targets 64 accepted teams.",
+        f"Uniform (`{report['arm_id']}`) uses checkpoint `{report['checkpoint']}` at guidance 1. Each cell targets 64 accepted teams.",
         "Uniqueness for selection uses the smallest kept count per ask and seed across the three pass counts. "
         "A fixed random seed picks teams without replacement. Cells empty at any pass count are dropped from uniqueness.",
         "",

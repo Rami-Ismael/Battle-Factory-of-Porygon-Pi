@@ -382,9 +382,9 @@ def format_pass_count_comment(shared_report: dict, old_report: dict | None, base
     k_star = dec["chosen_passes"]
     by_p = shared_report["by_passes"]
     lines = [
-        f"**Pass-count selection done (Item 1, #277): shared-recipe Uniform, no filter chooses {k_star} passes at guidance 1 ({by_p[str(k_star)]['legality']['mean']:.1%} first-try legality vs {old_report['by_passes'][str(k_star)]['legality']['mean']:.1%} on the 4e-4 checkpoint).**"
+        f"**Pass-count selection done (Item 1, #277): shared-recipe Uniform chooses {k_star} passes at guidance 1 ({by_p[str(k_star)]['legality']['mean']:.1%} first-try legality vs {old_report['by_passes'][str(k_star)]['legality']['mean']:.1%} on the 4e-4 checkpoint).**"
         if old_report
-        else f"**Pass-count selection done (Item 1, #277): shared-recipe Uniform, no filter chooses {k_star} passes at guidance 1 ({by_p[str(k_star)]['legality']['mean']:.1%} first-try legality).**",
+        else f"**Pass-count selection done (Item 1, #277): shared-recipe Uniform chooses {k_star} passes at guidance 1 ({by_p[str(k_star)]['legality']['mean']:.1%} first-try legality).**",
         "",
         "Two storyboard figures compare first-try legality, matched within-ask diversity, simultaneous edits, and changes of mind across 84, 128, and 256 passes.",
         "",
@@ -488,7 +488,7 @@ def build_frontier_and_revision_figures(report: dict, out_dir: Path) -> list[Pat
     ):
         series = []
         for name, recs, color, sym in (
-            ("Uniform, no filter (shared recipe)", u_recs, COLORS["uniform_gidd_lr"], "circle"),
+            ("Uniform (shared recipe)", u_recs, COLORS["uniform_gidd_lr"], "circle"),
             ("Masked, full filter (shared recipe)", m_recs, COLORS["masked_gidd_lr"], "diamond"),
         ):
             pts = sorted(
@@ -558,7 +558,7 @@ def build_frontier_and_revision_figures(report: dict, out_dir: Path) -> list[Pat
             "yAxis": {"type": "value", "name": "Changes of mind per field", "nameLocation": "middle", "nameGap": 46},
             "series": series,
         }
-        paths.append(write_chart(option, out_dir / "revisions-by-guidance.html", title="Changes of mind across guidance strengths by field type (Uniform, no filter)", subtitle="Mean top-prediction flips per column across reverse passes z^(0)..z^(K) before validator redraws.", dark=DARK))
+        paths.append(write_chart(option, out_dir / "revisions-by-guidance.html", title="Changes of mind across guidance strengths by field type (Uniform)", subtitle="Mean top-prediction flips per column across reverse passes z^(0)..z^(K) before validator redraws.", dark=DARK))
     return paths
 
 
@@ -575,7 +575,7 @@ def format_frontier_verdict_comment(report: dict, base_url: str) -> str:
         "",
         _picture(base_url, "revisions-by-guidance", "Changes of mind per field type across guidance weights for shared-recipe Uniform"),
         "",
-        f"Highest usable guidance `g_max`: Uniform, no filter = **{v['uniform_g_max']}**, Masked, full filter = **{v['masked_g_max']}**.",
+        f"Highest usable guidance `g_max`: Uniform = **{v['uniform_g_max']}**, Masked, full filter = **{v['masked_g_max']}**.",
         "",
         "### Dominated area (`HV`, reference box `error_ref = 0.025`) and equal-error advantage",
         "",
@@ -592,7 +592,7 @@ def format_frontier_verdict_comment(report: dict, base_url: str) -> str:
 
     lines += [
         "",
-        "### Guidance-by-guidance within-ask diversity, legality, and revision counts (Uniform, no filter)",
+        "### Guidance-by-guidance within-ask diversity, legality, and revision counts (Uniform)",
         "",
         "| Guidance | Usable? | Error (1–17) | First-try legality | WA novel | WA uniq. | WA species repl. | Cat-48 uniq. | Spreads uniq. | Species `R_c` / floor / `M_c` |",
         "| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
@@ -710,7 +710,7 @@ def main():
             arms=[
                 dict(
                     id="uniform_gidd_lr",
-                    reader="Uniform, no filter (shared recipe)",
+                    reader="Uniform (shared recipe)",
                     val_loss=(vl.get("uniform_gidd_lr") or {}).get("val_loss"),
                     g0_legality=(u_g0 or {}).get("legality"),
                     g0_win=(u_g0 or {}).get("win"),

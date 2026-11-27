@@ -4,10 +4,10 @@ The comparison holds the learning-rate recipe fixed and compares two models by t
 
 | Model | Ask-grid row | Checkpoint |
 | --- | --- | --- |
-| Uniform, no filter | `udlm_loglinear_gidd_lr` | `stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80` |
+| Uniform | `udlm_loglinear_gidd_lr` | `stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80` |
 | Masked, full filter | `shuffled_linear_filtered_gidd_lr` | `stat84_shuffled_noise_linear_filtered_lr5e4_min5e5_es3_cap80` |
 
-Uniform, no filter starts from random tokens and uses Showdown to validate complete teams. Masked, full filter starts from masked fields and uses the legal Pokémon construction filter during sampling. Guidance mixes reverse posteriors in the uniform model and clean-field log probabilities in the masked model. Equal guidance weights therefore need not give equal error. [Experiment issue](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/438) · [Uniform discrete diffusion map](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/270)
+Uniform starts from random tokens and uses Showdown to validate complete teams. Masked, full filter starts from masked fields and uses the legal Pokémon construction filter during sampling. Guidance mixes reverse posteriors in the uniform model and clean-field log probabilities in the masked model. Equal guidance weights therefore need not give equal error. [Experiment issue](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/438) · [Uniform discrete diffusion map](https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/270)
 
 ## Pass count and battle grids
 
@@ -46,14 +46,14 @@ Join each model's measured points in order of error. The equal-error verdict use
 ### Novel line-up share at matched error
 
 - **Sentence.** At the same error, the higher curve yields more teams with line-ups absent from labelled training.
-- **Expected.** Uniform, no filter retains more novel line-ups at matched error.
+- **Expected.** Uniform retains more novel line-ups at matched error.
 - **Surprising.** The masked model's interval clears the uniform curve in the shared error range.
 
 ### Distinct line-ups at matched error
 
 - **Sentence.** Each point counts distinct six-species line-ups among the teams that grid kept.
 - **Expected.** Uniform grids contain more distinct line-ups among grids with similar team counts and error.
-- **Surprising.** Uniform, no filter produces more novel teams but repeats the same novel line-ups often enough to lose on distinct count.
+- **Surprising.** Uniform produces more novel teams but repeats the same novel line-ups often enough to lose on distinct count.
 
 ### Pooled win rate at matched error
 
@@ -63,7 +63,7 @@ Join each model's measured points in order of error. The equal-error verdict use
 
 ## Full #438 evaluation coverage (Part A items 1–4 and Part B items 5–12)
 
-Beyond the coarse `{1, 2, 4, 8}` ask grids above, issue #438 runs the full masked-model evaluation suite on the shared-recipe **Uniform, no filter** checkpoint (`stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80`), compared in three columns against the 4e-4 **Uniform, no filter** checkpoint (`stat84_udlm_loglinear_es3_cap80`) and the recipe-matched **Masked, full filter** control (`stat84_shuffled_noise_linear_filtered_lr5e4_min5e5_es3_cap80`):
+Beyond the coarse `{1, 2, 4, 8}` ask grids above, issue #438 runs the full masked-model evaluation suite on the shared-recipe **Uniform** checkpoint (`stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80`), compared in three columns against the 4e-4 **Uniform** checkpoint (`stat84_udlm_loglinear_es3_cap80`) and the recipe-matched **Masked, full filter** control (`stat84_shuffled_noise_linear_filtered_lr5e4_min5e5_es3_cap80`):
 
 - **Battle-free probes (`src/uniform_gidd_lr_probes.py`):**
   - Item 5 (Pokémon-to-field matching probe at epochs 45, 49, 55, 61, 80);

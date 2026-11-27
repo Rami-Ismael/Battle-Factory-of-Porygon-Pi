@@ -1,4 +1,4 @@
-"""Battle-free diagnostic probes for Issue #438 (shared-recipe Uniform, no filter).
+"""Battle-free diagnostic probes for Issue #438 (shared-recipe Uniform).
 
 Covers:
   - Item 5: Pokémon-to-field matching probe (slot_binding_probe.py extended to UniformModel84)
@@ -47,7 +47,7 @@ VAL_LOSS_OUT = RES_DIR / "uniform_gidd_lr_val_loss_438.json"
 ARMS = (
     dict(
         id="uniform_gidd_lr",
-        reader="Uniform, no filter (shared recipe)",
+        reader="Uniform (shared recipe)",
         checkpoint="stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80",
         uniform=True,
         color="#0f766e",
@@ -55,7 +55,7 @@ ARMS = (
     ),
     dict(
         id="uniform_4e4",
-        reader="Uniform, no filter (4e-4 recipe)",
+        reader="Uniform (4e-4 recipe)",
         checkpoint="stat84_udlm_loglinear_es3_cap80",
         uniform=True,
         color="#c2410c",
@@ -833,7 +833,7 @@ def format_probes_comment(slot_binding: dict, slot_swap: dict, speed_mem: dict, 
     max_gib = max(r["peak_gib"] for r in speed_mem["rows"])
 
     lines = [
-        "**Battle-free probes done (items 5, 6, 7 and validation loss): shared-recipe Uniform, no filter binds slots ~12 epochs earlier than the 4e-4 run, moves all three field groups with a swapped species (2x tighter equivariance than Masked), and peaks at 1.15 GiB against the 17.76 GiB ceiling.**",
+        "**Battle-free probes done (items 5, 6, 7 and validation loss): shared-recipe Uniform binds slots ~12 epochs earlier than the 4e-4 run, moves all three field groups with a swapped species (2x tighter equivariance than Masked), and peaks at 1.15 GiB against the 17.76 GiB ceiling.**",
         "",
         "Three figures summarize Pokémon-to-field binding across training epochs, slot-swap tracking at epoch 80, and generation speed per Showdown-valid team.",
         "",
@@ -859,7 +859,7 @@ def format_probes_comment(slot_binding: dict, slot_swap: dict, speed_mem: dict, 
         "",
         "Own-species probability mass under the species-first prefix (`t = 1 - step/84`, teammate-species mass in parentheses). Note: Uniform has no `[MASK]` token, so at high `t ≈ 0.90` it Bayes-optimally hedges ~36% of ability mass onto `none` in case the species token is uniform noise; at `t = 0.05` its top-1 ability legality reaches 100.0% (83.2% own mass). Masked, full filter trained with tables on in the loss, so without tables at test time it relies less on its weights for abilities (18.6% own).",
         "",
-        "| Epoch & field | Uniform, no filter (shared recipe) | Uniform, no filter (4e-4 recipe) | Masked, full filter (shared recipe, no tables) |",
+        "| Epoch & field | Uniform (shared recipe) | Uniform (4e-4 recipe) | Masked, full filter (shared recipe, no tables) |",
         "| --- | --- | --- | --- |",
     ]
     for ep in slot_binding["epochs"]:
@@ -875,7 +875,7 @@ def format_probes_comment(slot_binding: dict, slot_swap: dict, speed_mem: dict, 
         "",
         "### Item 6 — Slot-swap sensitivity at epoch 80 (256 validation teams, 3 disjoint swaps covering all 6 slots)",
         "",
-        "| Measure | Uniform, no filter (shared recipe) | Uniform, no filter (4e-4 recipe) | Masked, full filter (shared recipe) |",
+        "| Measure | Uniform (shared recipe) | Uniform (4e-4 recipe) | Masked, full filter (shared recipe) |",
         "| --- | --- | --- | --- |",
         *(
             f"| {flabel} | {_fmt_iv(u5_sw[fkey]['similarity_1_minus_tv'])} | {_fmt_iv(u4_sw[fkey]['similarity_1_minus_tv'])} | {_fmt_iv(m5_sw[fkey]['similarity_1_minus_tv'])} |"

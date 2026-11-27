@@ -36,7 +36,7 @@ UNIFORM_ROW = "udlm_loglinear_gidd_lr"
 MASKED_ROW = "shuffled_linear_filtered_gidd_lr"
 OLD_MASKED_ROW = "linear_masked_filter"
 HIGH_ASKS = tuple(range(18, 24))
-COLORS = {"Uniform, no filter (shared recipe)": "#0f766e", "Masked, full filter (shared recipe)": "#365d93", "Masked, full filter (4e-4 recipe)": "#6f6e69"}
+COLORS = {"Uniform (shared recipe)": "#0f766e", "Masked, full filter (shared recipe)": "#365d93", "Masked, full filter (4e-4 recipe)": "#6f6e69"}
 DARK = {"#0f766e": "#5eead4", "#365d93": "#93c5fd", "#6f6e69": "#a9a8a2"}
 
 
@@ -530,7 +530,7 @@ def main():
         train_lu = {frozenset(lu) for lu in R._train_lineups()}
         arms_out = {}
         for label, row, gs in (
-            ("Uniform, no filter (shared recipe)", u_row, u_gs),
+            ("Uniform (shared recipe)", u_row, u_gs),
             ("Masked, full filter (shared recipe)", MASKED_ROW, (2, 4, 8)),
             ("Masked, full filter (4e-4 recipe)", OLD_MASKED_ROW, (2, 4, 8)),
         ):

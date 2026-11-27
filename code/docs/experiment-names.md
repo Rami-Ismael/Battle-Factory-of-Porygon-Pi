@@ -1228,9 +1228,9 @@ Shared by every arm: the 84-field model trained on the labelled teams of the shu
 
 Source: [`uniform-discrete-diffusion.md`](uniform-discrete-diffusion.md)
 
-Shared by every arm: the 84-field transformer (256 wide, 6 layers, 8 heads) trained on the labelled teams of the filtered shuffled-only table (`214,055` train, `4,368` validation, wrong Mega Stones removed) with corruption probability `1 − α(t) = t` on all 84 fields (linear masking schedule for masked, UDLM's baseline log-linear schedule for uniform), ask dropout 0.15, label noise ±1/48, EMA 0.999, early stopping on validation loss (patience 3, threshold 0, cap 80); 23 asks, 3 sampling seeds, 64 validator-accepted teams per cell, each battled once against the 49 distinct top-50 meta teams, behaviour-cloning policy on both sides, slots shuffled; coarse guidance grid `{1, 2, 4, 8}` plus up to 2 rule-selected bend points. Each name gives the noise process, then the legal Pokémon construction filter used while sampling.
+Shared by every arm: the 84-field transformer (256 wide, 6 layers, 8 heads) trained on the labelled teams of the filtered shuffled-only table (`214,055` train, `4,368` validation, wrong Mega Stones removed) with corruption probability `1 − α(t) = t` on all 84 fields (linear masking schedule for masked, UDLM's baseline log-linear schedule for uniform), ask dropout 0.15, label noise ±1/48, EMA 0.999, early stopping on validation loss (patience 3, threshold 0, cap 80); 23 asks, 3 sampling seeds, 64 validator-accepted teams per cell, each battled once against the 49 distinct top-50 meta teams, behaviour-cloning policy on both sides, slots shuffled; coarse guidance grid `{1, 2, 4, 8}` plus up to 2 rule-selected bend points. Renamed 2026-11-27 (owner): `Uniform, no filter` → `Uniform`, because Uniform is trained on the wrong-Mega-Stone-filtered table (#368) and has no second in-loop-filtered arm (its code ID `udlm_loglinear_nofilter` stays unchanged).
 
 | Reader name | Code ID |
 | --- | --- |
 | Masked, full filter | `linear_masked_filter` |
-| Uniform, no filter | `udlm_loglinear_nofilter` |
+| Uniform | `udlm_loglinear_nofilter` |

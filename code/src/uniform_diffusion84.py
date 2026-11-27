@@ -189,7 +189,7 @@ def per_column_ce(logits_by_key, clean_tokens):
 def elbo_terms(net, clean_tokens, noisy_tokens, time_values, labels, vocab_sizes, *, check_bounds=True, amp=False):
     """Per-team continuous-time uniform diffusion loss [B] in nats per field (averaged across all 84 columns).
 
-    No legal Pokémon construction filter is applied to logits (Uniform, no filter).
+    No legal Pokémon construction filter is applied to logits (Uniform).
     When amp=True on MPS/CUDA, runs the transformer backbone in bfloat16 while computing log_softmax
     and the Eq. 19 uniform diffusion loss in float32.
     """

@@ -1,9 +1,9 @@
-"""Issue #431 report: one shared GIDD-style learning-rate recipe on Uniform, no filter and Masked, full filter.
+"""Issue #431 report: one shared GIDD-style learning-rate recipe on Uniform and Masked, full filter.
 
 Reads the four run JSONs (each arm under the old 4e-4 cosine-to-0 recipe and the new 5e-4 cosine-to-5e-5 recipe) and
 writes two ECharts pages plus a summary JSON:
   lr-recipe-val-loss.html   validation loss by epoch, both arms, both recipes, and the learning rate each recipe gave
-  lr-recipe-field-matching.html   Uniform, no filter: share of 64 unconstrained teams per epoch that break each
+  lr-recipe-field-matching.html   Uniform: share of 64 unconstrained teams per epoch that break each
                             Pokémon-to-field matching rule (ability, move), old recipe against new
 The Pokémon-to-field matching shift epoch is the first epoch whose share of teams with an ability the species can't have falls
 below one half (issue #276 read the old run's collapse, 100% -> 3%, at epochs 58-61).
@@ -23,12 +23,12 @@ import lr_schedule84 as LS
 RESULTS = Path.home() / "Documents/code/vgc-team-generator-pilot/results"
 # Reader-facing name -> (old recipe run, new recipe run)
 ARMS = {
-    "Uniform, no filter": ("stat84_udlm_loglinear_es3_cap80", "stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80"),
+    "Uniform": ("stat84_udlm_loglinear_es3_cap80", "stat84_udlm_loglinear_lr5e4_min5e5_es3_cap80"),
     "Masked, full filter": ("stat84_shuffled_noise_linear_filtered_es3_cap80",
                             "stat84_shuffled_noise_linear_filtered_lr5e4_min5e5_es3_cap80"),
 }
 OLD_RECIPE, NEW_RECIPE = "old recipe", "shared GIDD-style recipe"
-COLORS = {"Uniform, no filter": "#0f766e", "Masked, full filter": "#c2410c"}
+COLORS = {"Uniform": "#0f766e", "Masked, full filter": "#c2410c"}
 ABILITY_RULE, MOVE_RULE = "ability the species can't have", "move the species can't learn"
 STEPS_PER_EPOCH = math.ceil(214_055 / 256)
 
@@ -72,7 +72,7 @@ def summary(runs):
     return out
 
 
-LIGHT = {"Uniform, no filter": "#8fc9c1", "Masked, full filter": "#f2b08f"}     # each arm's old-recipe tint
+LIGHT = {"Uniform": "#8fc9c1", "Masked, full filter": "#f2b08f"}     # each arm's old-recipe tint
 
 
 def cliff(info, after=30):
@@ -112,7 +112,7 @@ def val_loss_figure(runs, out_dir):
 def cliff_lr_figure(runs, out_dir, teaser=False):
     """Figure 3 (and, with teaser=True, the teaser): the learning rate each recipe gives per epoch, with each run's steepest
     late drop placed on its own recipe's curve. The teaser adds the measured results under the plot."""
-    old_info, new_info = runs["Uniform, no filter"]
+    old_info, new_info = runs["Uniform"]
     series = []
     for label, info, dash in ((OLD_RECIPE, old_info, "dashed"), (NEW_RECIPE, new_info, "solid")):
         series.append({"type": "line", "name": f"learning rate · {label}", "color": "#6f6e69", "symbol": "none",
@@ -135,7 +135,7 @@ def cliff_lr_figure(runs, out_dir, teaser=False):
               "yAxis": {"type": "value", "min": 0, "max": 5.5, "interval": 1, "name": "learning rate (×10⁻⁴)"}, "series": series}
     if teaser:
         tiles = [("−0.12 / −0.10", "best validation loss, Uniform / Masked"),
-                 ("16% → 44%", "Uniform drawn teams legal on the first try, no filter"),
+                 ("16% → 44%", "Uniform drawn teams legal on the first try (without legality tables)"),
                  ("0% → 0%", "Masked drawn teams legal without the filter, every epoch")]
         option["graphic"] = [{"type": "group", "left": f"{4 + 33 * i}%", "bottom": 8, "children": [
             {"type": "text", "style": {"text": big, "fontSize": 26, "fontWeight": 700, "fill": "#0b0b0b"}},
@@ -156,7 +156,7 @@ def cliff_lr_figure(runs, out_dir, teaser=False):
 
 
 def field_matching_figure(runs, out_dir):
-    old, new = runs["Uniform, no filter"]
+    old, new = runs["Uniform"]
     series = []
     for rule, color in ((ABILITY_RULE, "#0f766e"), (MOVE_RULE, "#c2410c")):
         for label, info, dash in ((OLD_RECIPE, old, "dashed"), (NEW_RECIPE, new, "solid")):
@@ -169,7 +169,7 @@ def field_matching_figure(runs, out_dir):
               "yAxis": {"type": "value", "min": 0, "max": 1, "name": "share of 64 drawn teams"},
               "dataZoom": [{"type": "inside"}, {"type": "slider", "height": 14, "bottom": 4}], "series": series}
     return write_chart(option, Path(out_dir) / "lr-recipe-field-matching.html",
-                       title="Uniform, no filter: when does Pokémon-to-field matching click under each recipe?",
+                       title="Uniform: when does Pokémon-to-field matching click under each recipe?",
                        subtitle="Share of 64 teams drawn without the legal Pokémon construction filter that break each rule, every epoch.",
                        note="Draw: guidance 1, 128 passes, the same seed every epoch. Dashed, old recipe: 4e-4 cosine to 0. Solid, shared GIDD-style recipe: 5e-4 cosine to 5e-5.",
                        height=500)
@@ -177,7 +177,7 @@ def field_matching_figure(runs, out_dir):
 
 def unfiltered_curves(runs, results=RESULTS):
     """{arm: (old entries, new entries)}: per-epoch legality drawn without the legal Pokémon construction filter.
-    Uniform, no filter's training check already drew without it. Masked, full filter's drew through it, so its entries
+    Uniform's training check already drew without it. Masked, full filter's drew through it, so its entries
     come from the checkpoint_legality.py redraw of its epoch checkpoints, filter off; an arm without both redraws is left out."""
     out = {}
     for arm, (old, new) in runs.items():
@@ -190,7 +190,7 @@ def unfiltered_curves(runs, results=RESULTS):
     return out
 
 
-DRAWS = {"Uniform, no filter": "128 passes over all fields", "Masked, full filter": "one field per pass, species first"}
+DRAWS = {"Uniform": "128 passes over all fields", "Masked, full filter": "one field per pass, species first"}
 
 
 def draw_note(curves):
@@ -216,7 +216,7 @@ def legality_figure(curves, out_dir):
               "yAxis": {"type": "value", "min": 0, "max": 1, "name": "legal on the first try"},
               "dataZoom": [{"type": "inside"}, {"type": "slider", "height": 14, "bottom": 4}], "series": series}
     return write_chart(option, Path(out_dir) / "lr-recipe-legality.html",
-                       title="Share of 64 drawn teams legal on the first try, every epoch, no filter",
+                       title="Share of 64 drawn teams legal on the first try, every epoch (without legality tables)",
                        subtitle="Dashed: old recipe. Solid: shared GIDD-style recipe. Every draw skips the legal Pokémon construction filter, so the line shows when the network itself learns the rules. "
                                 "All 214,055 training teams pass that filter, so an illegal team is the model's own.",
                        note=draw_note(curves), height=500)
@@ -256,13 +256,13 @@ def all_rules_figure(curves, out_dir):
             "xAxis": {"type": "value", "min": 1, "max": 80, "name": "epoch", "nameLocation": "middle", "nameGap": 26},
             "yAxis": {"type": "value", "min": 0, "max": 1, "axisLabel": {"formatter": pct}}}
     return write_chart({"baseOption": base, "options": options}, Path(out_dir) / "lr-recipe-all-rules.html",
-                       title="Share of drawn teams breaking each rule, every epoch, no filter",
-                       subtitle="One line per rule; pick the run under the chart. A team can break several rules. No filter means the "
+                       title="Share of drawn teams breaking each rule, every epoch (without legality tables)",
+                       subtitle="One line per rule; pick the run under the chart. A team can break several rules. Without legality tables means the "
                                 "draws skip the legal Pokémon construction filter; all 214,055 training teams pass it.",
                        note=draw_note(curves), height=560, dark=dict(zip(RULE_LIGHT, RULE_DARK)))
 
 
-def rules_at_end_figure(curves, out_dir, epoch=80, arm="Uniform, no filter"):
+def rules_at_end_figure(curves, out_dir, epoch=80, arm="Uniform"):
     """Figure 5: the share of Uniform's drawn teams breaking each rule at the last epoch, old recipe against shared."""
     series = []
     for label, entries, color in ((OLD_RECIPE, curves[arm][0], LIGHT[arm]), (NEW_RECIPE, curves[arm][1], COLORS[arm])):
@@ -279,7 +279,7 @@ def rules_at_end_figure(curves, out_dir, epoch=80, arm="Uniform, no filter"):
               "yAxis": {"type": "category", "data": list(HEATMAP_RULES), "inverse": True, "axisTick": {"show": False}},
               "series": series}
     return write_chart(option, Path(out_dir) / "lr-recipe-rules-epoch80.html",
-                       title=f"Uniform, no filter at epoch {epoch}: Stat Points and repeated species are what still break",
+                       title=f"Uniform at epoch {epoch}: Stat Points and repeated species are what still break",
                        subtitle="Share of 64 drawn teams breaking each rule. Light: old recipe. Dark: shared GIDD-style recipe. Shorter is better.",
                        note=draw_note({arm: curves[arm]}), height=440, dark={LIGHT[arm]: "#4a5654", COLORS[arm]: "#2bb3a3"})
 

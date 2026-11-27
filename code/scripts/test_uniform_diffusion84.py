@@ -365,7 +365,7 @@ class TrainingSmokeAndWiringTests(unittest.TestCase):
     def test_ask_grid84_wiring_uses_non_legacy_seed_and_records_revisions(self):
         row = AG.MODELS["udlm_loglinear_nofilter"]
         self.assertEqual(row["checkpoint"], "stat84_udlm_loglinear_es3_cap80")
-        self.assertEqual(row["reader"], "Uniform, no filter")
+        self.assertEqual(row["reader"], "Uniform")
         self.assertEqual(row["decoder"], "uniform_nofilter")
         self.assertTrue(row["uniform"])
         self.assertEqual(AG.table_of(row), "lossdata84_shuffled_only.npz")

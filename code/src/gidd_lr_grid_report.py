@@ -4,7 +4,7 @@ Pairs the shared-recipe checkpoint (`stat84_shuffled_noise_linear_filtered_lr5e4
 `shuffled_linear_filtered_gidd_lr`) with the same model trained on the old 4e-4 cosine-to-0 recipe
 (`stat84_shuffled_noise_linear_filtered_es3_cap80`, row `linear_masked_filter`, battled in #385) at guidance 2, 4 and 8.
 Both rows draw on seed base 7300, so the bootstrap and the training-luck bars are retrain_default_report's (#385).
-Uniform, no filter's grids belong to #438, which picks its pass count first.
+Uniform's grids belong to #438, which picks its pass count first.
 
     python gidd_lr_grid_report.py check-grid NAME CELLS
     python gidd_lr_grid_report.py grid-figure GUIDANCE OUT_DIR
@@ -283,7 +283,7 @@ def format_final_comment(summary, base_url):
     lines += [""] + ((["**Beyond training luck:**"] + [f"- {f}" for f in all_flags]) if all_flags else ["No measure differs beyond training luck at any guidance."])
     lines += ["", "**Caveats.** One training seed per recipe, and both checkpoints stopped at the 80-epoch cap still improving. "
               "The old recipe trained on the laptop's MPS GPU and the shared one on a Modal A10; their validation curves agree within 0.007 through epoch 40. "
-              "Uniform, no filter's grids run in [Run every masked-model evaluation on the shared-recipe Uniform, no filter checkpoint]"
+              "Uniform's grids run in [Run every masked-model evaluation on the shared-recipe Uniform checkpoint]"
               "(https://github.com/Rami-Ismael/Battle-Factory-of-Porygon-Pi/issues/438), which picks its pass count first. "
               "Battles moved to Modal CPU containers at 11:30 (20 of 69 guidance 2 cells had run on the laptop); a 768-team re-battle "
               "matched the laptop (-0.0035 [-0.0096, +0.0027], ask-versus-got error +0.0002). Storyboard: `code/docs/gidd-lr-recipe-grids.md`."]
@@ -291,7 +291,7 @@ def format_final_comment(summary, base_url):
 
 
 MAP_ISSUE = "270"
-TASK_TITLE = ("Test one shared GIDD-style learning-rate recipe (lr 5e-4, cosine to 10% floor 5e-5) on both Uniform, no filter "
+TASK_TITLE = ("Test one shared GIDD-style learning-rate recipe (lr 5e-4, cosine to 10% floor 5e-5) on both Uniform "
               "and Masked, full filter")
 
 
@@ -302,10 +302,10 @@ def decision_line(summary):
     found = sum(len(flags(p)) for p in pairs)
     verdict = "every measure within training luck" if not found else f"{found} difference(s) beyond training luck"
     return (f"- [{TASK_TITLE}](https://github.com/{R.REPO}/issues/431): the shared recipe (peak `5e-4`, cosine to `5e-5`, "
-            f"trained on a Modal A10) lowers best validation loss on both arms (Uniform, no filter `1.4384` -> `1.3153`, "
-            f"Masked, full filter `1.3143` -> `1.2138`) by moving the late cliff earlier, and lifts Uniform, no filter's "
+            f"trained on a Modal A10) lowers best validation loss on both arms (Uniform `1.4384` -> `1.3153`, "
+            f"Masked, full filter `1.3143` -> `1.2138`) by moving the late cliff earlier, and lifts Uniform's "
             f"first-try legality `15.6%` -> `43.8%`. Masked, full filter's ask-versus-got error at guidance "
-            f"{', '.join(gs)}: {errors} against the old recipe ({verdict}). Uniform, no filter's grids moved to #438.")
+            f"{', '.join(gs)}: {errors} against the old recipe ({verdict}). Uniform's grids moved to #438.")
 
 
 def update_map(summary):

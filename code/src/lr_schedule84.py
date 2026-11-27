@@ -6,7 +6,7 @@
                 dvruette/gidd@f67acc96 gidd/utils.py:18-33: linear warm-up from step / warmup_steps, then a cosine
                 over the steps after warm-up that ends on min_lr. GIDD's floor is 10% of the peak.
 
-GIDD_LR_RECIPE is the one recipe #431 tests on both Uniform, no filter and Masked, full filter: peak 5e-4, 1,000
+GIDD_LR_RECIPE is the one recipe #431 tests on both Uniform and Masked, full filter: peak 5e-4, 1,000
 warm-up steps (about 1.5% of 66,960 steps), cosine to the 10% floor 5e-5.
 """
 import math
