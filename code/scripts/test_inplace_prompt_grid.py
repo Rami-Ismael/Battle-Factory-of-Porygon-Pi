@@ -93,8 +93,9 @@ class FakeValidator:
 
 def answer_model(tokenizer, task, prompt=None):
     """A model whose logits at each slot put all weight on the true value's token (padded as training pads)."""
-    statement, example = (None, None) if prompt is None else (prompt.statement, prompt.example)
-    target = D.training_target(task, G.ASK, tokenizer, G.LIMIT, tokenizer.pad_token, statement, example)
+    statement, example, rules, filler = ((None, None, None, None) if prompt is None
+                                         else (prompt.statement, prompt.example, prompt.rules, prompt.filler))
+    target = D.training_target(task, G.ASK, tokenizer, G.LIMIT, tokenizer.pad_token, statement, example, rules, filler)
     truth = tokenizer(target, add_special_tokens=False)['input_ids']
 
     def forward_for(slots):
@@ -671,6 +672,79 @@ class RuleBreaksTest(unittest.TestCase):
         counts = G.rule_counts(rows)
         self.assertEqual(counts['not a Reg M-B item'], {'broken': 1, 'of': 2})
         self.assertEqual(counts['Stat Points over 66'], {'broken': 0, 'of': 1})
+
+
+RULES_PROMPTS = (('inplace_rules', D.RULES_LINE, 'rules line', D.RULES_SUFFIX),
+                 ('inplace_filler', D.FILLER_LINE, 'filler line', D.FILLER_SUFFIX))
+
+
+class RulesAndFillerPromptTest(unittest.TestCase):
+    """#445: inplace_rules and inplace_filler each differ from inplace_header only by their own line before Team:."""
+
+    def test_the_only_difference_from_header_is_the_rules_or_filler_line_before_the_team(self):
+        tokenizer = FakeTokenizer()
+        for code, line, part_name, suffix in RULES_PROMPTS:
+            prompt = G.PROMPTS[code]
+            self.assertEqual(prompt.base, 'inplace_header')
+            self.assertIsNone(prompt.statement)
+            self.assertIsNone(prompt.example)
+            tokens = len(tokenizer(line, add_special_tokens=False)['input_ids'])
+            for task in [*TASKS, make_task('pokemon', 'f6')]:
+                header = PROMPT.build(task, G.ASK, tokenizer, G.LIMIT)
+                added = prompt.build(task, G.ASK, tokenizer, G.LIMIT)
+                at = header.text.index('\n' + D.TEAM_LABEL) + 1
+                self.assertEqual(added.text, header.text[:at] + line + header.text[at:])
+                self.assertEqual([(s.path, s.field, s.length) for s in added.slots],
+                                 [(s.path, s.field, s.length) for s in header.slots])
+                self.assertEqual([(s.start, s.end) for s in added.slots],
+                                 [(s.start + len(line), s.end + len(line)) for s in header.slots])
+                self.assertEqual([s.first_token for s in added.slots],
+                                 [s.first_token + tokens for s in header.slots])
+                self.assertEqual(added.part_tokens, header.part_tokens | {part_name: tokens})
+                self.assertEqual(added.version, D.VERSION + suffix)
+                self.assertNotEqual(added.version, header.version)
+
+    def test_rules_and_filler_lines_are_safe_and_filler_has_no_domain_words_or_digits(self):
+        self.assertIs(G.PROMPTS['inplace_rules'].rules, D.RULES_LINE)
+        self.assertIs(G.PROMPTS['inplace_filler'].filler, D.FILLER_LINE)
+        for line in (D.RULES_LINE, D.FILLER_LINE):
+            self.assertTrue(line.endswith('\n'))
+            self.assertNotIn(D.TEAM_LABEL, line)
+            self.assertNotIn('<|', line)
+        for token in ('item', 'at most once', '66', '32', 'Stat Point'):
+            self.assertIn(token, D.RULES_LINE)
+        self.assertIsNone(re.search(r'\d', D.FILLER_LINE))
+        low = D.FILLER_LINE.lower()
+        for word in ('item', 'pokemon', 'pokémon', 'stat', 'species', 'ability', 'move', 'nature', 'rule', 'json',
+                     'team'):
+            self.assertNotIn(word, low)
+
+    def test_cannot_pass_both_rules_and_filler_at_once(self):
+        with self.assertRaisesRegex(ValueError, 'not both'):
+            D.header_parts(G.ASK, rules=D.RULES_LINE, filler=D.FILLER_LINE)
+
+    def test_a_perfect_model_fills_legally_and_round_trip_reads_back_through_both_prompts(self):
+        tokenizer = FakeTokenizer()
+        for code, _, _, suffix in RULES_PROMPTS:
+            prompt = G.PROMPTS[code]
+            with tempfile.TemporaryDirectory() as d:
+                for task in TASKS:
+                    c = G.canvas(task, prompt, tokenizer, 0)
+                    values = G.round_trip_values(tokenizer, task, c, None, prompt)
+                    self.assertTrue(G.judge(task, c['built'], values, FakeValidator(), G.vocabulary())['legal'])
+                    G.fill_grid([task], prompt, tokenizer, answer_model(tokenizer, task, prompt), 0,
+                                Path(d) / 'f.jsonl', FakeValidator())
+                rows = G.read_rows(Path(d) / 'f.jsonl')
+            self.assertEqual([r['legal'] for r in rows], [True, True, True])
+            self.assertEqual({r['prompt'] for r in rows}, {code})
+            self.assertEqual({r['version'] for r in rows}, {D.VERSION + suffix})
+
+    def test_line_tokens_counts_the_exact_tokens_added_to_every_mask(self):
+        tokenizer = FakeTokenizer()
+        for code, line, _, _ in RULES_PROMPTS:
+            alone = len(tokenizer(line, add_special_tokens=False)['input_ids'])
+            cost = G.line_tokens(TASKS, G.PROMPTS[code], line, tokenizer, 0, None)
+            self.assertEqual(cost, {'line_alone': alone, 'added_min': alone, 'added_max': alone, 'masks': 3})
 
 
 if __name__ == '__main__':

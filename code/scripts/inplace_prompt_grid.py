@@ -17,6 +17,10 @@ Prompts are stacked (#237 to #240); each later ticket adds one entry to PROMPTS:
                         (masked_diffusion_text.example_text) between the header and the team
     inplace_example     Example team added to the task-statement prompt (#239, the ticket's own arm): the statement,
                         then the example team, then the team
+    inplace_rules       Three team-building rules spelled out on the header-only prompt (#445): masked_diffusion_text.RULES_LINE
+                        between the header and the team
+    inplace_filler      Neutral length-control line on the header-only prompt (#445): masked_diffusion_text.FILLER_LINE,
+                        exact same token count as RULES_LINE in every small-four tokenizer
 An example team costs about 420 tokens, so with it some masks pass the 1,024-token limit; fitting_ids names the masks
 whose text fits for all four small models, and every run, probe and comparison with that prompt uses those alone.
 
@@ -112,7 +116,9 @@ class Prompt:
     build: Callable[..., D.InPlaceText]     # (task, ask, tokenizer, limit) -> the text and its slots
     statement: str | None = None            # the task statement build puts before the team, if any
     example: str | None = None              # the example team's line build puts before the team, if any
-    base: str | None = None                 # for an example prompt, the prompt it adds the example to
+    base: str | None = None                 # for a prompt extending another, the prompt it adds its line to
+    rules: str | None = None                # the spelled-out rules line build puts before the team, if any
+    filler: str | None = None               # the neutral length-control line build puts before the team, if any
 
 
 PROMPTS = {'inplace_header': Prompt('inplace_header', 'Header only, values filled in place', D.in_place_text),
@@ -125,7 +131,13 @@ PROMPTS = {'inplace_header': Prompt('inplace_header', 'Header only, values fille
            'inplace_example': Prompt('inplace_example', 'Example team, task statement',
                                      functools.partial(D.in_place_text, statement=D.TASK_STATEMENT,
                                                        example=D.example_text()),
-                                     D.TASK_STATEMENT, D.example_text(), 'inplace_instructions')}
+                                     D.TASK_STATEMENT, D.example_text(), 'inplace_instructions'),
+           'inplace_rules': Prompt('inplace_rules', 'Rules spelled out, header only',
+                                   functools.partial(D.in_place_text, rules=D.RULES_LINE),
+                                   base='inplace_header', rules=D.RULES_LINE),
+           'inplace_filler': Prompt('inplace_filler', 'Neutral line of the same length, header only',
+                                    functools.partial(D.in_place_text, filler=D.FILLER_LINE),
+                                    base='inplace_header', filler=D.FILLER_LINE)}
 
 
 def to_id(text: str) -> str:
@@ -1158,32 +1170,41 @@ def round_trip_values(tokenizer: Any, task: dict[str, Any], c: dict[str, Any], s
     """The true values written into the slots as the training target writes them (padded), encoded, then decoded
     from the slot tokens as a model's fill is."""
     pad = tokenizer.pad_token or tokenizer.eos_token
-    target = D.training_target(task, ASK, tokenizer, LIMIT, pad, prompt.statement, prompt.example)
+    target = D.training_target(task, ASK, tokenizer, LIMIT, pad, prompt.statement, prompt.example,
+                               prompt.rules, prompt.filler)
     ids = list(tokenizer(target, add_special_tokens=False)['input_ids'])
     if start_id is not None:
         ids = [start_id, *ids]
     return slot_values(tokenizer, ids, c['spans'])[0]
 
 
+def line_tokens(tasks: Sequence[dict[str, Any]], prompt: Prompt, line: str, tokenizer: Any, mask_id: int,
+                start_id: int | None) -> dict[str, int]:
+    """What an added line costs in this tokenizer: its tokens alone, and the fewest and most tokens it adds to a
+    mask's text over prompt.base (default: inplace_header)."""
+    alone = len(tokenizer(line, add_special_tokens=False)['input_ids'])
+    base = PROMPTS[prompt.base or 'inplace_header']
+    added = [len(canvas(t, prompt, tokenizer, mask_id, start_id)['ids'])
+             - len(canvas(t, base, tokenizer, mask_id, start_id)['ids']) for t in tasks]
+    return {'line_alone': alone, 'added_min': min(added), 'added_max': max(added), 'masks': len(added)}
+
+
 def statement_tokens(tasks: Sequence[dict[str, Any]], prompt: Prompt, tokenizer: Any, mask_id: int,
                      start_id: int | None) -> dict[str, int]:
     """What the prompt's task statement costs in this tokenizer: its tokens alone, and the fewest and most tokens it
     adds to a mask's text over today's prompt (#238)."""
-    alone = len(tokenizer(prompt.statement or '', add_special_tokens=False)['input_ids'])
-    added = [len(canvas(t, prompt, tokenizer, mask_id, start_id)['ids'])
-             - len(canvas(t, PROMPTS['inplace_header'], tokenizer, mask_id, start_id)['ids']) for t in tasks]
-    return {'statement_alone': alone, 'added_min': min(added), 'added_max': max(added), 'masks': len(added)}
+    cost = line_tokens(tasks, prompt, prompt.statement or '', tokenizer, mask_id, start_id)
+    return {'statement_alone': cost['line_alone'], 'added_min': cost['added_min'], 'added_max': cost['added_max'],
+            'masks': cost['masks']}
 
 
 def example_tokens(tasks: Sequence[dict[str, Any]], prompt: Prompt, tokenizer: Any, mask_id: int,
                    start_id: int | None) -> dict[str, int]:
     """What the example team costs in this tokenizer: its line alone, and the fewest and most tokens it adds to a
     mask's text over the prompt it extends (#239)."""
-    alone = len(tokenizer(prompt.example or '', add_special_tokens=False)['input_ids'])
-    base = PROMPTS[prompt.base or 'inplace_header']
-    added = [len(canvas(t, prompt, tokenizer, mask_id, start_id)['ids'])
-             - len(canvas(t, base, tokenizer, mask_id, start_id)['ids']) for t in tasks]
-    return {'example_alone': alone, 'added_min': min(added), 'added_max': max(added), 'masks': len(added)}
+    cost = line_tokens(tasks, prompt, prompt.example or '', tokenizer, mask_id, start_id)
+    return {'example_alone': cost['line_alone'], 'added_min': cost['added_min'], 'added_max': cost['added_max'],
+            'masks': cost['masks']}
 
 
 def example_team_check(validate: Callable[[str], str | None], names: dict[str, frozenset[str]]) -> dict[str, Any]:
@@ -1203,6 +1224,25 @@ def example_team_check(validate: Callable[[str], str | None], names: dict[str, f
            'species_shared_with_grid_teams': sorted({m['species'] for m in team}
                                                     & {m['species'] for o in sources.values() for m in o})}
     out['pass'] = error is None and not not_regmb and not in_grid and not out['is_heldout']
+    return out
+
+
+def _prompt_token_checks(tasks: Sequence[dict[str, Any]], prompt: Prompt, tokenizer: Any, mask_id: int,
+                         start_id: int | None) -> dict[str, Any]:
+    """Extra token-cost fields preflight records for any line prompt adds before the team."""
+    out: dict[str, Any] = {}
+    if prompt.statement is not None and prompt.example is None:     # with an example, both would count
+        out['statement_tokens'] = statement_tokens(tasks, prompt, tokenizer, mask_id, start_id)
+    if prompt.rules is not None:
+        out['rules_tokens'] = line_tokens(tasks, prompt, prompt.rules, tokenizer, mask_id, start_id)
+    if prompt.filler is not None:
+        out['filler_tokens'] = line_tokens(tasks, prompt, prompt.filler, tokenizer, mask_id, start_id)
+        rules_cost = line_tokens(tasks, PROMPTS['inplace_rules'], D.RULES_LINE, tokenizer, mask_id, start_id)
+        out['matches_rules_tokens'] = (out['filler_tokens']['line_alone'] == rules_cost['line_alone']
+                                       and out['filler_tokens']['added_min'] == rules_cost['added_min']
+                                       and out['filler_tokens']['added_max'] == rules_cost['added_max'])
+    if prompt.example is not None:
+        out['example_tokens'] = example_tokens(tasks, prompt, tokenizer, mask_id, start_id)
     return out
 
 
@@ -1252,11 +1292,9 @@ def preflight(out: Path, prompt_code: str = 'inplace_header') -> dict[str, Any]:
                     'ceiling_legal': ceiling, 'round_trip_legal': trip, 'round_trip_same_paste': trip_paste,
                     'round_trip_misses': trip_misses[:10], 'floor_random_tokens_legal': floor,
                     'floor_random_tokens_showdown_accepts': floor_showdown}
-            if prompt.statement is not None and prompt.example is None:     # with an example, both would count
-                row['statement_tokens'] = statement_tokens(tasks, prompt, tokenizer, candidate.mask_id, start_id)
-            if prompt.example is not None:
-                row['example_tokens'] = example_tokens(tasks, prompt, tokenizer, candidate.mask_id, start_id)
-            row['pass'] = (ceiling == trip == trip_paste == len(tasks)) and floor < 3 and unknown == 0
+            row |= _prompt_token_checks(tasks, prompt, tokenizer, candidate.mask_id, start_id)
+            row['pass'] = (ceiling == trip == trip_paste == len(tasks) and floor < 3 and unknown == 0
+                           and row.get('matches_rules_tokens', True))
             result['candidates'][key] = row
             print(key, json.dumps(row), flush=True)
         result['controls'] = controls(validate, names)
