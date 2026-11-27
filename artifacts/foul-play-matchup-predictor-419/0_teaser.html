@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team and behaviour-cloning beats the old label, and team features beat linear rescaling alone</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:310px}
+</style>
+</head>
+<body>
+<main>
+<h1>Team and behaviour-cloning beats the old label, and team features beat linear rescaling alone</h1>
+<p class="sub">500 pilot teams, 5-fold cross-validation (issue #419). Gap to reusing the old label: -0.039 [-0.046, -0.031]; gap to linear calibration alone: -0.013 [-0.017, -0.009].</p>
+<div id="chart"></div>
+<p class="note">Error bars on the right are 95% paired bootstrap intervals over the 500 teams.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"title": [{"text": "5-fold root mean squared error (lower is better)", "left": "2%", "top": 0, "textStyle": {"fontSize": 13, "fontWeight": "normal"}}, {"text": "paired error gap (< 0 means lower error)", "left": "54%", "top": 0, "textStyle": {"fontSize": 13, "fontWeight": "normal"}}], "tooltip": {"trigger": "axis", "axisPointer": {"type": "line"}}, "grid": [{"left": 182, "width": "27%", "top": 52, "bottom": 34}, {"left": "69%", "right": 34, "top": 52, "bottom": 34}], "xAxis": [{"gridIndex": 0, "type": "value", "min": 0, "max": 0.15}, {"gridIndex": 1, "type": "value", "min": -0.06, "max": 0.02, "interval": 0.02}], "yAxis": [{"gridIndex": 0, "type": "category", "data": ["No training (old win rate)", "No team features (linear fit)", "Team only", "Team + old win rate"], "axisTick": {"show": false}}, {"gridIndex": 1, "type": "category", "data": ["Team + old vs linear fit", "Team only vs old guess", "Team + old vs old guess"], "axisTick": {"show": false}}], "series": [{"name": "5-fold root mean squared error", "type": "bar", "xAxisIndex": 0, "yAxisIndex": 0, "barWidth": 22, "emphasis": {"focus": "series"}, "data": [{"value": 0.1206, "itemStyle": {"color": "#8a8984"}}, {"value": 0.0947, "itemStyle": {"color": "#0f766e"}}, {"value": 0.0913, "itemStyle": {"color": "#c2410c"}}, {"value": 0.0818, "itemStyle": {"color": "#2a6fdb"}}], "label": {"show": true, "position": "right", "formatter": "js:p => p.value.toFixed(3)"}, "markLine": {"silent": true, "symbol": "none", "lineStyle": {"color": "#15803d", "type": "dashed", "width": 1.8}, "label": {"formatter": "noise floor 0.042", "color": "#15803d", "position": "end", "distance": 4, "fontSize": 11.5}, "data": [{"xAxis": 0.0423}]}}, {"type": "line", "xAxisIndex": 1, "yAxisIndex": 1, "data": [[-0.0464, "Team + old vs old guess"], [-0.0311, "Team + old vs old guess"]], "symbol": "none", "lineStyle": {"color": "#2a6fdb", "width": 3}, "silent": true, "tooltip": {"show": false}}, {"name": "Team + old vs old guess", "type": "scatter", "xAxisIndex": 1, "yAxisIndex": 1, "data": [[-0.0388, "Team + old vs old guess"]], "symbolSize": 13, "itemStyle": {"color": "#2a6fdb"}, "emphasis": {"focus": "series"}, "label": {"show": true, "position": "top", "distance": 6, "formatter": "-0.039", "fontSize": 12, "color": "#2a6fdb", "fontWeight": "bold"}}, {"type": "line", "xAxisIndex": 1, "yAxisIndex": 1, "data": [[-0.0396, "Team only vs old guess"], [-0.0192, "Team only vs old guess"]], "symbol": "none", "lineStyle": {"color": "#c2410c", "width": 3}, "silent": true, "tooltip": {"show": false}}, {"name": "Team only vs old guess", "type": "scatter", "xAxisIndex": 1, "yAxisIndex": 1, "data": [[-0.0293, "Team only vs old guess"]], "symbolSize": 13, "itemStyle": {"color": "#c2410c"}, "emphasis": {"focus": "series"}, "label": {"show": true, "position": "top", "distance": 6, "formatter": "-0.029", "fontSize": 12, "color": "#c2410c", "fontWeight": "bold"}}, {"type": "line", "xAxisIndex": 1, "yAxisIndex": 1, "data": [[-0.0165, "Team + old vs linear fit"], [-0.0093, "Team + old vs linear fit"]], "symbol": "none", "lineStyle": {"color": "#0f766e", "width": 3}, "silent": true, "tooltip": {"show": false}}, {"name": "Team + old vs linear fit", "type": "scatter", "xAxisIndex": 1, "yAxisIndex": 1, "data": [[-0.0129, "Team + old vs linear fit"]], "symbolSize": 13, "itemStyle": {"color": "#0f766e"}, "emphasis": {"focus": "series"}, "label": {"show": true, "position": "top", "distance": 6, "formatter": "-0.013", "fontSize": 12, "color": "#0f766e", "fontWeight": "bold"}}, {"type": "line", "xAxisIndex": 1, "yAxisIndex": 1, "data": [[0, "Team + old vs linear fit"], [0, "Team + old vs old guess"]], "symbol": "none", "lineStyle": {"color": "#6f6e69", "type": "dashed", "width": 1.5}, "silent": true, "tooltip": {"show": false}}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>

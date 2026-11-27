@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team and behaviour-cloning win rate cuts error from 0.121 to 0.082</title>
+<style>
+:root{--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#161615;--ink:#f2f1ee;--ink2:#a9a8a2;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+h1{font-size:20px;line-height:1.25;margin:0}
+h1,.sub,.note{white-space:pre-line}
+.sub,.note{color:var(--ink2);margin:4px 0 12px}
+.note{font-size:12.5px;margin-top:10px}
+#chart{width:100%;height:370px}
+</style>
+</head>
+<body>
+<main>
+<h1>Team and behaviour-cloning win rate cuts error from 0.121 to 0.082</h1>
+<p class="sub">5-fold cross-validation on 500 pilot teams (issue #419). Team only scores 0.091; an oracle on infinite battles cannot beat the 0.042 two-battle noise floor.</p>
+<div id="chart"></div>
+<p class="note">Points show out-of-fold root mean squared error with 95% bootstrap intervals (10,000 resamples over the 500 teams).</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+<script>
+const revive = o => typeof o === "string" && o.startsWith("js:") ? (0, eval)("(" + o.slice(3) + ")")
+  : Array.isArray(o) ? o.map(revive) : o && typeof o === "object" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, revive(v)])) : o;
+const option = revive({"tooltip": {"trigger": "axis", "axisPointer": {"type": "line"}}, "grid": {"left": 210, "right": 56, "top": 42, "bottom": 54}, "xAxis": {"type": "value", "min": 0.03, "max": 0.17, "name": "5-fold out-of-fold root mean squared error (lower is better)", "nameLocation": "middle", "nameGap": 34}, "yAxis": {"type": "category", "data": ["No features (fold mean)", "No training (old win rate)", "No team features (linear fit)", "Team only", "Team + old win rate"], "axisTick": {"show": false}, "axisLine": {"show": false}}, "series": [{"type": "line", "data": [[0.0765, "Team + old win rate"], [0.0872, "Team + old win rate"]], "symbol": "none", "lineStyle": {"color": "#2a6fdb", "width": 3}, "tooltip": {"show": false}, "silent": true}, {"name": "Team and behaviour-cloning win rate", "type": "scatter", "data": [[0.0818, "Team + old win rate"]], "symbolSize": 15, "itemStyle": {"color": "#2a6fdb"}, "emphasis": {"focus": "series"}, "label": {"show": true, "position": "top", "distance": 8, "formatter": "0.082 [0.076, 0.087]", "fontSize": 12, "color": "#2a6fdb", "fontWeight": "bold"}, "markLine": {"silent": true, "symbol": "none", "lineStyle": {"color": "#15803d", "type": "dashed", "width": 2}, "label": {"formatter": "2-battle noise floor (0.042)", "color": "#15803d", "position": "end", "distance": 6, "fontSize": 12}, "data": [{"xAxis": 0.0423}]}}, {"type": "line", "data": [[0.0851, "Team only"], [0.0976, "Team only"]], "symbol": "none", "lineStyle": {"color": "#c2410c", "width": 3}, "tooltip": {"show": false}, "silent": true}, {"name": "Team only, no behaviour-cloning win rate", "type": "scatter", "data": [[0.0913, "Team only"]], "symbolSize": 15, "itemStyle": {"color": "#c2410c"}, "emphasis": {"focus": "series"}, "label": {"show": true, "position": "top", "distance": 8, "formatter": "0.091 [0.085, 0.098]", "fontSize": 12, "color": "#c2410c", "fontWeight": "bold"}}, {"type": "line", "data": [[0.089, "No team features (linear fit)"], [0.1005, "No team features (linear fit)"]], "symbol": "none", "lineStyle": {"color": "#0f766e", "width": 3}, "tooltip": {"show": false}, "silent": true}, {"name": "No team features, linear behaviour-cloning calibration", "type": "scatter", "data": [[0.0947, "No team features (linear fit)"]], "symbolSize": 15, "itemStyle": {"color": "#0f766e"}, "emphasis": {"focus": "series"}, "label": {"show": true, "position": "top", "distance": 8, "formatter": "0.095 [0.089, 0.100]", "fontSize": 12, "color": "#0f766e", "fontWeight": "bold"}}, {"type": "line", "data": [[0.1121, "No training (old win rate)"], [0.1291, "No training (old win rate)"]], "symbol": "none", "lineStyle": {"color": "#8a8984", "width": 3}, "tooltip": {"show": false}, "silent": true}, {"name": "No training, behaviour-cloning win rate as the guess", "type": "scatter", "data": [[0.1206, "No training (old win rate)"]], "symbolSize": 15, "itemStyle": {"color": "#8a8984"}, "emphasis": {"focus": "series"}, "label": {"show": true, "position": "top", "distance": 8, "formatter": "0.121 [0.112, 0.129]", "fontSize": 12, "color": "#8a8984", "fontWeight": "bold"}}, {"type": "line", "data": [[0.1453, "No features (fold mean)"], [0.1595, "No features (fold mean)"]], "symbol": "none", "lineStyle": {"color": "#a8a29e", "width": 3}, "tooltip": {"show": false}, "silent": true}, {"name": "No features, training-fold mean as the guess", "type": "scatter", "data": [[0.1525, "No features (fold mean)"]], "symbolSize": 15, "itemStyle": {"color": "#a8a29e"}, "emphasis": {"focus": "series"}, "label": {"show": true, "position": "top", "distance": 8, "formatter": "0.153 [0.145, 0.160]", "fontSize": 12, "color": "#a8a29e", "fontWeight": "bold"}}]}), darkMap = {"#0b0b0b": "#f2f1ee", "#1f1f1e": "#f2f1ee", "#52514e": "#c3c2b7", "#5f5e5a": "#c3c2b7", "#6f6e69": "#a9a8a2", "#fff": "#161615", "#ffffff": "#161615"};
+const swap = o => typeof o === "string" ? (darkMap[o.toLowerCase()] || o) : Array.isArray(o) ? o.map(swap)
+  : o && typeof o === "object" && typeof o !== "function" ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, swap(v)])) : o;
+const el = document.getElementById("chart"), dark = matchMedia("(prefers-color-scheme: dark)");
+let chart;
+function draw() {
+  if (chart) chart.dispose();
+  chart = echarts.init(el, dark.matches ? "dark" : null, {renderer: "svg"});
+  chart.setOption({backgroundColor: "transparent", ...(dark.matches ? swap(option) : option)});
+}
+dark.addEventListener("change", draw);
+addEventListener("resize", () => chart.resize());
+draw();
+</script>
+</body>
+</html>
