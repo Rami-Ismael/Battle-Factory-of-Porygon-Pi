@@ -342,6 +342,62 @@ class CanvasTest(unittest.TestCase):
         self.assertEqual(dropped, len(span) - 1)
 
 
+class ChatTokenizer(FakeTokenizer):
+    """FakeTokenizer named as iLLaDA 8B Instruct's, whose turn markers are one token each."""
+    name_or_path = 'GSAI-ML/iLLaDA-8B-Instruct'
+    pattern = r'<\[BOS\]>|<\[EOS\]>|<\|mask\|>|<\|pad\|>|[A-Za-z]+|.'
+
+
+def illada_chat(messages, bos='<[BOS]>', eos='<[EOS]>'):
+    """iLLaDA 8B Instruct's chat_template.jinja at revision 5769f049, transcribed: for each message,
+    bos_token + role + '\n' + message['content'] | trim + eos_token (no system turn, no generation prompt)."""
+    return ''.join(bos + m['role'] + '\n' + m['content'].strip() + eos for m in messages)
+
+
+class ChatTemplateTest(unittest.TestCase):
+    """iLLaDA 8B Instruct gets every prompt inside its chat template (owner, 2026-11-27)."""
+
+    @unittest.mock.patch.object(G, 'LIMIT', 10**6)     # the fake tokenizer's example texts pass 1,024 tokens
+    def test_the_text_is_the_template_of_a_header_turn_and_a_team_turn(self):
+        for code, prompt in G.PROMPTS.items():
+            for task in TASKS:
+                with self.subTest(prompt=code, task=task['id']):
+                    plain = G.canvas(task, prompt, FakeTokenizer(), 0)['built'].text
+                    header, _, team_text = plain.partition(D.TEAM_LABEL)
+                    built = G.canvas(task, prompt, ChatTokenizer(), 0)['built']
+                    expected = illada_chat([{'role': 'user', 'content': header},
+                                            {'role': 'assistant', 'content': D.TEAM_LABEL + team_text}])
+                    self.assertEqual(built.text, expected)
+                    self.assertEqual(built.tail, '<[EOS]>')
+                    self.assertTrue(built.version.endswith('+illada-chat-v1'))
+
+    def test_the_slots_are_still_exactly_the_mask_tokens(self):
+        tokenizer = ChatTokenizer()
+        for task in TASKS:
+            c = G.canvas(task, PROMPT, tokenizer, 0)
+            plain = G.canvas(task, PROMPT, FakeTokenizer(), 0)
+            self.assertEqual(len(c['slots']), len(plain['slots']))
+            self.assertTrue(all(c['ids'][n] == 0 for n in c['slots']))
+            self.assertEqual(c['ids'].count(0), len(c['slots']))
+
+    def test_the_true_values_are_legal_inside_the_template(self):
+        tokenizer, names, validate = ChatTokenizer(), G.vocabulary(), FakeValidator()
+        for task in TASKS:
+            built = G.canvas(task, PROMPT, tokenizer, 0)['built']
+            verdict = G.judge(task, built, G.true_values(task), validate, names)
+            self.assertTrue(verdict['legal'], (task['task'], verdict))
+            self.assertEqual(D.read_filled(G.splice(built, G.true_values(task)), '<|pad|>', '<|mask|>', built.tail),
+                             D.read_filled(G.splice(G.canvas(task, PROMPT, FakeTokenizer(), 0)['built'],
+                                                    G.true_values(task)), '<|pad|>', '<|mask|>'))
+
+    def test_a_base_model_gets_no_template_and_its_own_limit(self):
+        built = G.canvas(TASKS[0], PROMPT, FakeTokenizer(), 0)['built']
+        self.assertEqual(built.tail, '')
+        self.assertFalse(built.text.startswith('<[BOS]>'))
+        self.assertEqual(G.limit_for(FakeTokenizer()), 1024)
+        self.assertEqual(G.limit_for(ChatTokenizer()), 8192)
+
+
 class IntervalTest(unittest.TestCase):
     def test_exact_interval_matches_known_values(self):
         """The #169 numbers: 3 of 270 starts at 0.23%; 0 of 270 ends at 1.36%."""

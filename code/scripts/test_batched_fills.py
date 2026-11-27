@@ -140,7 +140,7 @@ class FakeModel:
 class RowForwardTest(unittest.TestCase):
     def test_padded_row_scores_as_it_does_alone(self):
         rows, slots = make_rows()
-        for family, shifted in (('gpt2', True), ('a2d', False), ('llama', True)):
+        for family, shifted in (('gpt2', True), ('a2d', False), ('llama', True), ('illada', False)):
             with self.subTest(family=family):
                 forward = B.make_row_forward(FakeModel(family), family, right_shift=shifted)
                 width, depth = max(map(len, rows)), max(map(len, slots))

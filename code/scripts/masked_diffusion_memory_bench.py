@@ -63,9 +63,9 @@ import torch
 
 from masked_diffusion_sampler import SAMPLERS, SHARED_SAMPLER, SamplerSetting, StepCount, resolve_sampler
 
-ORDER = ('diffugpt_s', 'diffugpt_m', 'qwen25c', 'qwen3', 'diffullama', 'dream', 'llada')   # smallest first
+ORDER = ('diffugpt_s', 'diffugpt_m', 'qwen25c', 'qwen3', 'diffullama', 'dream', 'illada', 'llada')   # smallest first
 FAMILY = {'diffugpt_s': 'gpt2', 'diffugpt_m': 'gpt2', 'qwen25c': 'a2d', 'qwen3': 'a2d', 'diffullama': 'llama',
-          'dream': 'dream', 'llada': 'llada'}
+          'dream': 'dream', 'llada': 'llada', 'illada': 'illada'}
 SHIFTED = {'gpt2', 'llama', 'dream'}        # logits at i - 1 predict token i
 STORED_DTYPE = {'gpt2': 'float16'}          # DiffuGPT ships float16; every other candidate ships bfloat16
 SCOPES = ('all', 'slots')
@@ -433,6 +433,8 @@ def load_model(info: dict[str, Any], family: str, precision: str = 'native', dev
             model = AutoModelForMaskedLM.from_pretrained(info['repo'], trust_remote_code=True, **common)
     elif family == 'dream':                 # its eager attention cannot read the 'full' mask its sampler passes
         model = AutoModel.from_pretrained(info['repo'], trust_remote_code=True, attn_implementation='sdpa', **common)
+    elif family == 'illada':                # its own remote code at the pinned revision, read 2026-11-27
+        model = AutoModel.from_pretrained(info['repo'], trust_remote_code=True, attn_implementation='sdpa', **common)
     else:                                   # llada: its own remote code at the pinned revision
         model = AutoModel.from_pretrained(info['repo'], trust_remote_code=True, **common)
     if precision == 'int8':
@@ -472,7 +474,7 @@ def make_forward(model: Any, family: str, scope: str, slots: torch.Tensor,
     if scope == 'all':
         return lambda x: shift_right(full_logits(model, family, x)) if shifted else full_logits(model, family, x)
     keep = slots - 1 if shifted else slots
-    if family == 'a2d':
+    if family in ('a2d', 'illada'):
         return lambda x: model(input_ids=x, logits_to_keep=keep).logits
     if family == 'llada':
         model.model.transformer.ln_f.register_forward_hook(lambda _m, _i, out: out.index_select(1, keep))
@@ -491,13 +493,20 @@ def padding_mask(model: Any, attention: torch.Tensor) -> torch.Tensor:
 
 def row_hidden_states(model: Any, family: str, x: torch.Tensor, attention: torch.Tensor) -> torch.Tensor:
     """The last layer's output for right-padded rows. Dream and LLaDA have no padding path here, so they take a batch
-    only of rows of one length."""
+    only of rows of one length; iLLaDA takes padded rows."""
     if family == 'gpt2':
         return model.transformer(input_ids=x, attention_mask=padding_mask(model, attention)).last_hidden_state
     if family == 'llama':
         return model.model(input_ids=x, attention_mask=padding_mask(model, attention)).last_hidden_state
     if family == 'a2d':                     # the masked Qwen models build a bidirectional padding mask from 2D
         return model.model(input_ids=x, attention_mask=attention.long()).last_hidden_state
+    if family == 'illada':
+        # iLLaDA's model turns a 2D mask into an additive mask on keys only, with no causal part, and numbers
+        # positions 0..n-1 whatever the mask says. Its authors' generate.py asserts batch 1 for iLLaDA ("does not
+        # support padded batch generation") without a reason; this path never calls it. fill_rows pads on the right,
+        # so real tokens keep their positions and the mask hides the padding (owner, 2026-11-27: batch it). A tiny
+        # random-weight copy of the model code at revision 5769f049 filled three padded rows exactly as alone.
+        return model.model(input_ids=x, attention_mask=attention).last_hidden_state
     if not bool(attention.all()):
         raise NotImplementedError(f'{family}: rows of different lengths in one batch are not implemented (#443)')
     if family == 'dream':

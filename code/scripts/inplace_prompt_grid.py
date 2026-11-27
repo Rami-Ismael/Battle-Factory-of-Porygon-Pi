@@ -80,7 +80,13 @@ GRID_SIZE = 270
 SMALL_FOUR = ('diffugpt_s', 'diffugpt_m', 'qwen25c', 'qwen3')    # #237: fixed for every prompt (owner, 2026-11-07)
 ASK: float | None = None            # the ask line reads 'unknown': no base model was trained on the ask
 SETTING = {'steps': 128, 'temperature': 1.0, 'seed': 2026, 'scope': 'slots', 'precision': 'native', 'batch': 1}
-LIMIT = 1024
+LIMIT = 1024                # DiffuGPT's context; fitting_ids sets the example prompts' masks by it for every model
+LIMIT_BY_REPO = {'GSAI-ML/iLLaDA-8B-Instruct': 8192}   # max_position_embeddings in its config.json
+
+
+def limit_for(tokenizer: Any) -> int:
+    """The most tokens a text may have for this tokenizer's model."""
+    return LIMIT_BY_REPO.get(getattr(tokenizer, 'name_or_path', None), LIMIT)
 REDRAWS = 4                 # #169: a failing mask is drawn up to 4 more times, 5 draws at most
 OUT = Path.home() / 'vgc-data/inplace_prompt_grid'
 NAME_FIELDS = ('species', 'item', 'ability', 'nature', 'moves')
@@ -161,7 +167,7 @@ def canvas(task: dict[str, Any], prompt: Prompt, tokenizer: Any, mask_id: int, s
            ask: float | None = ASK) -> dict[str, Any]:
     """The prompt's text for one mask as token ids, with each slot's token positions. start_id goes first when the
     candidate needs its start token (DiffuLLaMA, #236); every position then moves up by one."""
-    built = prompt.build(task, ask, tokenizer, LIMIT)
+    built = prompt.build(task, ask, tokenizer, limit_for(tokenizer))
     ids = list(tokenizer(built.text, add_special_tokens=False)['input_ids'])
     shift = 0 if start_id is None else 1
     if start_id is not None:
@@ -174,9 +180,9 @@ def canvas(task: dict[str, Any], prompt: Prompt, tokenizer: Any, mask_id: int, s
 
 
 def fits(task: dict[str, Any], prompt: Prompt, tokenizer: Any, mask_id: int, start_id: int | None) -> bool:
-    """Whether the prompt's text for this mask, start token included, is at most LIMIT tokens in this tokenizer."""
+    """Whether the prompt's text for this mask, start token included, is at most limit_for(tokenizer) tokens."""
     try:
-        return len(canvas(task, prompt, tokenizer, mask_id, start_id)['ids']) <= LIMIT
+        return len(canvas(task, prompt, tokenizer, mask_id, start_id)['ids']) <= limit_for(tokenizer)
     except D.TextTooLong:
         return False
 
@@ -329,7 +335,7 @@ def judge(task: dict[str, Any], built: D.InPlaceText, values: Sequence[str], val
     fields = [slot.field for slot in built.slots]
     bad = [(f, v) for f, v in zip(fields, values, strict=True) if f in NAME_FIELDS and to_id(v) not in names[f]]
     out['regmb_names'] = not bad
-    _, _, team_text = text.partition('\n' + D.TEAM_LABEL)
+    team_text, _ = D.team_text(text, built.tail)
     try:
         json.loads(team_text)
         out['json_parses'] = True
@@ -1183,7 +1189,7 @@ def round_trip_values(tokenizer: Any, task: dict[str, Any], c: dict[str, Any], s
     """The true values written into the slots as the training target writes them (padded), encoded, then decoded
     from the slot tokens as a model's fill is."""
     pad = tokenizer.pad_token or tokenizer.eos_token
-    target = D.training_target(task, ASK, tokenizer, LIMIT, pad, prompt.statement, prompt.example,
+    target = D.training_target(task, ASK, tokenizer, limit_for(tokenizer), pad, prompt.statement, prompt.example,
                                prompt.rules, prompt.filler)
     ids = list(tokenizer(target, add_special_tokens=False)['input_ids'])
     if start_id is not None:
