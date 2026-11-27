@@ -8,7 +8,7 @@ alone. #237's laptop fills stay the reference row; the report also counts how ma
 them token for token.
 
 Each mask is drawn as inplace_prompt_grid.fill_grid draws it (mask_seed, the candidate's sampler setting), batch at a
-time (#443, owner 2026-11-25: batch size 1 is no longer required): the container finds the largest batch that fits
+time (#443, owner 2026-11-25: batch size 1 is no longer required): the container finds the largest batch that fits (up to the card's speed cap)
 the GPU at the longest text any prompt makes (inplace_prompt_grid.choose_batch) and fills every prompt at that size,
 in one order, so a pair of prompts is batched alike. Each row keeps its own seed; --batch N fixes the size instead,
 and --batch 1 fills one mask per forward pass as #237 to #239 did. Showdown does not run on Modal, so every draw streams back as a raw row to
@@ -27,7 +27,7 @@ laptop fills. The code the container runs is the frozen copy in INPLACE_CODE_DIR
 Before any Modal launch: state its estimated cost and credit left (`modal billing summary`).
 
     modal run code/scripts/inplace_prompt_fill_modal.py --key qwen3 [--prompts inplace_header,inplace_instructions] \
-        [--limit 3] [--batch N]       (default: #239's four prompts, the largest batch that fits)
+        [--limit 3] [--batch N]       (default: #239's four prompts, the largest batch that fits, up to the card's speed cap)
     ~/.local/share/vgc-pilot-runtime/venv-dlm/bin/python code/scripts/inplace_prompt_fill_modal.py merge --key qwen3 --prompt inplace_instructions
 """
 from __future__ import annotations
@@ -53,11 +53,14 @@ KEYS = ('diffugpt_s', 'diffugpt_m', 'qwen25c', 'qwen3')
 FOUR_PROMPTS = ('inplace_header', 'inplace_instructions', 'inplace_header_example', 'inplace_example')     # #239
 RAW = 'fills-modal-raw.jsonl'
 REMOTE_CODE = '/root/code'
-DEFAULT_GPU = 'L4'
-# Owner, 2026-11-25: DiffuGPT medium fills on the A10, which gpu_speed_probe_modal.py timed at about 1.5x the L4's
-# speed for less per fill ($1.10 an hour against $0.80). Every other model stays on the L4 until it is timed.
-GPU_BY_KEY = {'diffugpt_m': 'A10'}
-TIMEOUT_SECONDS = 2 * 60 * 60          # 2-hour cap per model: about $1.60 on the L4, $2.20 on the A10
+# Owner, 2026-11-27: every model fills on the L40S. gpu_speed_probe_modal.py timed all four on the L4, A10, L40S and
+# both A100 cards (2026-11-25 and 2026-11-26, each card at its own fastest batch size): the L40S pushes 3.3 to 3.7
+# times the L4's tokens per second for 26-34% less per token ($1.95 an hour against $0.80), on the header-only and
+# the example-team prompts. This replaces the 2026-11-25 choice of the A10 for DiffuGPT medium.
+# Readings: ~/vgc-data/inplace_prompt_grid/gpu-probe-batch-sweep*.
+DEFAULT_GPU = 'L40S'
+GPU_BY_KEY: dict[str, str] = {}        # a model that should fill on another card
+TIMEOUT_SECONDS = 60 * 60              # 1-hour cap per model, $1.95 on the L40S; a stopped run resumes
 HF_CACHE_VOLUME = 'vgc-hf-cache'
 DEFERRED = 'deferred: Showdown judges this fill on the laptop'
 IMAGE_PACKAGES = ('torch==2.15.0', 'transformers==4.57.3', 'accelerate==1.15.0', 'safetensors==0.8.0',
@@ -72,7 +75,7 @@ VERDICT_KEYS = frozenset({'json_parses', 'reads_as_team', 'visible_kept', 'regmb
 
 
 def gpu_for(key: str) -> str:
-    """The Modal GPU a model fills on: INPLACE_GPU when set, else the model's own, else the L4."""
+    """The Modal GPU a model fills on: INPLACE_GPU when set, else the model's own, else the L40S."""
     return os.environ.get('INPLACE_GPU') or GPU_BY_KEY.get(key, DEFAULT_GPU)
 
 
@@ -117,7 +120,7 @@ def fill_remote(key: str, prompts: list[str], tasks: list[dict[str, Any]], done:
                 limit: int | None, only: dict[str, list[str]] | None = None, batch: int | None = None,
                 gpu: str = 'cuda') -> Iterator[str]:
     """Container side: one probe line, then one raw row per (prompt, mask) as a JSON line, filled batch at a time
-    (#443). batch None takes the largest batch that fits the GPU at the longest text any prompt makes; every prompt
+    (#443). batch None takes the largest batch that fits the GPU (up to the card's speed cap) at the longest text any prompt makes; every prompt
     uses that one size and the same order (shortest text first under the first prompt), so the prompts of a pair
     are batched alike."""
     sys.path.insert(0, f'{REMOTE_CODE}/scripts')
@@ -308,7 +311,7 @@ if modal is not None:
 
     @app.local_entrypoint()
     def main(key: str, prompts: str = ','.join(FOUR_PROMPTS), limit: int = 0, batch: int = 0) -> None:
-        """batch 0 (the default) takes the largest batch that fits the GPU; any other value fixes it."""
+        """batch 0 (the default) takes the largest batch that fits the GPU, up to the card's speed cap; any other value fixes it."""
         order = prompts.split(',')
         tasks = grid_tasks()
         earlier = {p: read_rows(DIRECTORY / p / key / RAW) for p in order}

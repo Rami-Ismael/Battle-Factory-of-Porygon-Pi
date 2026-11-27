@@ -58,6 +58,12 @@ class ReportTest(unittest.TestCase):
             (Path(d) / 'L4-qwen3.json').write_text(json.dumps(result('L4', [fill(1, 1.0)])))
             self.assertEqual([r['gpu_asked'] for r in P.read_results('diffugpt_m', Path(d))], ['L4', 'L40S', 'H100'])
 
+    def test_texts_over_the_token_limit_are_left_out(self):
+        def build(task):
+            if task['id'] == 'long':
+                raise ValueError('1028 > 1024')
+        self.assertEqual(P.fitting([{'id': 'a'}, {'id': 'long'}, {'id': 'b'}], build), [{'id': 'a'}, {'id': 'b'}])
+
 
 if __name__ == '__main__':
     unittest.main()

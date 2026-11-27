@@ -55,11 +55,12 @@ class SameAsLaptopTest(unittest.TestCase):
 
 
 class GpuTest(unittest.TestCase):
-    def test_diffugpt_medium_fills_on_the_a10_and_the_other_models_on_the_l4(self):
+    def test_every_model_fills_on_the_l40s_unless_it_names_its_own_card(self):
         with unittest.mock.patch.dict('os.environ', clear=False) as env:
             env.pop('INPLACE_GPU', None)
-            self.assertEqual({k: M.gpu_for(k) for k in M.KEYS},
-                             {'diffugpt_s': 'L4', 'diffugpt_m': 'A10', 'qwen25c': 'L4', 'qwen3': 'L4'})
+            self.assertEqual({M.gpu_for(k) for k in M.KEYS}, {'L40S'})
+            with unittest.mock.patch.object(M, 'GPU_BY_KEY', {'qwen3': 'A10'}):
+                self.assertEqual((M.gpu_for('qwen3'), M.gpu_for('diffugpt_m')), ('A10', 'L40S'))
 
     def test_inplace_gpu_overrides_every_model(self):
         with unittest.mock.patch.dict('os.environ', {'INPLACE_GPU': 'L4'}):
