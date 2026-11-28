@@ -10,6 +10,7 @@ Tests the issue #419 matchup predictor (src/foul_play_matchup_predictor.py) at i
   5. End-to-end report + ECharts figure builder on synthetic results (no laptop DB needed).
 """
 import random
+import sqlite3
 import sys
 import tempfile
 import unittest
@@ -248,6 +249,118 @@ class TestFiguresAndReport(unittest.TestCase):
             self.assertIn("Team and behaviour-cloning win rate", md)
             self.assertIn("Team only, no behaviour-cloning win rate", md)
             self.assertIn("No training, behaviour-cloning win rate as the guess", md)
+
+
+class TestUncertaintyAndCorpusStorage(unittest.TestCase):
+    def test_predictive_std_matches_exact_normal_inverse_and_responds_to_bc_depth(self):
+        rng = random.Random(31)
+        np_rng = np.random.default_rng(31)
+        teams = [make_team(i, rng, species_pool=[f"Mon{k}" for k in range(12)]) for i in range(80)]
+        bc = np_rng.uniform(0.1, 0.7, len(teams))
+        y = np.clip(0.03 + 0.7 * bc + np_rng.normal(0, 0.04, len(teams)), 0.0, 1.0)
+        noise_var = 0.02**2
+        model = MP.fit_ridge_with_uncertainty(teams[:60], y[:60], bc[:60], use_bc=True, min_pair=3, target_noise_var=noise_var)
+
+        # Verify exact quadratic form x^T (X^T X + P)^-1 x against explicit inverse
+        Xtr = np.hstack([MP._unpenalized_matrix(60, bc[:60], True), model.predictor.fmap.transform(teams[:60])])
+        pen = np.concatenate([np.zeros(2), model.predictor.fmap.penalty_vector(model.predictor.lam_s, model.predictor.lam_p)])
+        A_inv = np.linalg.inv(Xtr.T @ Xtr + np.diag(pen))
+        Xte = np.hstack([MP._unpenalized_matrix(20, bc[60:], True), model.predictor.fmap.transform(teams[60:])])
+        want_ep = model.sigma_resid * np.sqrt(np.einsum("ij,jk,ik->i", Xte, A_inv, Xte))
+
+        pred_2b, sd_2b, ep_2b = model.predict_with_std(
+            teams[60:], bc[60:], bc_battles=np.full(20, 78), bc_opponents=np.full(20, 39)
+        )
+        pred_1b, sd_1b, ep_1b = model.predict_with_std(
+            teams[60:], bc[60:], bc_battles=np.full(20, 39), bc_opponents=np.full(20, 39)
+        )
+        np.testing.assert_allclose(pred_2b, model.predictor.predict(teams[60:], bc[60:]), atol=1e-12)
+        np.testing.assert_allclose(pred_1b, pred_2b, atol=1e-12)
+        np.testing.assert_allclose(ep_2b, want_ep, atol=1e-10)
+        np.testing.assert_allclose(ep_1b, want_ep, atol=1e-10)
+        self.assertTrue(np.all(sd_1b > sd_2b))
+        self.assertTrue(np.all(sd_2b >= ep_2b))
+
+        # Slot-order permutation invariance for pred, pred_std, epistemic_std
+        shuf = []
+        for t in teams[60:]:
+            cp = list(t)
+            rng.shuffle(cp)
+            shuf.append(cp)
+        p_s, sd_s, ep_s = model.predict_with_std(shuf, bc[60:], bc_battles=np.full(20, 39), bc_opponents=np.full(20, 39))
+        np.testing.assert_allclose(p_s, pred_1b, atol=1e-12)
+        np.testing.assert_allclose(sd_s, sd_1b, atol=1e-12)
+        np.testing.assert_allclose(ep_s, ep_1b, atol=1e-12)
+
+    def test_write_corpus_predictions_registers_new_predictor_and_guards_heldout(self):
+        con = sqlite3.connect(":memory:")
+        con.executescript(
+            """
+            CREATE TABLE team (team_id INTEGER PRIMARY KEY, legal INTEGER, origin TEXT, paste TEXT);
+            CREATE TABLE policy (policy_id INTEGER PRIMARY KEY, row_policy TEXT);
+            CREATE TABLE cell (policy_id INTEGER, lo INTEGER, hi INTEGER, lo_wins INTEGER, hi_wins INTEGER, ties INTEGER, battles INTEGER);
+            INSERT INTO policy VALUES (8, 'bc_100.zip+slots-shuffled'), (10, 'rust_foulplay_det+slots-shuffled');
+            INSERT INTO team VALUES (1, 1, 'vgcpastes', 'p1'), (2, 1, 'vgcpastes', 'p2'),
+                                    (10, 1, 'gen', 'p10'), (11, 1, 'gen', 'p11'), (99, 1, 'held', 'p99');
+            INSERT INTO cell VALUES (8, 1, 2, 4, 4, 0, 8),
+                                    (8, 1, 10, 1, 1, 0, 2), (8, 2, 10, 0, 2, 0, 2),
+                                    (8, 1, 11, 1, 0, 0, 1), (8, 2, 11, 0, 0, 1, 1),
+                                    (8, 1, 99, 1, 0, 0, 1), (8, 2, 99, 1, 0, 0, 1);
+            """
+        )
+        entries = MP.load_corpus_bc_stats(con, 8, [1, 2], excluded_ids={99})
+        by_id = {e[0]: e for e in entries}
+        self.assertEqual(set(by_id), {1, 2, 10, 11})
+        self.assertNotIn(99, by_id)
+        # Team 11 had (0 wins, 0 ties, 1 battle vs 1) + (0 wins, 1 tie, 1 battle vs 2) -> 0.5 / 2 = 0.25
+        self.assertAlmostEqual(by_id[11][3], 0.25)
+        self.assertEqual((by_id[1][4], by_id[10][4]), (1, 2))
+
+        meta = {
+            "predictor_name": "foul_play_det_ridge_team_bc_v1",
+            "target_policy_id": 10,
+            "input_policy_id": 8,
+            "opponent_set": "train39_of_top50",
+            "training_n": 500,
+            "training_source": "issue_447_pilot_seed447",
+            "oof_rmse": 0.0818,
+            "deploy_1b_rmse": 0.0846,
+            "sigma_resid": 0.0759,
+            "sigma_true_resid": 0.0630,
+            "fp_2b_noise_sd": 0.0423,
+            "lam_single": 100.0,
+            "lam_pair": 300.0,
+            "intercept": 0.0206,
+            "bc_slope": 0.5658,
+            "n_features": 961,
+            "git_commit": "abc123",
+            "metadata": {"test": True},
+        }
+        rows = [(10, 0.55, 0.074, 0.032, 0.75, 2, 4, 1), (11, 0.22, 0.081, 0.041, 0.25, 2, 2, 0)]
+        pid = MP.write_corpus_predictions(con, meta, rows, held_ids={99})
+        self.assertEqual(pid, 1)
+        # Battle tables are untouched; summary view marks kind='predicted_score'
+        self.assertEqual(con.execute("SELECT COUNT(*) FROM cell").fetchone()[0], 7)
+        summary = con.execute(
+            "SELECT predictor_name, kind, team_id, pred_win_rate, pred_std, epistemic_std, in_pilot_train "
+            "FROM team_predicted_score_summary ORDER BY team_id"
+        ).fetchall()
+        self.assertEqual(len(summary), 2)
+        self.assertEqual(summary[0][:3], ("foul_play_det_ridge_team_bc_v1", "predicted_score", 10))
+        self.assertAlmostEqual(summary[0][4], 0.074)
+        self.assertEqual(summary[1][6], 0)
+
+        # Duplicate predictor_name refuses silent overwrite unless overwrite=True
+        with self.assertRaises(ValueError):
+            MP.write_corpus_predictions(con, meta, rows, held_ids={99}, overwrite=False)
+        pid2 = MP.write_corpus_predictions(con, meta, rows, held_ids={99}, overwrite=True)
+        self.assertEqual(con.execute("SELECT COUNT(*) FROM team_predicted_score WHERE predictor_id=?", (pid2,)).fetchone()[0], 2)
+
+        # Held-out team raises HeldoutLeak
+        import heldout as HO
+
+        with self.assertRaises(HO.HeldoutLeak):
+            MP.write_corpus_predictions(con, {**meta, "predictor_name": "bad_v2"}, [(99, 0.3, 0.07, 0.03, 0.0, 2, 2, 0)], held_ids={99})
 
 
 if __name__ == "__main__":
