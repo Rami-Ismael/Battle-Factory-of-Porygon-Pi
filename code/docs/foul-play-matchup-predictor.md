@@ -82,6 +82,7 @@ PY=/tmp/vgc-pilot/.venv/bin/python
 $PY code/scripts/test_foul_play_matchup_predictor.py
 $PY code/src/foul_play_matchup_predictor.py run
 $PY code/src/foul_play_matchup_predictor.py figures
+$PY code/src/foul_play_matchup_predictor.py label-corpus
 ```
 
 ## Result (2026-11-27)
@@ -120,3 +121,14 @@ Fitting Team and behaviour-cloning win rate on all 500 teams (selected single-fi
 ## Deviations
 
 - Added one post-review deployment check (**Deployment mismatch: 2-battle train, 1-battle test input**) alongside the pre-registered single-battle check, to match the exact mismatch between the topped-up 500 pilot teams and the single-battle ~439,600 corpus. All pre-registered primary arms, folds, regularization grid, probes, and other checks ran unchanged.
+
+## Full-corpus labeling with predictive standard deviation (2026-11-28)
+
+Fitted **Team and behaviour-cloning win rate** (`predictor_team_bc`) on all 500 pilot teams (`policy_id = 10` over the 39 training opponents; `lam_single = 100.0`, `lam_pair = 300.0`, intercept `0.02056`, `bc_slope = 0.56578`, 961 features, effective degrees of freedom `78.30`, residual SD `0.07589`, true infinite-battle residual SD `0.06299`) and wrote predictions plus predictive standard deviations for all **459,681** eligible legal teams with full `policy_id = 8` coverage against the 39 training opponents (0 held-out teams, 500 pilot teams marked `in_pilot_train = 1`) into dedicated predictor tables in `~/vgc-data/matchup_regmb.sqlite`:
+
+- **`team_score_predictor`**: registry row `predictor_id = 1`, `predictor_name = 'foul_play_det_ridge_team_bc_v1'`, `kind = 'predicted_score'` (explicitly distinct from `policy` / `cell` battle outcomes), storing provenance, hyperparameters, variance components, and 5-fold calibration checks in `metadata_json`.
+- **`team_predicted_score`** (and joined view **`team_predicted_score_summary`**): per-team `pred_win_rate`, `pred_std`, `epistemic_std`, `bc_win_rate`, `bc_opponents`, `bc_battles`, and `in_pilot_train`.
+  - `epistemic_std`: Bayesian ridge parameter SD $\hat{\sigma}_{\text{resid}} \sqrt{x^\top (X^\top X + P)^{-1} x}$ (corpus mean `0.0321`, range `0.0144`–`0.0686`).
+  - `pred_std`: total predictive SD for the team's true (infinite-battle) Foul Play win rate $\sqrt{\hat{\sigma}_{\text{true,resid}}^2 + \text{epistemic\_std}^2 + \Delta v_{\text{bc}}}$, where $\Delta v_{\text{bc}}$ adds per-team binomial input noise when a team has fewer than 2 behaviour-cloning battles per opponent (corpus mean `0.0760`, range `0.0648`–`0.0934`).
+  - 5-fold out-of-fold z-score calibration against the 2-battle target ($\sqrt{\text{pred\_std}^2 + \sigma_{\text{fp,2b}}^2}$): 2-battle input `z_std = 0.990`, `|z| <= 1: 70.2%`, `|z| <= 2: 95.6%`; 1-battle deployment input `z_std = 0.962`, `|z| <= 1: 71.4%`, `|z| <= 2: 95.4%`.
+- Corpus distribution (`~/vgc-data/foul_play_matchup_predictor_419/corpus_labeling_summary.json`): `pred_win_rate` mean **0.2666** (SD `0.1298`, median `0.2837`, range `0.0000`–`0.6333`) vs `bc_win_rate` mean **0.3114** (SD `0.1872`, correlation `r = 0.9345`).

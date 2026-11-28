@@ -19,6 +19,7 @@ Secondary diagnostic controls (reported beside the three arms):
     $PY code/src/foul_play_matchup_predictor.py figures
 """
 import argparse
+import hashlib
 import itertools
 import json
 import os
@@ -44,6 +45,9 @@ LAM_GRID = (1.0, 3.0, 10.0, 30.0, 100.0, 300.0, 1000.0)
 PAIR_MULT = 3.0
 BOOTSTRAP = 10000
 SMALLEST_EFFECT = 0.005
+DEFAULT_PREDICTOR_NAME = "foul_play_det_ridge_team_bc_v1"
+PREDICTOR_KIND = "predicted_score"
+PREDICTOR_MODEL_FAMILY = "ridge_multi_fidelity_loocv"
 STATS = ("HP", "Atk", "Def", "SpA", "SpD", "Spe")
 ARM_LABELS = {
     "predictor_team_bc": "Team and behaviour-cloning win rate",
@@ -263,6 +267,75 @@ def fit_ridge_arm(teams, y, bc_wr=None, *, use_bc=False, min_pair=MIN_PAIR, lam_
             best = (mse, lam_s, lam_p, w_u, w_p)
     mse, lam_s, lam_p, w_u, w_p = best
     return RidgePredictor(fmap, w_u, w_p, use_bc, lam_s, lam_p, mse)
+
+
+@dataclass
+class RidgeUncertaintyModel:
+    """RidgePredictor plus Bayesian ridge posterior covariance and calibrated predictive-SD parameters."""
+
+    predictor: RidgePredictor
+    cov_factor: np.ndarray
+    df: float
+    sigma_resid: float
+    sigma_true_resid: float
+    target_noise_var: float
+
+    def _extra_bc_var(self, bc_wr, bc_battles, bc_opponents):
+        n = len(bc_wr)
+        if not self.predictor.use_bc or bc_battles is None or bc_opponents is None:
+            return np.zeros(n, dtype=np.float64)
+        nb = np.asarray(bc_battles, dtype=np.float64)
+        k = np.asarray(bc_opponents, dtype=np.float64)
+        beta_bc = float(self.predictor.w_unpen[1])
+        p_tilde = (np.asarray(bc_wr, dtype=np.float64) * nb + 0.5) / (nb + 1.0)
+        depth_gap = np.maximum(0.0, 1.0 / np.maximum(nb, 1.0) - 1.0 / np.maximum(2.0 * k, 1.0))
+        return (beta_bc**2) * depth_gap * p_tilde * (1.0 - p_tilde)
+
+    def predict_with_std(self, teams, bc_wr=None, *, bc_battles=None, bc_opponents=None):
+        """Return (pred_win_rate, pred_std, epistemic_std) for `teams`.
+
+        epistemic_std = sigma_resid * sqrt(x^T (X^T X + P)^-1 x)
+        pred_std      = sqrt(sigma_true_resid^2 + epistemic_std^2 + extra_bc_input_var)
+        """
+        X_pen = self.predictor.fmap.transform(teams)
+        U = _unpenalized_matrix(len(teams), bc_wr, self.predictor.use_bc)
+        X = np.hstack([U, X_pen])
+        w = np.concatenate([self.predictor.w_unpen, self.predictor.w_pen])
+        pred = np.clip(X @ w, 0.0, 1.0)
+        proj = X @ self.cov_factor
+        ep_var = (self.sigma_resid**2) * np.sum(proj * proj, axis=1)
+        extra_bc = self._extra_bc_var(bc_wr if bc_wr is not None else np.zeros(len(teams)), bc_battles, bc_opponents)
+        pred_std = np.sqrt(self.sigma_true_resid**2 + ep_var + extra_bc)
+        return pred, pred_std, np.sqrt(ep_var)
+
+
+def fit_ridge_with_uncertainty(
+    teams, y, bc_wr=None, *, use_bc=False, min_pair=MIN_PAIR, lam_grid=LAM_GRID, target_noise_var=0.0
+):
+    """Fit RidgePredictor and exact Bayesian ridge posterior covariance factor (L^-T of X^T X + P)."""
+    pred_model = fit_ridge_arm(teams, y, bc_wr, use_bc=use_bc, min_pair=min_pair, lam_grid=lam_grid)
+    X_pen = pred_model.fmap.transform(teams)
+    U = _unpenalized_matrix(len(teams), bc_wr, use_bc)
+    X = np.hstack([U, X_pen])
+    yv = np.asarray(y, dtype=np.float64)
+    pen = np.concatenate([np.zeros(U.shape[1], dtype=np.float64), pred_model.fmap.penalty_vector(pred_model.lam_s, pred_model.lam_p)])
+    A = X.T @ X + np.diag(pen)
+    L_a = np.linalg.cholesky(A)
+    cov_factor = np.linalg.solve(L_a, np.eye(A.shape[0], dtype=np.float64)).T
+    H_proj = X @ cov_factor
+    df = float(np.sum(H_proj * H_proj))
+    w = np.concatenate([pred_model.w_unpen, pred_model.w_pen])
+    resid = yv - X @ w
+    sigma2_resid = float(np.sum(resid**2) / max(len(yv) - df, 1.0))
+    sigma2_true = max(0.0, sigma2_resid - float(target_noise_var))
+    return RidgeUncertaintyModel(
+        predictor=pred_model,
+        cov_factor=cov_factor,
+        df=df,
+        sigma_resid=float(np.sqrt(sigma2_resid)),
+        sigma_true_resid=float(np.sqrt(sigma2_true)),
+        target_noise_var=float(target_noise_var),
+    )
 
 
 def fit_linear_bc_calibration(bc_train, y_train):
@@ -1313,6 +1386,360 @@ def format_markdown_report(payload):
     return "\n".join(lines) + "\n"
 
 
+# ---------------------------------------------------------------- full-corpus SQLite labeling (with predictive std)
+PREDICTOR_SCHEMA = """
+CREATE TABLE IF NOT EXISTS team_score_predictor (
+  predictor_id      INTEGER PRIMARY KEY,
+  predictor_name    TEXT NOT NULL UNIQUE,
+  kind              TEXT NOT NULL CHECK (kind = 'predicted_score'),
+  model_family      TEXT NOT NULL,
+  target_policy_id  INTEGER NOT NULL REFERENCES policy(policy_id),
+  input_policy_id   INTEGER REFERENCES policy(policy_id),
+  opponent_set      TEXT NOT NULL,
+  training_n        INTEGER NOT NULL,
+  training_source   TEXT NOT NULL,
+  oof_rmse          REAL NOT NULL,
+  deploy_1b_rmse    REAL NOT NULL,
+  sigma_resid       REAL NOT NULL,
+  sigma_true_resid  REAL NOT NULL,
+  fp_2b_noise_sd    REAL NOT NULL,
+  lam_single        REAL NOT NULL,
+  lam_pair          REAL NOT NULL,
+  intercept         REAL NOT NULL,
+  bc_slope          REAL NOT NULL,
+  n_features        INTEGER NOT NULL,
+  git_commit        TEXT NOT NULL,
+  created_at        TEXT NOT NULL DEFAULT (datetime('now')),
+  metadata_json     TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS team_predicted_score (
+  predictor_id      INTEGER NOT NULL REFERENCES team_score_predictor(predictor_id),
+  team_id           INTEGER NOT NULL REFERENCES team(team_id),
+  pred_win_rate     REAL NOT NULL CHECK (pred_win_rate >= 0.0 AND pred_win_rate <= 1.0),
+  pred_std          REAL NOT NULL CHECK (pred_std >= 0.0),
+  epistemic_std     REAL NOT NULL CHECK (epistemic_std >= 0.0),
+  bc_win_rate       REAL NOT NULL CHECK (bc_win_rate >= 0.0 AND bc_win_rate <= 1.0),
+  bc_opponents      INTEGER NOT NULL CHECK (bc_opponents > 0),
+  bc_battles        INTEGER NOT NULL CHECK (bc_battles > 0),
+  in_pilot_train    INTEGER NOT NULL DEFAULT 0 CHECK (in_pilot_train IN (0, 1)),
+  scored_at         TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (predictor_id, team_id)
+) WITHOUT ROWID;
+CREATE INDEX IF NOT EXISTS team_predicted_score_team ON team_predicted_score (team_id);
+CREATE VIEW IF NOT EXISTS team_predicted_score_summary AS
+  SELECT p.predictor_id, p.predictor_name, p.kind, p.model_family, p.target_policy_id,
+         p.input_policy_id, p.opponent_set, s.team_id, s.pred_win_rate, s.pred_std,
+         s.epistemic_std, s.bc_win_rate, s.bc_opponents, s.bc_battles, s.in_pilot_train, s.scored_at
+  FROM team_predicted_score s
+  JOIN team_score_predictor p USING (predictor_id);
+"""
+
+
+def ensure_predictor_schema(con):
+    """Create the predictor registry, team prediction table, and summary view without touching battle tables."""
+    con.executescript(PREDICTOR_SCHEMA)
+
+
+def _calibration_summary(y_true, pred, pred_std, ep_std, target_noise_var):
+    obs_std = np.sqrt(np.asarray(pred_std, dtype=np.float64) ** 2 + float(target_noise_var))
+    z = (np.asarray(y_true, dtype=np.float64) - np.asarray(pred, dtype=np.float64)) / np.maximum(obs_std, 1e-12)
+    return {
+        "rmse": float(np.sqrt(np.mean((np.asarray(pred) - np.asarray(y_true)) ** 2))),
+        "z_mean": float(np.mean(z)),
+        "z_std": float(np.std(z)),
+        "cover_1sd": float(np.mean(np.abs(z) <= 1.0)),
+        "cover_2sd": float(np.mean(np.abs(z) <= 2.0)),
+        "pred_std_median": float(np.median(pred_std)),
+        "epistemic_std_median": float(np.median(ep_std)),
+    }
+
+
+def evaluate_std_calibration(data, folds, *, min_pair=MIN_PAIR, lam_grid=LAM_GRID):
+    """Verify 5-fold out-of-fold predictive-SD calibration under 2-battle and 1-battle deployment BC inputs."""
+    ids = data["team_ids"]
+    k_opp = len(data["train_opps"])
+    fp_noise_var = data["battle_noise_floor"]["fp_noise_var"]
+    bc_one = draw_one_battle_labels(data["bc_cells"], ids, data["train_opps"], seed=SEED)
+    y_all, p2, sd2, ep2, p1, sd1, ep1 = [], [], [], [], [], [], []
+    for test_ids in folds:
+        ts = set(test_ids)
+        tr_ids = [t for t in ids if t not in ts]
+        model = fit_ridge_with_uncertainty(
+            [data["teams"][t] for t in tr_ids],
+            np.array([data["fp_train"][t] for t in tr_ids], dtype=np.float64),
+            np.array([data["bc_train"][t] for t in tr_ids], dtype=np.float64),
+            use_bc=True,
+            min_pair=min_pair,
+            lam_grid=lam_grid,
+            target_noise_var=fp_noise_var,
+        )
+        te_teams = [data["teams"][t] for t in test_ids]
+        bc2 = np.array([data["bc_train"][t] for t in test_ids], dtype=np.float64)
+        bc1 = np.array([bc_one[t] for t in test_ids], dtype=np.float64)
+        n_te = len(test_ids)
+        m2, s2, e2 = model.predict_with_std(te_teams, bc2, bc_battles=np.full(n_te, 2 * k_opp), bc_opponents=np.full(n_te, k_opp))
+        m1, s1, e1 = model.predict_with_std(te_teams, bc1, bc_battles=np.full(n_te, k_opp), bc_opponents=np.full(n_te, k_opp))
+        y_all.extend(data["fp_train"][t] for t in test_ids)
+        p2.extend(m2); sd2.extend(s2); ep2.extend(e2)
+        p1.extend(m1); sd1.extend(s1); ep1.extend(e1)
+    return {
+        "two_battle_input": _calibration_summary(y_all, p2, sd2, ep2, fp_noise_var),
+        "one_battle_deploy_input": _calibration_summary(y_all, p1, sd1, ep1, fp_noise_var),
+    }
+
+
+def load_corpus_bc_stats(con, bc_policy_id, train_opps, *, excluded_ids=()):
+    """Aggregate policy_id=bc_policy_id battles against `train_opps` for all eligible legal teams.
+
+    Matches foul_play_label_pilot.labels: pooled (wins + 0.5 * ties) / battles. Excludes `excluded_ids`
+    (held-out ranks 51-100) and requires full coverage of `train_opps` (skipping self for training meta teams).
+    """
+    train_opps = [int(o) for o in train_opps]
+    train_set = set(train_opps)
+    excluded = {int(t) for t in excluded_ids}
+    ph = ",".join("?" * len(train_opps))
+    q = (
+        f"SELECT t, SUM(w) AS wins, SUM(ti) AS ties, SUM(n) AS battles, COUNT(DISTINCT m) AS n_opp FROM ("
+        f"  SELECT hi AS t, lo AS m, hi_wins AS w, ties AS ti, battles AS n FROM cell WHERE policy_id=? AND lo IN ({ph})"
+        f"  UNION ALL "
+        f"  SELECT lo AS t, hi AS m, lo_wins AS w, ties AS ti, battles AS n FROM cell WHERE policy_id=? AND hi IN ({ph})"
+        f") GROUP BY t"
+    )
+    agg = {}
+    for tid, wins, ties, battles, n_opp in con.execute(q, [bc_policy_id, *train_opps, bc_policy_id, *train_opps]):
+        tid = int(tid)
+        need = len(train_opps) - (1 if tid in train_set else 0)
+        if tid in excluded or int(battles) <= 0 or int(n_opp) != need:
+            continue
+        agg[tid] = ((float(wins) + 0.5 * float(ties)) / float(battles), int(n_opp), int(battles))
+
+    entries = []
+    for tid, legal, origin, paste in con.execute("SELECT team_id, legal, origin, paste FROM team ORDER BY team_id"):
+        tid = int(tid)
+        stat = agg.get(tid)
+        if stat is None or legal != 1:
+            continue
+        entries.append((tid, origin, paste, stat[0], stat[1], stat[2]))
+    return entries
+
+
+def score_corpus_entries(model, entries, pilot_ids, *, batch_size=10000, parse_fn=_parse_paste):
+    """Score `(team_id, origin, paste, bc_wr, bc_opps, bc_battles)` entries in batches, returning DB rows."""
+    pilot_set = {int(t) for t in pilot_ids}
+    scored_rows = []
+    for start in range(0, len(entries), batch_size):
+        chunk = entries[start : start + batch_size]
+        parsed = [parse_fn(row[2]) for row in chunk]
+        bc_wr = np.array([row[3] for row in chunk], dtype=np.float64)
+        bc_opps = np.array([row[4] for row in chunk], dtype=np.int64)
+        bc_bats = np.array([row[5] for row in chunk], dtype=np.int64)
+        pred, pred_std, ep_std = model.predict_with_std(parsed, bc_wr, bc_battles=bc_bats, bc_opponents=bc_opps)
+        for row, p, sd, ep in zip(chunk, pred, pred_std, ep_std):
+            tid = int(row[0])
+            scored_rows.append(
+                (tid, float(p), float(sd), float(ep), float(row[3]), int(row[4]), int(row[5]), int(tid in pilot_set))
+            )
+    return scored_rows
+
+
+def write_corpus_predictions(con, predictor_meta, scored_rows, *, held_ids=(), overwrite=False):
+    """Persist one predictor registry row and all team predictions atomically, guarding against held-out leaks."""
+    held = {int(t) for t in held_ids}
+    leaked = [r[0] for r in scored_rows if r[0] in held]
+    if leaked:
+        import heldout as HO
+
+        raise HO.HeldoutLeak(f"{len(leaked)} held-out team(s) in predicted-score write: {leaked[:5]}")
+
+    ensure_predictor_schema(con)
+    name = predictor_meta["predictor_name"]
+    existing = con.execute("SELECT predictor_id FROM team_score_predictor WHERE predictor_name=?", (name,)).fetchone()
+    if existing and not overwrite:
+        raise ValueError(f"predictor_name {name!r} already exists (predictor_id={existing[0]}); pass overwrite=True to replace")
+
+    with con:
+        if existing:
+            pid = int(existing[0])
+            con.execute("DELETE FROM team_predicted_score WHERE predictor_id=?", (pid,))
+            con.execute("DELETE FROM team_score_predictor WHERE predictor_id=?", (pid,))
+        cur = con.execute(
+            "INSERT INTO team_score_predictor ("
+            "predictor_name, kind, model_family, target_policy_id, input_policy_id, opponent_set, "
+            "training_n, training_source, oof_rmse, deploy_1b_rmse, sigma_resid, sigma_true_resid, "
+            "fp_2b_noise_sd, lam_single, lam_pair, intercept, bc_slope, n_features, git_commit, metadata_json"
+            ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (
+                name,
+                PREDICTOR_KIND,
+                PREDICTOR_MODEL_FAMILY,
+                int(predictor_meta["target_policy_id"]),
+                int(predictor_meta["input_policy_id"]),
+                predictor_meta["opponent_set"],
+                int(predictor_meta["training_n"]),
+                predictor_meta["training_source"],
+                float(predictor_meta["oof_rmse"]),
+                float(predictor_meta["deploy_1b_rmse"]),
+                float(predictor_meta["sigma_resid"]),
+                float(predictor_meta["sigma_true_resid"]),
+                float(predictor_meta["fp_2b_noise_sd"]),
+                float(predictor_meta["lam_single"]),
+                float(predictor_meta["lam_pair"]),
+                float(predictor_meta["intercept"]),
+                float(predictor_meta["bc_slope"]),
+                int(predictor_meta["n_features"]),
+                predictor_meta["git_commit"],
+                json.dumps(predictor_meta["metadata"], sort_keys=True),
+            ),
+        )
+        predictor_id = int(cur.lastrowid)
+        con.executemany(
+            "INSERT INTO team_predicted_score ("
+            "predictor_id, team_id, pred_win_rate, pred_std, epistemic_std, "
+            "bc_win_rate, bc_opponents, bc_battles, in_pilot_train"
+            ") VALUES (?,?,?,?,?,?,?,?,?)",
+            [(predictor_id, *r) for r in scored_rows],
+        )
+    return predictor_id
+
+
+def _dist_summary(arr):
+    a = np.asarray(arr, dtype=np.float64)
+    q = np.quantile(a, [0.05, 0.25, 0.5, 0.75, 0.95])
+    return {
+        "mean": round(float(a.mean()), 5),
+        "sd": round(float(a.std()), 5),
+        "min": round(float(a.min()), 5),
+        "p05": round(float(q[0]), 5),
+        "p25": round(float(q[1]), 5),
+        "median": round(float(q[2]), 5),
+        "p75": round(float(q[3]), 5),
+        "p95": round(float(q[4]), 5),
+        "max": round(float(a.max()), 5),
+    }
+
+
+def label_corpus(
+    con,
+    *,
+    pilot_dir=PILOT_DIR,
+    predictor_name=DEFAULT_PREDICTOR_NAME,
+    out_dir=OUT,
+    batch_size=10000,
+    overwrite=False,
+    held_ids=None,
+    parse_fn=_parse_paste,
+):
+    """Fit predictor_team_bc on the 500 pilot teams, score the full eligible corpus + std, and store in SQLite."""
+    t0 = time.perf_counter()
+    data = load_pilot_dataset(con, pilot_dir)
+    preflight = run_preflight(data)
+    if not preflight["all_passed"]:
+        raise RuntimeError(f"Preflight failed before corpus labeling: {json.dumps(preflight, indent=1)}")
+
+    folds = make_folds(data["team_ids"], k=K_FOLDS, seed=SEED)
+    calibration = evaluate_std_calibration(data, folds)
+    ids = data["team_ids"]
+    fp_noise_var = data["battle_noise_floor"]["fp_noise_var"]
+    model = fit_ridge_with_uncertainty(
+        [data["teams"][t] for t in ids],
+        np.array([data["fp_train"][t] for t in ids], dtype=np.float64),
+        np.array([data["bc_train"][t] for t in ids], dtype=np.float64),
+        use_bc=True,
+        min_pair=MIN_PAIR,
+        lam_grid=LAM_GRID,
+        target_noise_var=fp_noise_var,
+    )
+
+    if held_ids is None:
+        import heldout as HO
+
+        held_ids = HO.team_ids(con)
+    entries = load_corpus_bc_stats(con, data["bc_policy_id"], data["train_opps"], excluded_ids=held_ids)
+    scored_rows = score_corpus_entries(model, entries, ids, batch_size=batch_size, parse_fn=parse_fn)
+
+    pilot_hash = hashlib.sha256(",".join(str(t) for t in sorted(ids)).encode()).hexdigest()[:16]
+    predictor_meta = {
+        "predictor_name": predictor_name,
+        "target_policy_id": data["policy_id"],
+        "input_policy_id": data["bc_policy_id"],
+        "opponent_set": "train39_of_top50",
+        "training_n": len(ids),
+        "training_source": "issue_447_pilot_seed447",
+        "oof_rmse": calibration["two_battle_input"]["rmse"],
+        "deploy_1b_rmse": calibration["one_battle_deploy_input"]["rmse"],
+        "sigma_resid": model.sigma_resid,
+        "sigma_true_resid": model.sigma_true_resid,
+        "fp_2b_noise_sd": float(np.sqrt(fp_noise_var)),
+        "lam_single": model.predictor.lam_s,
+        "lam_pair": model.predictor.lam_p,
+        "intercept": float(model.predictor.w_unpen[0]),
+        "bc_slope": float(model.predictor.w_unpen[1]),
+        "n_features": model.predictor.fmap.dim + len(model.predictor.w_unpen),
+        "git_commit": _git_head(),
+        "metadata": {
+            "description": (
+                "Predicted Foul Play deterministic argmax win rate (NOT battle outcomes) from the issue #419 "
+                "multi-fidelity ridge matchup predictor (Team and behaviour-cloning win rate, predictor_team_bc) "
+                "trained on all 500 issue #447 pilot teams."
+            ),
+            "issue": 419,
+            "parent_map": 416,
+            "pilot_issue": 447,
+            "pilot_team_ids_sha256_16": pilot_hash,
+            "train_opponents": data["train_opps"],
+            "effective_df": round(model.df, 4),
+            "std_definitions": {
+                "epistemic_std": "sigma_resid * sqrt(x^T (X^T X + P)^-1 x) from Bayesian ridge posterior",
+                "pred_std": "sqrt(sigma_true_resid^2 + epistemic_std^2 + extra_bc_input_var) for true infinite-battle Foul Play win rate",
+                "obs_2b_std_formula": "sqrt(pred_std^2 + fp_2b_noise_sd^2) for a fresh 2-battle-per-opponent Foul Play measurement",
+            },
+            "calibration_5fold": calibration,
+            "min_pair": MIN_PAIR,
+            "pair_mult": PAIR_MULT,
+            "lam_grid": list(LAM_GRID),
+        },
+    }
+    predictor_id = write_corpus_predictions(con, predictor_meta, scored_rows, held_ids=held_ids, overwrite=overwrite)
+
+    preds = np.array([r[1] for r in scored_rows], dtype=np.float64)
+    stds = np.array([r[2] for r in scored_rows], dtype=np.float64)
+    eps = np.array([r[3] for r in scored_rows], dtype=np.float64)
+    bcs = np.array([r[4] for r in scored_rows], dtype=np.float64)
+    summary = {
+        "predictor_id": predictor_id,
+        "predictor_name": predictor_name,
+        "kind": PREDICTOR_KIND,
+        "target_policy_id": data["policy_id"],
+        "input_policy_id": data["bc_policy_id"],
+        "teams_scored": len(scored_rows),
+        "pilot_train_teams_in_corpus": sum(r[7] for r in scored_rows),
+        "held_out_teams_scored": 0,
+        "seconds": round(time.perf_counter() - t0, 2),
+        "model": {
+            "lam_single": model.predictor.lam_s,
+            "lam_pair": model.predictor.lam_p,
+            "intercept": round(float(model.predictor.w_unpen[0]), 5),
+            "bc_slope": round(float(model.predictor.w_unpen[1]), 5),
+            "n_features": predictor_meta["n_features"],
+            "effective_df": round(model.df, 2),
+            "sigma_resid": round(model.sigma_resid, 5),
+            "sigma_true_resid": round(model.sigma_true_resid, 5),
+            "fp_2b_noise_sd": round(float(np.sqrt(fp_noise_var)), 5),
+        },
+        "calibration_5fold": calibration,
+        "pred_win_rate": _dist_summary(preds),
+        "pred_std": _dist_summary(stds),
+        "epistemic_std": _dist_summary(eps),
+        "bc_win_rate": _dist_summary(bcs),
+        "corr_pred_vs_bc": round(_corr(preds, bcs), 5),
+    }
+    if out_dir is not None:
+        out_dir = Path(out_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        (out_dir / "corpus_labeling_summary.json").write_text(json.dumps(summary, indent=1) + "\n")
+    return summary
+
+
 # ---------------------------------------------------------------- CLI
 def main(argv=None):
     import matchup_db as M
@@ -1326,6 +1753,10 @@ def main(argv=None):
     r_p = sub.add_parser("run")
     r_p.add_argument("--no-mlp", action="store_true")
     sub.add_parser("figures")
+    lc_p = sub.add_parser("label-corpus", help="fit predictor_team_bc on the 500 pilot teams and label the full corpus + std")
+    lc_p.add_argument("--predictor-name", default=DEFAULT_PREDICTOR_NAME)
+    lc_p.add_argument("--batch-size", type=int, default=10000)
+    lc_p.add_argument("--overwrite", action="store_true")
     a = ap.parse_args(argv)
 
     out_dir = Path(a.out)
@@ -1348,6 +1779,16 @@ def main(argv=None):
         md = format_markdown_report(payload)
         (out_dir / "report.md").write_text(md)
         print(md)
+    elif a.cmd == "label-corpus":
+        summary = label_corpus(
+            con,
+            pilot_dir=Path(a.pilot_dir),
+            predictor_name=a.predictor_name,
+            out_dir=out_dir,
+            batch_size=a.batch_size,
+            overwrite=a.overwrite,
+        )
+        print(json.dumps(summary, indent=1))
 
 
 if __name__ == "__main__":

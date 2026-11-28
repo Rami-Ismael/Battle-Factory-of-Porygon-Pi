@@ -18,6 +18,9 @@ ties, battles. A pair never battled has **no row** — unknown is never stored a
 | `cell` | unordered pair (lo < hi), `lo_wins, hi_wins, ties, battles`; `WITHOUT ROWID`, primary key (policy, lo, hi) |
 | `batch`, `contribution` | provenance: every battle run, its seed and duration, and what it added to each cell |
 | view `matchup` | directed read: `row_team, col_team, wins, losses, ties, battles, win_rate` (both directions) |
+| `team_score_predictor` | registry of model-based team score predictors (`kind = 'predicted_score'`); kept strictly separate from `policy` / `cell` battle outcomes |
+| `team_predicted_score` | per-team predicted win rate and uncertainty (`pred_win_rate`, `pred_std`, `epistemic_std`) keyed by `(predictor_id, team_id)`; held-out ranks 51–100 are refused |
+| view `team_predicted_score_summary` | joins `team_predicted_score` with `team_score_predictor` so `predictor_name` and `kind = 'predicted_score'` travel with every query |
 
 Win rate = wins / battles; a tie counts as not a win, the same definition as the objective so far.
 
