@@ -20,3 +20,11 @@ ECharts is the default chart library (`echarts@6.1.0` from cdn.jsdelivr.net), ow
 # Text diffusion training logs
 
 Every future training run of a text diffusion model on Pokémon teams must log the percentage of rule-breaking samples over training alongside training and validation loss, owner decision 2026-11-27. At each validation interval (or epoch), generate a fixed-seed sample batch from the current checkpoint and record the overall illegal share plus the rule-by-rule violation percentages (following `RULES` and `rule_breaks` in `code/scripts/inplace_prompt_grid.py`, paralleling the 84-field discrete diffusion model's per-epoch `rule_shares` in `code/src/epoch_legality.py`). Write the curves into the run's results JSON as the authoritative record, mirror them to Weights & Biases (`rule_shares/<rule>` via `code/src/wandb_tracking.py`), and show the rule-breaking log over training in every training report.
+
+# Running external models
+
+Before running inference, prompting, or evaluation on any pretrained or fine-tuned model checkpoint, inspect its primary sources and tokenizer configuration first and record what you found in the pre-registration doc:
+
+1. **Paper and model card.** Read the checkpoint's paper, Hugging Face model card, and official inference/evaluation code to verify how its authors prompt and sample it (temperature, top-p/top-k, block length, step count, remasking/fill order, logit shift, BOS/EOS tokens).
+2. **Chat template and thinking mode.** Inspect `tokenizer.chat_template` and `tokenizer_config.json`. If the checkpoint is chat- or instruction-tuned, use its chat template (or explicitly justify and compare against it as an arm). If the model emits `<think>...</think>` reasoning blocks, verify how thinking is disabled or budgeted (e.g., `enable_thinking=False` or an explicit thinking budget) before launching paid compute.
+3. **Small-sample smoke decode before full launch.** Decode 2–3 representative masks with the exact prompt and sampler settings and read the raw text and emitted end tokens by eye before launching a full Modal or laptop run. If the output shows template mismatch, thinking-budget exhaustion, or zero end-token emissions, stop and fix the setup first.

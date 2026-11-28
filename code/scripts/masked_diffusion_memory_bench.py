@@ -131,12 +131,14 @@ def _resolve_fill_setting(setting: SamplerSetting | None, steps: StepCount | Non
 def fill(forward: Forward, canvas: torch.Tensor, slots: torch.Tensor, mask_id: int,
          steps: StepCount | None = None, temperature: float | None = None,
          generator: torch.Generator | None = None, on_step: Callable[[int], None] = lambda _: None,
-         *, setting: SamplerSetting | None = None) -> torch.Tensor:
+         *, setting: SamplerSetting | None = None, eos_gate_ids: Sequence[int] = ()) -> torch.Tensor:
     """Fill the mask tokens at the slot positions of canvas [B, L] in place, one forward per step. forward returns
     logits for every position (scope all) or for the slot positions only, in slot order (scope slots), already
-    shifted for a model that predicts from the previous position."""
+    shifted for a model that predicts from the previous position. When eos_gate_ids is non-empty, positions whose
+    proposed token is in eos_gate_ids get confidence 0 (LLaDA Appendix B.4) so content commits before trailing pad/EOS."""
     active = _resolve_fill_setting(setting, steps, temperature)
     x = canvas.clone()
+    gate = torch.tensor(list(eos_gate_ids), device=canvas.device, dtype=torch.long) if eos_gate_ids else None
     for j, k in enumerate(schedule(len(slots), active.step_count(len(slots)))):
         logits = forward(x).float()
         x0 = gumbel_argmax(logits, active.temperature, generator)
@@ -145,6 +147,8 @@ def fill(forward: Forward, canvas: torch.Tensor, slots: torch.Tensor, mask_id: i
         if x0.shape[1] != len(slots):
             x0, p = x0[:, slots], p[:, slots]
         current = x[:, slots]
+        if gate is not None:
+            p = torch.where((x0.unsqueeze(-1) == gate).any(-1), torch.zeros_like(p), p)
         p = torch.where(current == mask_id, p, -math.inf)
         chosen = p.topk(k, dim=1).indices
         x[:, slots] = current.scatter(1, chosen, x0.gather(1, chosen))
@@ -160,7 +164,8 @@ RowForward = Callable[[torch.Tensor, torch.Tensor, torch.Tensor], torch.Tensor]
 @torch.no_grad()
 def fill_rows(forward: RowForward, rows: Sequence[Sequence[int]], slots: Sequence[Sequence[int]], mask_id: int,
               setting: SamplerSetting, generators: Sequence[torch.Generator | None], device: str | torch.device = 'cpu',
-              pad_id: int = 0, on_step: Callable[[list[int]], None] = lambda _: None) -> list[list[int]]:
+              pad_id: int = 0, on_step: Callable[[list[int]], None] = lambda _: None,
+              eos_gate_ids: Sequence[int] = ()) -> list[list[int]]:
     """Fill many texts in one forward pass per step, each as fill would fill it alone (#443).
 
     Each row keeps its own slot positions, its own schedule (from its own mask count) and its own generator, so with
@@ -184,6 +189,7 @@ def fill_rows(forward: RowForward, rows: Sequence[Sequence[int]], slots: Sequenc
         attention[n, :len(ids)] = True
         keep[n, :len(where)] = torch.tensor(where)
     x, attention, keep = x.to(device), attention.to(device), keep.to(device)
+    gate = torch.tensor(list(eos_gate_ids), device=device, dtype=torch.long) if eos_gate_ids else None
     plans = [schedule(len(where), active.step_count(len(where))) for where in slots]
     for j in range(max(map(len, plans))):
         live = [n for n, plan in enumerate(plans) if j < len(plan)]
@@ -199,6 +205,8 @@ def fill_rows(forward: RowForward, rows: Sequence[Sequence[int]], slots: Sequenc
             del row_logits
             where = keep[n, :count]
             current = x[n, where].unsqueeze(0)
+            if gate is not None:
+                p = torch.where((x0.unsqueeze(-1) == gate).any(-1), torch.zeros_like(p), p)
             p = torch.where(current == mask_id, p, -math.inf)
             chosen = p.topk(plans[n][j], dim=1).indices
             x[n, where] = current.scatter(1, chosen, x0.gather(1, chosen)).squeeze(0)

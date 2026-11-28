@@ -39,16 +39,18 @@ Demo, Masked Qwen3 0.6B's tokenizer on meta grid mask MB158, Alolan Ninetales hi
 Any other mask by source, task and k, such as Alolan Ninetales's item alone:
     ~/.local/share/vgc-pilot-runtime/venv-dlm/bin/python code/scripts/masked_diffusion_text.py MB158 items 1
 """
+import copy
 import json
+import re
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Protocol
 
-from mask_paste import (FORMAT_NAME, RULES, STATS, Piece, Team, ValuePath, json_pieces, parse_path, team_from_json,
-                        team_json, team_paste, value_text)
+from mask_paste import (FORMAT_NAME, JSON_FIELDS, RULES, STATS, Piece, Team, ValuePath, blank_slot, json_pieces,
+                        parse_path, team_from_json, team_json, team_paste, value_text)
 
 VERSION = 'in-place-json-v1-no-meta-teams'      # stored beside every generated team
 # #238: one task statement before the team, worded once for every model. It names no model's mask token.
@@ -68,6 +70,11 @@ FILLER_LINE = ("Note: morning clouds drift across the quiet farmland toward the 
                "lantern sits beside a worn satchel under the tall sycamore. Warm bread rests on the wooden shelf.\n")
 RULES_SUFFIX = '+rules-line-v1'
 FILLER_SUFFIX = '+filler-line-v1'
+# #240: free-text answer layout. Hidden values appear as JSON null inside Team:, and all mask tokens sit in one
+# fixed-length answer region after Answer:\n (or the chat assistant turn). Newline avoids BPE merges with '['.
+FREETEXT_VERSION = 'freetext-answer-v2-no-meta-teams'
+ANSWER_LABEL = 'Answer:\n'
+ANSWER_SLACK = 8            # room past worst-case Reg M-B compact JSON: 1 end token + up to 7 formatting tokens
 ASK_LINE = 'Target win rate vs top meta teams: {ask}.'     # the earlier text fine-tunes' wording
 TEAM_LABEL = 'Team: '
 VOCABULARY = Path(__file__).resolve().parents[1] / 'data/regmb-vocabulary.json'
@@ -106,24 +113,46 @@ class InPlaceText:
     part_tokens: dict[str, int]     # format and rules, ask, team
     version: str = VERSION
     tail: str = ''                  # fixed text after the team's JSON: a chat template's end of turn
+    mode: str = 'inplace'           # 'inplace' (one slot per hidden value) or 'freetext' (one answer region)
+    answer_length: int | None = None
+    answer_prefix: str = ''         # fixed answer-opening prefix (e.g. '[' for iLLaDA to bypass <think>)
 
 
 @dataclass(frozen=True)
 class ChatTemplate:
-    """A chat model's turn markers around the in-place text. The header (format, rules, ask and any added line) is
-    the user turn and 'Team: ' with the masked team is the assistant turn, closed as a finished turn, which is what
-    the model's own chat template writes for [user: header, assistant: team]. The template trims each turn, so the
-    header's last newline goes."""
+    """A chat model's turn markers around the prompt text. In-place mode puts the header in the user turn and
+    'Team: ' with the masked team in the assistant turn (closed with end). Free-text mode puts header + format +
+    'Team: ' in the user turn, opens the assistant turn (plus optional freetext_prefix), and places all mask tokens
+    in the assistant turn with no fixed end token."""
     name: str           # stored in the text's version
     user: str           # before the header
-    assistant: str      # between the header and the team
-    end: str            # after the team
+    assistant: str      # between the user turn and the assistant turn
+    end: str            # after the team in in-place mode
+    freetext_prefix: str = ''       # fixed prefix at the start of the free-text assistant turn
+    trim_user: bool = True          # whether the tokenizer's chat template strips trailing whitespace on user turn
 
 
 # iLLaDA 8B Instruct's chat_template.jinja at revision 5769f049: bos_token + role + '\n' + content | trim + eos_token
 # for each turn, with bos <[BOS]> and eos <[EOS]> (special_tokens_map.json). No system turn.
-ILLADA_CHAT = ChatTemplate('illada-chat-v1', '<[BOS]>user\n', '<[EOS]><[BOS]>assistant\n', '<[EOS]>')
-CHAT_TEMPLATES = {'GSAI-ML/iLLaDA-8B-Instruct': ILLADA_CHAT}
+# In free-text mode, fixed '[' bypasses learned <think> prose (#240 diagnostic, 2026-11-27).
+ILLADA_CHAT = ChatTemplate('illada-chat-v1', '<[BOS]>user\n', '<[EOS]><[BOS]>assistant\n', '<[EOS]>',
+                           freetext_prefix='[')
+# Masked Qwen3 0.6B (dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1, rev c8d24a3f): trained on chat-templated instruction
+# data with enable_thinking=False (<|im_start|>assistant\n<think>\n\n</think>\n\n), evaluated with --apply_chat_template.
+QWEN3_CHAT = ChatTemplate('qwen3-chat-v1', '<|im_start|>user\n',
+                          '<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n', '<|im_end|>\n')
+# Masked Qwen2.5 Coder 0.5B (dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-mdlm-v0.1, rev a284e895): chat template
+# supplies the default system turn when omitted and opens <|im_start|>assistant\n.
+QWEN25C_CHAT = ChatTemplate(
+    'qwen25c-chat-v1',
+    '<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\n',
+    '<|im_end|>\n<|im_start|>assistant\n', '<|im_end|>\n',
+)
+CHAT_TEMPLATES = {
+    'GSAI-ML/iLLaDA-8B-Instruct': ILLADA_CHAT,
+    'dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1': QWEN3_CHAT,
+    'dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-mdlm-v0.1': QWEN25C_CHAT,
+}
 
 
 def chat_template(tokenizer: Any) -> ChatTemplate | None:
@@ -421,6 +450,294 @@ def check_filled(text: str, pad: str, mask_token: str, validate: Callable[[str],
     paste = team_paste(team)
     errors = validate(paste)
     return FilledCheck(VERSION, team, paste, validator_errors=tuple(errors.split('; ')) if errors else ())
+
+
+# ---------- #240: free-text answer layout ----------
+
+FREETEXT_TASK_LABELS = {'items': ('item', 'items'), 'abilities': ('ability', 'abilities'),
+                        'natures': ('nature (Stat Alignment)', 'natures (Stat Alignments)'),
+                        'moves': ('move', 'moves')}
+_CODE_FENCE = re.compile(r'^```(?:json)?\s*\n(.*?)\n?```$', re.DOTALL | re.IGNORECASE)
+
+
+def ordered_masked_paths(task: dict[str, Any]) -> list[list[Any]]:
+    """The task's masked_paths parsed and sorted in canonical team JSON order (mon index, field order, move index)."""
+    def sort_key(path: list[Any]) -> tuple[int, int, int]:
+        if len(path) == 1:
+            return (path[0], -1, -1)
+        return (path[0], JSON_FIELDS.index(path[1]), path[2] if len(path) > 2 else -1)
+
+    return sorted((parse_path(p) for p in task['masked_paths']), key=sort_key)
+
+
+def masked_team_null_json(task: dict[str, Any]) -> str:
+    """Compact JSON of the masked team with JSON null for every hidden value (or whole hidden Pokémon). Contains no
+    mask tokens so all masks sit in the free-text answer region."""
+    out: list[Any] = []
+    for mon in task['masked_team']:
+        out.append(None if mon is None else {f: mon[f] for f in JSON_FIELDS})
+    return json.dumps(out, ensure_ascii=False, separators=(',', ':'))
+
+
+def true_answer_items(task: dict[str, Any]) -> list[Any]:
+    """The true hidden values in ordered_masked_paths order: strings for scalar/move masks, statPoints dicts for
+    stats masks, and compact Pokémon dicts for whole-Pokémon masks."""
+    orig = task['original']
+    items: list[Any] = []
+    for path in ordered_masked_paths(task):
+        if len(path) == 1:
+            mon = orig[path[0]]
+            items.append({f: mon[f] for f in JSON_FIELDS})
+        elif len(path) == 2:
+            items.append(orig[path[0]][path[1]])
+        else:
+            items.append(orig[path[0]][path[1]][path[2]])
+    return items
+
+
+def true_answer_json(task: dict[str, Any]) -> str:
+    """The true free-text answer as a compact JSON list."""
+    return json.dumps(true_answer_items(task), ensure_ascii=False, separators=(',', ':'))
+
+
+def freetext_instruction(task: dict[str, Any]) -> str:
+    """One fixed-template format line per (task, k), stating the exact JSON list shape without naming any mask token.
+    Uses 'Replace each null ... (never output null or a Pokémon name)' to avoid literal ["null"] or species-name echoes."""
+    kind, k = task['task'], task['k']
+    if kind in FREETEXT_TASK_LABELS:
+        singular, _plural = FREETEXT_TASK_LABELS[kind]
+        if k == 1:
+            return (f'Replace the null {singular} in Team with a legal Champions VGC Reg M-B {singular} '
+                    '(never output null or a Pokémon name). Output only a compact JSON list of 1 string.\n')
+        return (f'Replace each null {singular} in Team with a legal Champions VGC Reg M-B {singular} '
+                f'(never output null or a Pokémon name). Output only a compact JSON list of {k} strings in order.\n')
+    if kind == 'stats':
+        target = 'the null statPoints' if k == 1 else 'each null statPoints'
+        return (f'Replace {target} in Team with a JSON object with keys HP, Atk, Def, SpA, SpD, Spe '
+                f'(never output null). Output only a compact JSON list of '
+                f'{"1 object" if k == 1 else f"{k} objects in order"}.\n')
+    if kind == 'pokemon':
+        target = 'the null Pokémon' if k == 1 else 'each null Pokémon'
+        return (f'Replace {target} in Team with a legal Champions VGC Reg M-B Pokémon object with keys species, '
+                f'item, ability, nature, moves, statPoints (never output null). Output only a compact JSON list of '
+                f'{"1 object" if k == 1 else f"{k} objects in order"}.\n')
+    raise ValueError(f'unknown task kind: {kind!r}')
+
+
+@lru_cache(maxsize=8)
+def _worst_vocabulary_items(tokenizer: Tokenizer) -> dict[str, Any]:
+    """Longest Reg M-B value per field in this tokenizer (measured in JSON context), for deterministic answer lengths."""
+    def tok_len(text: str) -> int:
+        return len(tokenizer(text, add_special_tokens=False, return_offsets_mapping=True)['offset_mapping'])
+
+    longest: dict[str, Any] = {}
+    for field, values in _field_values().items():
+        if field == 'statPoints':
+            longest[field] = max(values, key=lambda n: tok_len(f':{n},'))
+        else:
+            longest[field] = max(values, key=lambda s: tok_len(json.dumps(s, ensure_ascii=False)))
+    worst_stats = dict.fromkeys(STATS, longest['statPoints'])
+    worst_mon = {'species': longest['species'], 'item': longest['item'], 'ability': longest['ability'],
+                 'nature': longest['nature'], 'moves': [longest['moves']] * 4, 'statPoints': worst_stats}
+    return {'items': longest['item'], 'abilities': longest['ability'], 'natures': longest['nature'],
+            'moves': longest['moves'], 'stats': worst_stats, 'pokemon': worst_mon}
+
+
+def answer_length(task_kind: str, k: int, tokenizer: Tokenizer) -> int:
+    """Fixed mask-token count for the free-text answer region of one (task_kind, k) cell: the worst-case legal
+    Reg M-B compact JSON list's token count in this tokenizer plus ANSWER_SLACK (1 end token + formatting slack).
+    Depends only on (task_kind, k) and the vocabulary, never on the hidden answer."""
+    worst = _worst_vocabulary_items(tokenizer)
+    if task_kind not in worst:
+        raise ValueError(f'unknown task kind: {task_kind!r}')
+    sample = json.dumps([worst[task_kind]] * k, ensure_ascii=False, separators=(',', ':'))
+    n = len(tokenizer(sample, add_special_tokens=False, return_offsets_mapping=True)['offset_mapping'])
+    return n + ANSWER_SLACK
+
+
+def end_token_ids(tokenizer: Any) -> frozenset[int]:
+    """Token IDs that end a free-text answer: eos_token_id only (matches dLLM eval trimming at <|im_end|>
+    rather than SFT pad <|endoftext|>)."""
+    ids: set[int] = set()
+    if getattr(tokenizer, 'eos_token_id', None) is not None:
+        ids.add(int(tokenizer.eos_token_id))
+    elif getattr(tokenizer, 'eos_token', None):
+        encoded = tokenizer(tokenizer.eos_token, add_special_tokens=False)['input_ids']
+        if len(encoded) == 1:
+            ids.add(int(encoded[0]))
+    return frozenset(ids)
+
+
+def eos_and_pad_counts(tokenizer: Any, ids: Sequence[int]) -> tuple[int, int]:
+    """Counts of EOS tokens and distinct pad tokens in an answer region's token IDs."""
+    ends = end_token_ids(tokenizer)
+    pad_id = getattr(tokenizer, 'pad_token_id', None)
+    eos_n = sum(t in ends for t in ids)
+    pad_n = sum(t == pad_id for t in ids) if isinstance(pad_id, int) and pad_id not in ends else 0
+    return eos_n, pad_n
+
+
+def trim_answer_ids(tokenizer: Any, ids: Sequence[int]) -> tuple[str, int, bool, int]:
+    """Trim answer-region token ids at the first end token and decode. Returns (text, answer_tokens,
+    hit_length_limit, special_dropped). hit_length_limit is True iff no end token appeared in the answer region."""
+    ends = end_token_ids(tokenizer)
+    special = set(getattr(tokenizer, 'all_special_ids', []) or ())
+    cut = next((i for i, t in enumerate(ids) if t in ends), None)
+    hit_limit = cut is None
+    kept = list(ids if cut is None else ids[:cut])
+    dropped = sum(t in special for t in kept)
+    text = tokenizer.decode(kept, skip_special_tokens=True)
+    return text, len(kept), hit_limit, dropped
+
+
+def freetext_version(example: str | None = None, chat: ChatTemplate | None = None) -> str:
+    version = FREETEXT_VERSION
+    if example is not None:
+        version += EXAMPLE_SUFFIX
+    if chat is not None:
+        version += '+' + chat.name
+    return version
+
+
+def freetext_text(task: dict[str, Any], ask: float | None, tokenizer: Tokenizer, limit: int,
+                  example: str | None = None) -> InPlaceText:
+    """#240: the free-text answer prompt. Visible fields stay in Team: as compact JSON with null for hidden values;
+    all mask tokens sit in one fixed-length answer region after Answer:\\n (or the chat assistant turn, plus any
+    fixed chat.freetext_prefix such as '[' for iLLaDA)."""
+    hidden = hidden_values(task)
+    _check_masked_team(task, hidden)
+    ans_len = answer_length(task['task'], task['k'], tokenizer)
+    parts = header_parts(ask, example=example)
+    parts['answer format'] = freetext_instruction(task)
+    parts['team'] = TEAM_LABEL + masked_team_null_json(task) + '\n'
+    chat = chat_template(tokenizer)
+    answer_prefix = ''
+    if chat is not None:
+        parts = in_chat(parts, chat)
+        if chat.freetext_prefix:
+            answer_prefix = chat.freetext_prefix
+            parts['answer prefix'] = answer_prefix
+    else:
+        parts['answer label'] = ANSWER_LABEL
+    prefix_tokens = len(offsets(tokenizer, answer_prefix)) if answer_prefix else 0
+    mask_len = ans_len - prefix_tokens
+    if mask_len < 1:
+        raise ValueError(f'answer_prefix {answer_prefix!r} ({prefix_tokens} tokens) leaves no masks in {ans_len}')
+    prefix_len = sum(map(len, parts.values()))
+    parts['answer'] = tokenizer.mask_token * mask_len
+    text = ''.join(parts.values())
+    spans = offsets(tokenizer, text)
+    part_tokens = _count_parts(spans, parts)
+    if len(spans) > limit:
+        sizes = ', '.join(f'{name} {n}' for name, n in part_tokens.items())
+        raise TextTooLong(f'{len(spans)} tokens, over the limit of {limit}: {sizes}')
+    inside = tokens_within(spans, prefix_len, len(text), 'answer')
+    if len(inside) != mask_len:
+        raise ValueError(f'answer: {len(inside)} tokens, not {mask_len}; {tokenizer.mask_token!r} is not one token')
+    slot = SlotSpan('answer', 'answer', prefix_len, len(text), inside[0], len(inside))
+    return InPlaceText(text, (slot,), part_tokens, freetext_version(example, chat), tail='',
+                       mode='freetext', answer_length=mask_len, answer_prefix=answer_prefix)
+
+
+def freetext_training_target(task: dict[str, Any], ask: float | None, tokenizer: Tokenizer, limit: int, pad: str,
+                             example: str | None = None) -> str:
+    """The free-text prompt with the true compact JSON answer + eos_token + pad up to answer_length."""
+    built = freetext_text(task, ask, tokenizer, limit, example)
+    slot = built.slots[0]
+    eos = getattr(tokenizer, 'eos_token', None) or pad
+    body = true_answer_json(task)
+    if built.answer_prefix:
+        if not body.startswith(built.answer_prefix):
+            raise ValueError(f"{task['id']}: true answer {body[:16]!r} does not start with {built.answer_prefix!r}")
+        body = body[len(built.answer_prefix):]
+        prefix_spans = offsets(tokenizer, built.answer_prefix)
+        joined_spans = offsets(tokenizer, built.answer_prefix + body)
+        if joined_spans[:len(prefix_spans)] != prefix_spans:
+            body = ' ' + body
+            joined_spans = offsets(tokenizer, built.answer_prefix + body)
+            if joined_spans[:len(prefix_spans)] != prefix_spans:
+                raise ValueError(f"{task['id']}: answer_prefix {built.answer_prefix!r} merges with true answer")
+        body_tokens = len(joined_spans) - len(prefix_spans)
+    else:
+        body_tokens = len(offsets(tokenizer, body))
+    eos_tokens = len(offsets(tokenizer, eos))
+    rem = slot.length - body_tokens - eos_tokens
+    if rem < 0:
+        raise ValueError(f"{task['id']}: true answer ({body_tokens} + {eos_tokens} eos) exceeds answer_length {slot.length}")
+    filled = body + eos + pad * rem
+    target = built.text[:slot.start] + filled + built.text[slot.end:]
+    _check_target_tokens(built, target, tokenizer)
+    return target
+
+
+def _unwrap_code_fence(text: str) -> tuple[str, bool]:
+    stripped = text.strip()
+    m = _CODE_FENCE.match(stripped)
+    return (m.group(1).strip(), True) if m else (stripped, False)
+
+
+def _check_stat_points_obj(obj: Any, where: str) -> dict[str, int]:
+    if not isinstance(obj, dict) or set(obj) != set(STATS):
+        raise ValueError(f'{where}: needs all six Stat Points')
+    out: dict[str, int] = {}
+    for stat in STATS:
+        v = obj[stat]
+        if isinstance(v, bool) or not isinstance(v, int):
+            raise ValueError(f'{where}.{stat} is {v!r}, not a whole number')
+        out[stat] = v
+    return out
+
+
+def _check_pokemon_obj(obj: Any, slot_number: int) -> dict[str, Any]:
+    if not isinstance(obj, dict) or set(obj) != set(JSON_FIELDS):
+        raise ValueError(f'Pokémon {slot_number}: keys must be {", ".join(JSON_FIELDS)}')
+    if not isinstance(obj['moves'], list) or len(obj['moves']) != 4:
+        raise ValueError(f'Pokémon {slot_number}: needs four moves and all six Stat Points')
+    mon = blank_slot(slot_number)
+    for field in ('species', 'item', 'ability', 'nature'):
+        if not isinstance(obj[field], str):
+            raise ValueError(f'team[{slot_number - 1}].{field} is {obj[field]!r}, not text')
+        mon[field] = obj[field]
+    for j, mv in enumerate(obj['moves']):
+        if not isinstance(mv, str):
+            raise ValueError(f'team[{slot_number - 1}].moves[{j}] is {mv!r}, not text')
+    mon['moves'] = list(obj['moves'])
+    mon['statPoints'] = _check_stat_points_obj(obj['statPoints'], f'team[{slot_number - 1}].statPoints')
+    return mon
+
+
+def parse_freetext_answer(task: dict[str, Any], raw_answer: str) -> tuple[Team, list[str], bool, bool]:
+    """Parse a trimmed free-text answer back into a full 6-Pokémon team and flat hidden-value list in
+    hidden_values(task) order. Returns (team, values, had_fence, strict_json_parses); raises ValueError if unreadable."""
+    cleaned, had_fence = _unwrap_code_fence(raw_answer)
+    strict_ok = False
+    try:
+        json.loads(raw_answer.strip())
+        strict_ok = True
+    except ValueError:
+        pass
+    parsed = json.loads(cleaned)
+    paths = ordered_masked_paths(task)
+    if not isinstance(parsed, list) or len(parsed) != len(paths):
+        raise ValueError(f'answer must be a JSON list of {len(paths)} items')
+    team: Team = copy.deepcopy(task['masked_team'])
+    for path, item in zip(paths, parsed, strict=True):
+        if len(path) == 1:
+            team[path[0]] = _check_pokemon_obj(item, path[0] + 1)
+        elif path[1] == 'statPoints':
+            team[path[0]]['statPoints'] = _check_stat_points_obj(item, f'team[{path[0]}].statPoints')
+        elif len(path) == 2:
+            if not isinstance(item, str):
+                raise ValueError(f'team[{path[0]}].{path[1]} is {item!r}, not text')
+            team[path[0]][path[1]] = item
+        else:
+            if not isinstance(item, str):
+                raise ValueError(f'team[{path[0]}].moves[{path[2]}] is {item!r}, not text')
+            team[path[0]]['moves'][path[2]] = item
+    _check_value_types(team)
+    by_path = {piece[0]: piece[1] for piece in json_pieces(team) if not isinstance(piece, str)}
+    values = [value_text(by_path[p]) for p in hidden_values(task)]
+    return team, values, had_fence, strict_ok
 
 
 def _demo(tokenizer: Tokenizer, source: str, mask: str, k: int) -> None:

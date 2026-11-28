@@ -72,9 +72,9 @@ PACKAGED_FILES = ('scripts/inplace_prompt_grid.py', 'scripts/masked_diffusion_te
                   'scripts/masked_diffusion_memory_bench.py', 'scripts/count_masked_diffusion_text.py',
                   'scripts/masked_diffusion_sampler.py', 'scripts/jev_fill.py', 'scripts/mask_paste.py',
                   'data/regmb-vocabulary.json', 'data/pokedex.json', 'data/inplace-example-team.json')
-VERDICT_KEYS = frozenset({'json_parses', 'reads_as_team', 'visible_kept', 'regmb_names', 'showdown_errors',
-                          'showdown_accepts', 'legal', 'failed', 'reasons', 'not_regmb', 'recovered',
-                          'copied_visible', 'paste', 'rules'})
+VERDICT_KEYS = frozenset({'json_parses', 'json_parses_strict', 'had_code_fence', 'reads_as_team', 'visible_kept',
+                          'regmb_names', 'showdown_errors', 'showdown_accepts', 'legal', 'failed', 'reasons',
+                          'not_regmb', 'recovered', 'copied_visible', 'paste', 'rules', 'raw_answer'})
 
 
 def timeout_for(key: str) -> int:
@@ -261,12 +261,26 @@ def merge(key: str, prompt: str, directory: Path = DIRECTORY) -> dict[str, Any]:
     names, validate = G.vocabulary(), Validator()
     judged = []
     try:
+        prompt_obj = G.PROMPTS[prompt]
         for task in tasks:
             row = by_id[task['id']]
-            c = G.canvas(task, G.PROMPTS[prompt], tokenizer, candidate.mask_id, start_id)
-            verdict = G.judge(task, c['built'], row['values'], validate, names)
-            team = verdict.pop('team', None)
-            verdict |= G.copies(task, c['built'], row['values'])
+            c = G.canvas(task, prompt_obj, tokenizer, candidate.mask_id, start_id)
+            if prompt_obj.mode == 'freetext':
+                import masked_diffusion_text as D
+                raw_tail, answer_tokens, hit_limit, dropped = D.trim_answer_ids(tokenizer, row['slot_ids'][0])
+                raw_answer = c['built'].answer_prefix + raw_tail
+                eos_n, pad_n = D.eos_and_pad_counts(tokenizer, row['slot_ids'][0])
+                verdict = G.judge_freetext(task, raw_answer, validate, names)
+                values = verdict.pop('values')
+                team = verdict.pop('team', None)
+                verdict |= G.copies(task, c['built'], values)
+                verdict |= {'values': values, 'answer_tokens': answer_tokens, 'hit_length_limit': hit_limit,
+                            'special_dropped': dropped, 'answer_length': c['built'].answer_length,
+                            'eos_token_count': eos_n, 'pad_token_count': pad_n}
+            else:
+                verdict = G.judge(task, c['built'], row['values'], validate, names)
+                team = verdict.pop('team', None)
+                verdict |= G.copies(task, c['built'], row['values'])
             new = {k: v for k, v in row.items() if k not in VERDICT_KEYS} | verdict
             if new['legal']:
                 new['paste'] = team_paste(team)
@@ -326,7 +340,7 @@ if modal is not None:
         done = {p: [r['id'] for r in rows] for p, rows in earlier.items()}
         gpu = gpu_for(key)
         only = {p: ids for p, ids in fitting().items() if p in order}
-        missing = [p for p in order if p.endswith('_example') and p not in only]
+        missing = [p for p in order if p.endswith('_example') and key != 'illada' and p not in only]
         if missing:
             raise SystemExit(f'{FITTING}: no frozen mask list for {missing}')
         left = pending(order, tasks[:limit or None], {p: set(ids) for p, ids in done.items()}, only)

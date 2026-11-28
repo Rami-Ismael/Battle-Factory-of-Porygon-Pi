@@ -46,9 +46,15 @@ def audit_run(directory: Path, prompt: str, key: str, validate: Any, names: dict
                            'step_without_rule': [], 'team_vs_showdown': {}, 'unmapped': Counter(),
                            'examples': defaultdict(list), 'broken': Counter(), 'judged': Counter()}
     agree = {rule: Counter() for rule in TEAM_RULES}
+    prompt_obj = G.PROMPTS[prompt]
     for row in rows:
-        c = G.canvas(tasks[row['id']], G.PROMPTS[prompt], tokenizer, candidate.mask_id, start_id)
-        again = G.judge(tasks[row['id']], c['built'], row['values'], validate, names)
+        c = G.canvas(tasks[row['id']], prompt_obj, tokenizer, candidate.mask_id, start_id)
+        if prompt_obj.mode == 'freetext':
+            import masked_diffusion_text as D
+            raw_tail, _, _, _ = D.trim_answer_ids(tokenizer, row['slot_ids'][0])
+            again = G.judge_freetext(tasks[row['id']], c['built'].answer_prefix + raw_tail, validate, names)
+        else:
+            again = G.judge(tasks[row['id']], c['built'], row['values'], validate, names)
         team = again.pop('team', None)
         if not all(again[k] == row[k] for k in ('legal', 'failed', 'reasons', 'rules', 'showdown_errors')):
             out['rejudge_mismatch'].append(row['id'])
