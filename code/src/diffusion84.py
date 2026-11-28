@@ -27,6 +27,7 @@ import torch.nn.functional as F
 import alignment as AL
 import asked_vs_got as X
 import diffusion as D
+from early_stopping import EarlyStopper
 import lossdown as L
 from lookahead import lookahead as lookahead_rule
 import lr_schedule84 as LS
@@ -440,8 +441,8 @@ class Model84:
         lr_at = LS.make_lr_at(lr_schedule, peak_lr=lr, total_steps=steps, warmup_steps=warm, min_lr=min_lr)
         noise_rng = torch.Generator().manual_seed(seed + 1)
         log = [] if log is None else log
-        best, best_epoch, best_sd, step = math.inf, 0, None, 0
-        reset_epoch = 0                                   # last epoch that beat the lowest loss by more than threshold
+        stopper = EarlyStopper(patience=patience, threshold=threshold)
+        best_sd, step = None, 0
         t_start = time.perf_counter()
 
         checked = []                                      # the one model the legality check samples; its network is m
@@ -464,9 +465,10 @@ class Model84:
             if epoch0:
                 m = (avg if avg is not None else net).eval(); entry = dict(epoch=0); measure(m, entry)
                 if val is not None:
-                    best, best_sd = entry["val_loss"], {k: v.detach().clone() for k, v in m.state_dict().items()}
+                    stopper.observe(0, entry["val_loss"])
+                    best_sd = {k: v.detach().clone() for k, v in m.state_dict().items()}
                 entry["minutes"] = 0.0; log.append(entry)
-                if tracker is not None: tracker.log_epoch(entry, step=0, best_val_loss=best)
+                if tracker is not None: tracker.log_epoch(entry, step=0, best_val_loss=stopper.best)
                 _print_entry(entry)
             for p in range(epochs):
                 if relabel is not None:
@@ -492,24 +494,27 @@ class Model84:
                 m.eval()
                 entry = dict(epoch=p + 1, train_loss=run / nb)
                 measure(m, entry)
-                if val is not None and entry["val_loss"] < best:
-                    if best - entry["val_loss"] > threshold: reset_epoch = p + 1
-                    best, best_epoch = entry["val_loss"], p + 1
-                    best_sd = {k: v.detach().clone() for k, v in m.state_dict().items()}
-                    if on_best is not None: on_best(make(m, dict(best_epoch=best_epoch)), best_epoch)
+                stop_now = False
+                if val is not None:
+                    is_best, stop_now = stopper.observe(p + 1, entry["val_loss"])
+                    if is_best:
+                        best_sd = {k: v.detach().clone() for k, v in m.state_dict().items()}
+                        if on_best is not None: on_best(make(m, dict(best_epoch=stopper.best_index)), stopper.best_index)
+                else:
+                    stop_now = stopper.should_stop(p + 1)
                 entry["minutes"] = round((time.perf_counter() - t_start) / 60, 3)
                 if on_epoch is not None: on_epoch(make(m, dict(epoch=p + 1)), p + 1)
                 log.append(entry)
                 if tracker is not None:
-                    tracker.log_epoch(entry, lr=opt.param_groups[0]["lr"], step=step, grad_norm=gnorm / nb, best_val_loss=best)
+                    tracker.log_epoch(entry, lr=opt.param_groups[0]["lr"], step=step, grad_norm=gnorm / nb, best_val_loss=stopper.best)
                 _print_entry(entry)
-                if patience and p + 1 - reset_epoch >= patience: break
+                if stop_now: break
                 if stop_after and p + 1 >= stop_after: break
             m = avg if avg is not None else net
             if patience and best_sd is not None: m.load_state_dict(best_sd)
             trained = [e for e in log if e["epoch"] > 0]
-            info.update(stopped_epoch=len(trained), best_epoch=best_epoch or (0 if epoch0 and val is not None else None),
-                        best_val_loss=None if best == math.inf else best, curves=log)
+            info.update(stopped_epoch=len(trained), best_epoch=stopper.best_index,
+                        best_val_loss=None if stopper.best == math.inf else stopper.best, curves=log)
             if tracker is not None: tracker.log_summary(info)
             return make(m, {})
         finally:

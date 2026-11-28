@@ -56,6 +56,7 @@ test_wandb_tracking.py
 test_uniform_preflight84.py
 test_uniform_math84.py
 test_masked_lora_trainer.py
+test_early_stopping.py
 test_retrain_default_filtered.py
 test_lr_schedule84.py
 test_gidd_lr_arms.py
