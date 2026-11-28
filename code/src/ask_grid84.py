@@ -168,6 +168,9 @@ NUDGE_NUMERATORS, NUDGES = (6, 8, 10, 11, 12, 13, 14, 16), (0.0, 0.002, -0.002, 
 if SMOKE: OFF_GRID_ASKS, NUDGE_NUMERATORS, NUDGES = [0.3], (11,), (0.0, 0.002)
 RES = Path(os.environ.get("AG84_RESULTS_DIR", Path.home() / "vgc-data/results"))
 SEED_OVERRIDE = os.environ.get("AG84_SEED0")             # a redraw on other seeds, into its own file "..._seed<N>"
+# AG84_DRAFTS_LOG=path: append every draft, rejected ones included, as one JSON line (ask, seed, status, reason, paste),
+# so novelty can be measured before the validator filters. Off by default.
+DRAFTS_LOG = open(os.environ["AG84_DRAFTS_LOG"], "a", buffering=1) if os.environ.get("AG84_DRAFTS_LOG") else None
 OUT = RES / f"stat_points_84_{MODEL}{SUFFIX}{f'_seed{SEED_OVERRIDE}' if SEED_OVERRIDE else ''}{'_smoke' if SMOKE else ''}.json"
 SEED0 = int(SEED_OVERRIDE) if SEED_OVERRIDE else MODELS[MODEL].get("seed0") or grid_seeds.seed0(f"{MODEL}{SUFFIX}", OUT)   # stored grids keep 7300; new ones their own
 DATA = X.RES / OLDER_TABLE                               # training teams of the older-table models that remask84, nucleus84, trade84 and lineup_reference score
@@ -263,6 +266,13 @@ def _attach_draw_meta(counts, records_refusals, refusals, tracker, all_revisions
         )
 
 
+def log_draft(ask, seed, paste, err):
+    """With AG84_DRAFTS_LOG set, append one draft and its fate (kept, held-out or rejected and why)."""
+    if DRAFTS_LOG is None: return
+    status = "rejected" if err is not None else "heldout" if HO.is_heldout_text(paste) else "kept"
+    DRAFTS_LOG.write(json.dumps(dict(ask=ask, seed=seed, status=status, reason=None if err is None else reason(err), paste=paste)) + "\n")
+
+
 def draw(w, ask, seed):
     """Sample until KEEP teams pass Showdown and are not held-out teams, counting every try and every rejection.
     An arm that keeps last_refusals also gives counts["refusals"]; a uniform sampler keeping last_revisions also gives
@@ -281,6 +291,7 @@ def draw(w, ask, seed):
                 if rev_records is not None: all_rev.append(rev_records[i])
                 p, slots = w.to_paste(r, repair=True)
                 err = val(p)
+                log_draft(ask, seed, p, err)
                 if err is not None: rejected += 1; reasons[reason(err)] += 1
                 elif HO.is_heldout_text(p): heldout += 1
                 else:
