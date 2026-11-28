@@ -1,0 +1,59 @@
+{
+  "gpu_name": "NVIDIA A10G",
+  "device": "cuda",
+  "dtype": "float32",
+  "split_hash": "d6ea599cdb86d499040fd41e470128c2efbb4c345e75ef874ad69ba84317c4e8",
+  "stop_at": 4,
+  "max_updates": 8,
+  "eval_every": 4,
+  "max_train_loss_abs_diff": 9.5367431640625e-07,
+  "max_val_loss_abs_diff": 1.7438616071174806e-06,
+  "parity_passed": true,
+  "atol": 1e-05,
+  "train_diffs_after_resume": [
+    {
+      "update": 5,
+      "uninterrupted_loss": 8.168498992919922,
+      "resumed_loss": 8.168499946594238,
+      "abs_diff": 9.5367431640625e-07
+    },
+    {
+      "update": 6,
+      "uninterrupted_loss": 7.881714344024658,
+      "resumed_loss": 7.881713390350342,
+      "abs_diff": 9.5367431640625e-07
+    },
+    {
+      "update": 7,
+      "uninterrupted_loss": 3.7979869842529297,
+      "resumed_loss": 3.797987461090088,
+      "abs_diff": 4.76837158203125e-07
+    },
+    {
+      "update": 8,
+      "uninterrupted_loss": 5.917621612548828,
+      "resumed_loss": 5.9176225662231445,
+      "abs_diff": 9.5367431640625e-07
+    }
+  ],
+  "val_diffs": [
+    {
+      "val_index": 1,
+      "update": 4,
+      "uninterrupted_val_loss": 5.3444330124627974,
+      "resumed_val_loss": 5.34443126860119,
+      "abs_diff": 1.7438616071174806e-06
+    },
+    {
+      "val_index": 2,
+      "update": 8,
+      "uninterrupted_val_loss": 4.251588367280506,
+      "resumed_val_loss": 4.251589820498512,
+      "abs_diff": 1.4532180054871446e-06
+    }
+  ],
+  "uninterrupted_stop_reason": "reached_cap: completed 8 of 8 optimizer updates",
+  "resumed_stop_reason": "reached_cap: completed 8 of 8 optimizer updates",
+  "uninterrupted_best_update": 8,
+  "resumed_best_update": 8
+}
