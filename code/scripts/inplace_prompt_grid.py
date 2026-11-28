@@ -78,6 +78,7 @@ from masked_diffusion_sampler import SAMPLERS, SHARED_SAMPLER, SamplerSetting, r
 GRID = 'heldout'
 GRID_SIZE = 270
 SMALL_FOUR = ('diffugpt_s', 'diffugpt_m', 'qwen25c', 'qwen3')    # #237: fixed for every prompt (owner, 2026-11-07)
+ALL_MODELS = (*SMALL_FOUR, 'illada')                              # #465 / #240: small four + iLLaDA 8B Instruct
 ASK: float | None = None            # the ask line reads 'unknown': no base model was trained on the ask
 SETTING = {'steps': 128, 'temperature': 1.0, 'seed': 2026, 'scope': 'slots', 'precision': 'native', 'batch': 1}
 LIMIT = 1024                # DiffuGPT's context; fitting_ids sets the example prompts' masks by it for every model
@@ -125,6 +126,8 @@ class Prompt:
     base: str | None = None                 # for a prompt extending another, the prompt it adds its line to
     rules: str | None = None                # the spelled-out rules line build puts before the team, if any
     filler: str | None = None               # the neutral length-control line build puts before the team, if any
+    mode: str = 'inplace'                   # 'inplace' (fixed slots) or 'freetext' (answer region after Team:)
+    fit_keys: tuple[str, ...] = SMALL_FOUR  # candidates whose token limit defines fitting_ids
 
 
 PROMPTS = {'inplace_header': Prompt('inplace_header', 'Header only, values filled in place', D.in_place_text),
@@ -143,7 +146,14 @@ PROMPTS = {'inplace_header': Prompt('inplace_header', 'Header only, values fille
                                    base='inplace_header', rules=D.RULES_LINE),
            'inplace_filler': Prompt('inplace_filler', 'Neutral line of the same length, header only',
                                     functools.partial(D.in_place_text, filler=D.FILLER_LINE),
-                                    base='inplace_header', filler=D.FILLER_LINE)}
+                                    base='inplace_header', filler=D.FILLER_LINE),
+           'freetext_answer': Prompt('freetext_answer', 'Free-text answer, header only', D.freetext_text,
+                                     base='inplace_header', mode='freetext'),
+           'freetext_header_example': Prompt('freetext_header_example',
+                                             'Free-text answer, example team on header only',
+                                             functools.partial(D.freetext_text, example=D.example_text()),
+                                             example=D.example_text(), base='inplace_header_example',
+                                             mode='freetext', fit_keys=('illada',))}
 
 
 def to_id(text: str) -> str:
@@ -189,19 +199,21 @@ def fits(task: dict[str, Any], prompt: Prompt, tokenizer: Any, mask_id: int, sta
 
 @functools.lru_cache(maxsize=8)
 def fitting_ids(prompt_code: str) -> frozenset[str] | None:
-    """The masks whose text fits under LIMIT for every small-four tokenizer with this prompt, or None when the prompt
-    has no example team and every mask fits (#239). One list for all four models, so each arm is the same masks."""
+    """The masks whose text fits under limit_for(tokenizer) for every tokenizer in prompt.fit_keys, or None when
+    every mask fits (or the prompt has no example team). One list per prompt so paired arms use the same masks."""
     prompt = PROMPTS[prompt_code]
     if prompt.example is None:
         return None
     import count_masked_diffusion_text as C
     tasks, keep = grid_tasks(), None
-    for key in SMALL_FOUR:
+    for key in prompt.fit_keys:
         candidate = C.candidate_by_key(key)
         tokenizer = C.load_tokenizer(candidate)
         start_id = tokenizer.bos_token_id if candidate.sampler.start_token else None
         ok = {t['id'] for t in tasks if fits(t, prompt, tokenizer, candidate.mask_id, start_id)}
         keep = ok if keep is None else keep & ok
+    if keep is not None and len(keep) == len(tasks):
+        return None
     return frozenset(keep or ())
 
 
@@ -291,7 +303,7 @@ def _twice(ids: Iterable[str]) -> bool:
     return len(seen) != len(set(seen))
 
 
-def rule_breaks(fields: Sequence[str], values: Sequence[str], names: dict[str, frozenset[str]],
+def rule_breaks(fields: Sequence[str], values: Sequence[str | None], names: dict[str, frozenset[str]],
                 verdict: dict[str, Any], team: Team | None) -> dict[str, bool | None]:
     """Which of RULES one filled mask breaks. The Reg M-B name rules read the filled values, so they are judged even
     when the fill does not parse; every other rule needs the parsed team. Six team rules are checked on the team
@@ -299,7 +311,7 @@ def rule_breaks(fields: Sequence[str], values: Sequence[str], names: dict[str, f
     out: dict[str, bool | None] = dict.fromkeys(RULES)
     out['does not parse as a team'] = not verdict['reads_as_team']
     for field, rule in NAME_RULES.items():
-        filled = [v for f, v in zip(fields, values, strict=True) if f == field]
+        filled = [v for f, v in zip(fields, values, strict=True) if f == field and v is not None]
         out[rule] = any(to_id(v) not in names[field] for v in filled) if filled else None
     if team is None:
         return out
@@ -366,15 +378,74 @@ def judge(task: dict[str, Any], built: D.InPlaceText, values: Sequence[str], val
     return out
 
 
-def copies(task: dict[str, Any], built: D.InPlaceText, values: Sequence[str]) -> dict[str, Any]:
+def judge_freetext(task: dict[str, Any], raw_answer: str, validate: Callable[[str], str | None],
+                   names: dict[str, frozenset[str]]) -> dict[str, Any]:
+    """Judge one trimmed free-text answer (#240) through the same four steps as judge(): parses into a six-Pokémon
+    team, visible values unchanged, Reg M-B names, and Showdown accepts. Returns values (None per slot if unparsed)."""
+    hidden = D.hidden_values(task)
+    fields = [p[1] for p in hidden]
+    cleaned, had_fence = D._unwrap_code_fence(raw_answer)
+    strict_ok = False
+    try:
+        json.loads(raw_answer.strip())
+        strict_ok = True
+    except ValueError:
+        pass
+    json_ok = strict_ok
+    if not json_ok:
+        try:
+            json.loads(cleaned)
+            json_ok = True
+        except ValueError:
+            pass
+    out: dict[str, Any] = {'json_parses': json_ok, 'json_parses_strict': strict_ok, 'had_code_fence': had_fence,
+                           'reads_as_team': False, 'visible_kept': None, 'regmb_names': None, 'showdown_errors': None,
+                           'showdown_accepts': False, 'legal': False, 'failed': None, 'reasons': [],
+                           'raw_answer': raw_answer}
+    try:
+        team, values, _, _ = D.parse_freetext_answer(task, raw_answer)
+        out['reads_as_team'] = True
+    except ValueError as error:
+        none_values: list[str | None] = [None] * len(hidden)
+        out['failed'], out['reasons'] = 'parses', [reason_group(str(error))]
+        out['values'] = none_values
+        out['rules'] = rule_breaks(fields, none_values, names, out, None)
+        return out
+    bad = [(f, v) for f, v in zip(fields, values, strict=True) if f in NAME_FIELDS and to_id(v) not in names[f]]
+    out['regmb_names'] = not bad
+    changed = [D.value_label(path) for path, value in visible_values(task['masked_team']).items()
+               if _value_at(team, path) != value]
+    out['visible_kept'] = not changed
+    errors = validate(team_paste(team))
+    out['showdown_errors'] = [] if errors is None else [e for e in errors.split('; ') if not e.startswith('(')]
+    out['showdown_accepts'] = errors is None and not changed
+    out['team'] = team
+    out['values'] = values
+    if changed:
+        out['failed'], out['reasons'] = 'visible', ['changed a visible value']
+    elif bad:
+        out['failed'], out['reasons'] = 'regmb', sorted({f'not a Reg M-B {FIELD_NAMES[f]}' for f, _ in bad})
+        out['not_regmb'] = [f'{FIELD_NAMES[f]} {v!r}' for f, v in bad]
+    elif errors is not None:
+        out['failed'] = 'showdown'
+        out['reasons'] = sorted({reason_group(e) for e in out['showdown_errors']})
+    out['legal'] = out['failed'] is None
+    out['rules'] = rule_breaks(fields, values, names, out, team)
+    return out
+
+
+def copies(task: dict[str, Any], built: D.InPlaceText, values: Sequence[str | None]) -> dict[str, Any]:
     """Whether the fill gives back the unmasked team's values, and how many filled names repeat a visible value
     of the same field in the same text."""
     seen: dict[str, set[str]] = {}
     for path, value in visible_values(task['masked_team']).items():
         if path[1] in NAME_FIELDS:
             seen.setdefault(path[1], set()).add(to_id(value))
-    named = [(s.field, v) for s, v in zip(built.slots, values, strict=True) if s.field in NAME_FIELDS]
-    return {'recovered': list(values) == true_values(task),
+    fields = ([p[1] for p in D.hidden_values(task)] if built.mode == 'freetext'
+              else [s.field for s in built.slots])
+    named = [(f, v) for f, v in zip(fields, values, strict=True) if f in NAME_FIELDS and v is not None]
+    recovered = all(v is not None for v in values) and list(values) == true_values(task)
+    return {'recovered': recovered,
             'copied_visible': sum(to_id(v) in seen.get(f, set()) and to_id(v) != '' for f, v in named)}
 
 
@@ -393,7 +464,7 @@ def example_copies(rows: Sequence[dict[str, Any]], team: Team | None = None) -> 
         if 'paths' not in row:
             continue
         for field, path_label, value in zip(row['fields'], row['paths'], row['values'], strict=True):
-            if value.strip() == '':
+            if value is None or value.strip() == '':
                 continue
             parts = path_label.split('.')
             path = tuple(parse_path('.'.join(parts[:2]))) + ((parts[2],) if len(parts) > 2 else ())
@@ -442,6 +513,29 @@ def _fill_sampler(sampler: SamplerSetting | None, setting: dict[str, Any],
                    start_token=start_id is not None)
 
 
+EOS_GATE_REPOS = frozenset({
+    'dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1',
+    'dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-mdlm-v0.1',
+})
+
+
+def eos_gate_ids_for(prompt: Prompt, tokenizer: Any) -> tuple[int, ...]:
+    """LLaDA Appendix B.4 EOS/pad confidence gating for free-text prompts on masked Qwen models: zero confidence
+    on proposed EOS (<|im_end|>) and pad (<|endoftext|>) tokens so content commits before trailing padding."""
+    if prompt.mode != 'freetext' or getattr(tokenizer, 'name_or_path', None) not in EOS_GATE_REPOS:
+        return ()
+    ids: set[int] = set(D.end_token_ids(tokenizer))
+    pad_id = getattr(tokenizer, 'pad_token_id', None)
+    if isinstance(pad_id, int) and pad_id >= 0:
+        ids.add(pad_id)
+    special = set(getattr(tokenizer, 'all_special_tokens', []) or ())
+    if '<|endoftext|>' in special and hasattr(tokenizer, 'convert_tokens_to_ids'):
+        eot = tokenizer.convert_tokens_to_ids('<|endoftext|>')
+        if isinstance(eot, int) and eot >= 0:
+            ids.add(eot)
+    return tuple(sorted(ids))
+
+
 def fill_one(task: dict[str, Any], prompt: Prompt, tokenizer: Any, forward_for: Callable[[Any], Any], mask_id: int,
              validate: Callable[[str], str | None], names: dict[str, frozenset[str]], seed: int, device: str = 'cpu',
              start_id: int | None = None, setting: dict[str, Any] = SETTING,
@@ -451,6 +545,7 @@ def fill_one(task: dict[str, Any], prompt: Prompt, tokenizer: Any, forward_for: 
 
     import masked_diffusion_memory_bench as B
     active = _fill_sampler(sampler, setting, start_id)
+    gate_ids = eos_gate_ids_for(prompt, tokenizer)
     c = canvas(task, prompt, tokenizer, mask_id, start_id)
     x = torch.tensor([c['ids']], device=device)
     slots = torch.tensor(c['slots'], device=device)
@@ -462,31 +557,49 @@ def fill_one(task: dict[str, Any], prompt: Prompt, tokenizer: Any, forward_for: 
         forwards += 1
 
     begin = time.perf_counter()
-    result = B.fill(forward_for(slots), x, slots, mask_id, generator=generator, on_step=count_step, setting=active)
+    result = B.fill(forward_for(slots), x, slots, mask_id, generator=generator, on_step=count_step, setting=active,
+                    eos_gate_ids=gate_ids)
     if device == 'mps':
         torch.mps.synchronize()
     elif device.startswith('cuda'):
         torch.cuda.synchronize()
     seconds = time.perf_counter() - begin
     return judged_row(task, prompt, tokenizer, c, result[0].cpu().tolist(), seed, active, forwards, seconds, memory(),
-                      validate, names)
+                      validate, names, eos_gate_ids=gate_ids)
 
 
 def judged_row(task: dict[str, Any], prompt: Prompt, tokenizer: Any, c: dict[str, Any], ids: list[int], seed: int,
                active: SamplerSetting, forwards: int, seconds: float, peak: int,
-               validate: Callable[[str], str | None], names: dict[str, frozenset[str]]) -> dict[str, Any]:
+               validate: Callable[[str], str | None], names: dict[str, frozenset[str]],
+               eos_gate_ids: Sequence[int] = ()) -> dict[str, Any]:
     """One filled mask's row: its slot values, the verdict, and how it was drawn."""
-    values, dropped = slot_values(tokenizer, ids, c['spans'])
-    verdict = judge(task, c['built'], values, validate, names)
-    team = verdict.pop('team', None)
-    verdict |= copies(task, c['built'], values)
-    row = {'id': task['id'], 'source': task['source'], 'task': task['task'], 'k': task['k'],
-           'prompt': prompt.code, 'version': c['built'].version, 'ask': D.ask_text(ASK), 'seed': seed,
-           'sampler_setting': active.to_dict(), 'prompt_tokens': len(c['ids']), 'mask_tokens': len(c['slots']),
-           'forwards': forwards, 'seconds': seconds,
-           'peak_bytes': peak, 'fields': [s.field for s in c['built'].slots],
-           'paths': [s.path for s in c['built'].slots], 'values': values, 'special_dropped': dropped,
-           'slot_ids': [[ids[n] for n in span] for span in c['spans']], **verdict}
+    base = {'id': task['id'], 'source': task['source'], 'task': task['task'], 'k': task['k'],
+            'prompt': prompt.code, 'version': c['built'].version, 'ask': D.ask_text(ASK), 'seed': seed,
+            'sampler_setting': active.to_dict(), 'prompt_tokens': len(c['ids']), 'mask_tokens': len(c['slots']),
+            'forwards': forwards, 'seconds': seconds, 'peak_bytes': peak}
+    if prompt.mode == 'freetext':
+        ans_ids = [ids[n] for n in c['spans'][0]]
+        raw_tail, answer_tokens, hit_limit, dropped = D.trim_answer_ids(tokenizer, ans_ids)
+        raw_answer = c['built'].answer_prefix + raw_tail
+        eos_n, pad_n = D.eos_and_pad_counts(tokenizer, ans_ids)
+        verdict = judge_freetext(task, raw_answer, validate, names)
+        values = verdict.pop('values')
+        team = verdict.pop('team', None)
+        verdict |= copies(task, c['built'], values)
+        hidden = D.hidden_values(task)
+        row = {**base, 'fields': [p[1] for p in hidden], 'paths': [D.value_label(p) for p in hidden],
+               'values': values, 'special_dropped': dropped, 'slot_ids': [ans_ids],
+               'answer_length': c['built'].answer_length, 'answer_tokens': answer_tokens,
+               'hit_length_limit': hit_limit, 'eos_token_count': eos_n, 'pad_token_count': pad_n,
+               'eos_gate_ids': list(eos_gate_ids), **verdict}
+    else:
+        values, dropped = slot_values(tokenizer, ids, c['spans'])
+        verdict = judge(task, c['built'], values, validate, names)
+        team = verdict.pop('team', None)
+        verdict |= copies(task, c['built'], values)
+        row = {**base, 'fields': [s.field for s in c['built'].slots], 'paths': [s.path for s in c['built'].slots],
+               'values': values, 'special_dropped': dropped,
+               'slot_ids': [[ids[n] for n in span] for span in c['spans']], **verdict}
     if verdict['legal']:
         row['paste'] = team_paste(team)
     return row
@@ -504,6 +617,7 @@ def fill_batch(draws: Sequence[tuple[dict[str, Any], int]], prompt: Prompt, toke
 
     import masked_diffusion_memory_bench as B
     active = _fill_sampler(sampler, setting, start_id)
+    gate_ids = eos_gate_ids_for(prompt, tokenizer)
     canvases = [canvas(task, prompt, tokenizer, mask_id, start_id) for task, _ in draws]
     generators = [torch.Generator(device=device).manual_seed(seed) for _, seed in draws]
     forwards = [0] * len(draws)
@@ -518,7 +632,7 @@ def fill_batch(draws: Sequence[tuple[dict[str, Any], int]], prompt: Prompt, toke
         torch.cuda.empty_cache()
     begin = time.perf_counter()
     filled = B.fill_rows(row_forward, [c['ids'] for c in canvases], [c['slots'] for c in canvases], mask_id, active,
-                         generators, device, on_step=count_step)
+                         generators, device, on_step=count_step, eos_gate_ids=gate_ids)
     if device == 'mps':
         torch.mps.synchronize()
     elif device.startswith('cuda'):
@@ -527,7 +641,8 @@ def fill_batch(draws: Sequence[tuple[dict[str, Any], int]], prompt: Prompt, toke
     peak = memory()
     rows = []
     for (task, seed), c, ids, n in zip(draws, canvases, filled, forwards, strict=True):
-        row = judged_row(task, prompt, tokenizer, c, ids, seed, active, n, seconds / len(draws), peak, validate, names)
+        row = judged_row(task, prompt, tokenizer, c, ids, seed, active, n, seconds / len(draws), peak, validate, names,
+                         eos_gate_ids=gate_ids)
         rows.append(row | {'batch_size': batch_size or len(draws), 'batch_rows': len(draws), 'batch_seconds': seconds})
     return rows
 
@@ -960,6 +1075,7 @@ def run(prompt_code: str, key: str, directory: Path, limit: int | None, device: 
     if batch is None:
         # every prompt's texts for these masks, so each prompt of a pair is sized alike on this device
         every = [canvas(t, other, tokenizer, candidate.mask_id, start_id) for other in PROMPTS.values()
+                 if other.example is None or key in other.fit_keys or limit_for(tokenizer) > LIMIT
                  for t in prompt_tasks(other.code, grid_tasks())[:limit]]
         longest, most_masks, _ = extreme_texts(every)
         sizing = choose_batch(row_forward, longest, candidate.mask_id, active, device, most_masks=most_masks,
@@ -1063,39 +1179,51 @@ def summarize(rows: list[dict[str, Any]], names: dict[str, frozenset[str]] | Non
     names = names or vocabulary()
     n = len(rows)
     legal = sum(r['legal'] for r in rows)
-    field_values: dict[str, list[str]] = {}
+    field_values: dict[str, list[str | None]] = {}
     for r in rows:
         for field, value in zip(r['fields'], r['values'], strict=True):
             field_values.setdefault(field, []).append(value)
-    real = {f: (sum(to_id(v) in names[f] for v in vs), len(vs)) for f, vs in field_values.items() if f in names}
-    species = [v for v in field_values.get('species', []) if to_id(v) in names['species']]
+    real = {f: (sum(v is not None and to_id(v) in names[f] for v in vs), len(vs))
+            for f, vs in field_values.items() if f in names}
+    species = [v for v in field_values.get('species', []) if v is not None and to_id(v) in names['species']]
     first_failed = Counter(STEP_NAMES[r['failed']] for r in rows)
     reasons = Counter(reason for r in rows for reason in r['reasons'])
     showdown_reasons = Counter(reason_group(e) for r in rows for e in set(r['showdown_errors'] or []))
     peak = max((r['peak_bytes'] for r in rows), default=0)
-    return {'masks': n, 'legal': legal, 'legal_share': legal / n if n else 0.0,
-            'legal_interval': exact_interval(legal, n) if n else (0.0, 1.0),
-            'passes_169_bar': legal >= 3,
-            'showdown_accepts': sum(r['showdown_accepts'] for r in rows),
-            'json_parses': sum(r['json_parses'] for r in rows), 'reads_as_team': sum(r['reads_as_team'] for r in rows),
-            'real_values': {f: {'real': a, 'of': b} for f, (a, b) in real.items()},
-            'distinct_real_species': len({to_id(s) for s in species}),
-            'recovered_unmasked_team': sum(r['recovered'] for r in rows),
-            'names_copied_from_visible': sum(r['copied_visible'] for r in rows),
-            'values_with_a_quote': sum('"' in v for vs in field_values.values() for v in vs),
-            'values': sum(map(len, field_values.values())),
-            'legal_by_task': {kind: {'legal': sum(r['legal'] for r in rows if r['task'] == kind),
-                                     'of': sum(r['task'] == kind for r in rows)}
-                              for kind in sorted({r['task'] for r in rows})},
-            'first_failed_step': dict(first_failed.most_common()), 'reasons': dict(reasons.most_common()),
-            'showdown_reasons': dict(showdown_reasons.most_common()),
-            'prompt_tokens_mean': sum(r['prompt_tokens'] for r in rows) / n if n else 0,
-            'prompt_tokens_max': max((r['prompt_tokens'] for r in rows), default=0),
-            'seconds_per_team': sum(r['seconds'] for r in rows) / n if n else 0,
-            'seconds_total': sum(r['seconds'] for r in rows), 'peak_gib': peak / 2**30,
-            'special_tokens_dropped': sum(r['special_dropped'] for r in rows),
-            'example_copies': example_copies(rows),
-            'rules': rule_counts(rows)}
+    out = {'masks': n, 'legal': legal, 'legal_share': legal / n if n else 0.0,
+           'legal_interval': exact_interval(legal, n) if n else (0.0, 1.0),
+           'passes_169_bar': legal >= 3,
+           'showdown_accepts': sum(r['showdown_accepts'] for r in rows),
+           'json_parses': sum(r['json_parses'] for r in rows), 'reads_as_team': sum(r['reads_as_team'] for r in rows),
+           'real_values': {f: {'real': a, 'of': b} for f, (a, b) in real.items()},
+           'distinct_real_species': len({to_id(s) for s in species}),
+           'recovered_unmasked_team': sum(r['recovered'] for r in rows),
+           'names_copied_from_visible': sum(r['copied_visible'] for r in rows),
+           'values_with_a_quote': sum(v is not None and '"' in v for vs in field_values.values() for v in vs),
+           'values': sum(map(len, field_values.values())),
+           'legal_by_task': {kind: {'legal': sum(r['legal'] for r in rows if r['task'] == kind),
+                                    'of': sum(r['task'] == kind for r in rows)}
+                             for kind in sorted({r['task'] for r in rows})},
+           'first_failed_step': dict(first_failed.most_common()), 'reasons': dict(reasons.most_common()),
+           'showdown_reasons': dict(showdown_reasons.most_common()),
+           'prompt_tokens_mean': sum(r['prompt_tokens'] for r in rows) / n if n else 0,
+           'prompt_tokens_max': max((r['prompt_tokens'] for r in rows), default=0),
+           'seconds_per_team': sum(r['seconds'] for r in rows) / n if n else 0,
+           'seconds_total': sum(r['seconds'] for r in rows), 'peak_gib': peak / 2**30,
+           'special_tokens_dropped': sum(r['special_dropped'] for r in rows),
+           'example_copies': example_copies(rows),
+           'rules': rule_counts(rows)}
+    if rows and 'hit_length_limit' in rows[0]:
+        hits = sum(bool(r['hit_length_limit']) for r in rows)
+        out |= {'hit_length_limit': hits, 'hit_length_limit_share': hits / n if n else 0.0,
+                'had_code_fence': sum(bool(r.get('had_code_fence')) for r in rows),
+                'json_parses_strict': sum(bool(r.get('json_parses_strict')) for r in rows),
+                'answer_tokens_mean': sum(r['answer_tokens'] for r in rows) / n if n else 0.0,
+                'answer_length_mean': sum(r['answer_length'] for r in rows) / n if n else 0.0}
+        if 'eos_token_count' in rows[0]:
+            out |= {'eos_token_total': sum(r.get('eos_token_count', 0) for r in rows),
+                    'pad_token_total': sum(r.get('pad_token_count', 0) for r in rows)}
+    return out
 
 
 def rule_counts(rows: Sequence[dict[str, Any]]) -> dict[str, dict[str, int]]:
@@ -1134,11 +1262,16 @@ def rules_for(directory: Path, prompt_code: str, key: str, tasks: list[dict[str,
     candidate = C.candidate_by_key(key)
     tokenizer = B.load_tokenizer(B.candidate_info(candidate))
     start_id = start_token_id(tokenizer, candidate.sampler)
+    prompt = PROMPTS[prompt_code]
     names, validate, lines = vocabulary(), Validator(), []
     try:
         for row in read_rows(out / 'fills.jsonl'):
-            c = canvas(by_id[row['id']], PROMPTS[prompt_code], tokenizer, candidate.mask_id, start_id)
-            again = judge(by_id[row['id']], c['built'], row['values'], validate, names)
+            c = canvas(by_id[row['id']], prompt, tokenizer, candidate.mask_id, start_id)
+            if prompt.mode == 'freetext':
+                raw_tail, _, _, _ = D.trim_answer_ids(tokenizer, row['slot_ids'][0])
+                again = judge_freetext(by_id[row['id']], c['built'].answer_prefix + raw_tail, validate, names)
+            else:
+                again = judge(by_id[row['id']], c['built'], row['values'], validate, names)
             if (again['legal'], again['failed']) != (row['legal'], row['failed']):
                 raise ValueError(f"{out} {row['id']}: judged {again['failed']!r} now, {row['failed']!r} when filled")
             lines.append(json.dumps({'id': row['id'], 'rules': again['rules']}, ensure_ascii=False))
@@ -1152,7 +1285,7 @@ def report(directory: Path, prompt_code: str) -> str:
     import count_masked_diffusion_text as C
     labels = {c.key: c.label for c in C.CANDIDATES}
     results = {}
-    for key in SMALL_FOUR:
+    for key in ALL_MODELS:
         path = directory / prompt_code / key / 'fills.jsonl'
         if path.exists():
             results[key] = summarize(read_fills(path))
@@ -1265,14 +1398,62 @@ def _prompt_token_checks(tasks: Sequence[dict[str, Any]], prompt: Prompt, tokeni
     return out
 
 
-def preflight(out: Path, prompt_code: str = 'inplace_header') -> dict[str, Any]:
+def _preflight_candidate_freetext(tasks: Sequence[dict[str, Any]], prompt: Prompt, tokenizer: Any, mask_id: int,
+                                  start_id: int | None, validate: Callable[[str], str | None],
+                                  names: dict[str, frozenset[str]]) -> dict[str, Any]:
+    """CPU probes for one tokenizer on a free-text prompt: ceiling, round trip, coverage, floor, answer lengths."""
+    rng = random.Random(SETTING['seed'])
+    special = set(getattr(tokenizer, 'all_special_ids', []))
+    vocab = [i for i in range(len(tokenizer)) if i not in special]
+    pad = tokenizer.pad_token or tokenizer.eos_token
+    ceiling = trip = trip_paste = trip_hits = floor = floor_showdown = built = unknown = 0
+    lengths, trip_misses, ans_lengths = [], [], {}
+    for task in tasks:
+        c = canvas(task, prompt, tokenizer, mask_id, start_id)
+        built += 1
+        lengths.append(len(c['ids']))
+        ans_lengths[f"{task['task']} {task['k']}"] = c['built'].answer_length
+        if tokenizer.unk_token_id is not None:
+            unknown += c['ids'].count(tokenizer.unk_token_id)
+        ceiling += judge_freetext(task, D.true_answer_json(task), validate, names)['legal']
+        target = D.freetext_training_target(task, ASK, tokenizer, limit_for(tokenizer), pad, prompt.example)
+        tids = list(tokenizer(target, add_special_tokens=False)['input_ids'])
+        if start_id is not None:
+            tids = [start_id, *tids]
+        raw_tail, _, hit_limit, _ = D.trim_answer_ids(tokenizer, [tids[n] for n in c['spans'][0]])
+        raw = c['built'].answer_prefix + raw_tail
+        trip_hits += hit_limit
+        verdict = judge_freetext(task, raw, validate, names)
+        trip += verdict['legal']
+        same = verdict.get('team') is not None and team_paste(verdict['team']) == team_paste(task['original'])
+        trip_paste += same
+        if not same:
+            trip_misses.append(task['id'])
+        rand_tail, _, _, _ = D.trim_answer_ids(tokenizer, [rng.choice(vocab) for _ in c['spans'][0]])
+        rand_raw = c['built'].answer_prefix + rand_tail
+        noise = judge_freetext(task, rand_raw, validate, names)
+        floor += noise['legal']
+        floor_showdown += noise['showdown_accepts']
+    row: dict[str, Any] = {'masks_built': built, 'masks_dropped': len(tasks) - built, 'unknown_tokens': unknown,
+                           'prompt_tokens_min': min(lengths), 'prompt_tokens_max': max(lengths),
+                           'answer_lengths': dict(sorted(ans_lengths.items())),
+                           'ceiling_legal': ceiling, 'round_trip_legal': trip, 'round_trip_same_paste': trip_paste,
+                           'round_trip_hit_limit': trip_hits, 'round_trip_misses': trip_misses[:10],
+                           'floor_random_tokens_legal': floor,
+                           'floor_random_tokens_showdown_accepts': floor_showdown}
+    row['pass'] = (ceiling == trip == trip_paste == len(tasks) and trip_hits == 0 and floor < 3 and unknown == 0)
+    return row
+
+
+def preflight(out: Path, prompt_code: str = 'inplace_header', keys: Sequence[str] | None = None) -> dict[str, Any]:
     """The probes that need no model: run on every mask (for an example prompt, every mask that fits) with every
-    small-four tokenizer."""
+    selected tokenizer."""
     import count_masked_diffusion_text as C
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
     from showdown_validator import Validator
     every, names, prompt = grid_tasks(), vocabulary(), PROMPTS[prompt_code]
     tasks = prompt_tasks(prompt_code, every)
+    check_keys = tuple(keys) if keys else (prompt.fit_keys if prompt.mode == 'freetext' else SMALL_FOUR)
     validate = Validator()
     result: dict[str, Any] = {'date': time.strftime('%Y-%m-%d'), 'prompt': prompt.code, 'masks': len(tasks),
                               'environment': environment(), 'candidates': {}}
@@ -1281,12 +1462,18 @@ def preflight(out: Path, prompt_code: str = 'inplace_header') -> dict[str, Any]:
         result['too_long'] = {'masks': len(every) - len(tasks),
                               'cells': dict(Counter(f"{t['task']} {t['k']}" for t in every if t['id'] not in kept))}
     try:
-        for key in SMALL_FOUR:
+        for key in check_keys:
             candidate = C.candidate_by_key(key)
             tokenizer = C.load_tokenizer(candidate)
             start_id = tokenizer.bos_token_id if candidate.sampler.start_token else None
+            if prompt.mode == 'freetext':
+                row = _preflight_candidate_freetext(tasks, prompt, tokenizer, candidate.mask_id, start_id,
+                                                    validate, names)
+                result['candidates'][key] = row
+                print(key, json.dumps({k: v for k, v in row.items() if k != 'answer_lengths'}), flush=True)
+                continue
             rng = random.Random(SETTING['seed'])
-            row: dict[str, Any] = {'slot_lengths': D.slot_lengths(tokenizer)}
+            row = {'slot_lengths': D.slot_lengths(tokenizer)}
             ceiling = trip = trip_paste = floor = floor_showdown = built = 0
             unknown, lengths, trip_misses = 0, [], []
             for task in tasks:
@@ -1415,12 +1602,14 @@ def gpu_preflight(key: str, directory: Path, device: str = 'mps', sampler_name: 
     start_id = start_token_id(tokenizer, active)
 
     def draw(task: dict[str, Any], seed: int | None = None) -> list[int]:
-        c = canvas(task, PROMPTS[prompt_code], tokenizer, candidate.mask_id, start_id)
+        prompt_obj = PROMPTS[prompt_code]
+        c = canvas(task, prompt_obj, tokenizer, candidate.mask_id, start_id)
         x, slots = torch.tensor([c['ids']], device=device), torch.tensor(c['slots'], device=device)
         seed = mask_seed(SETTING['seed'], task['id']) if seed is None else seed
         generator = torch.Generator(device=device).manual_seed(seed)
         forward = B.make_forward(model, family, SETTING['scope'], slots, right_shift=active.right_shift)
-        filled = B.fill(forward, x, slots, candidate.mask_id, generator=generator, setting=active)
+        filled = B.fill(forward, x, slots, candidate.mask_id, generator=generator, setting=active,
+                        eos_gate_ids=eos_gate_ids_for(prompt_obj, tokenizer))
         return filled[0, slots].cpu().tolist()
 
     c0 = canvas(picks[0], PROMPTS[prompt_code], tokenizer, candidate.mask_id, start_id)
@@ -1521,7 +1710,7 @@ def compare(directory: Path, before_code: str, after_code: str) -> str:
     labels = {c.key: c.label for c in C.CANDIDATES}
     results = {}
     keep = shared_ids(before_code, after_code)
-    for key in SMALL_FOUR:
+    for key in ALL_MODELS:
         paths = [directory / code / key / 'fills.jsonl' for code in (before_code, after_code)]
         if all(p.exists() for p in paths):
             before, after = (on_masks(read_fills(p), keep, str(p)) for p in paths)
@@ -1552,24 +1741,25 @@ def main(argv: Sequence[str] | None = None) -> int:
     pre = sub.add_parser('preflight')
     pre.add_argument('--out', type=Path, help='default preflight/cpu.json, or cpu-<prompt>.json for a later prompt')
     pre.add_argument('--prompt', choices=PROMPTS, default='inplace_header')
+    pre.add_argument('--keys', help='comma-separated candidate keys (default: SMALL_FOUR or prompt.fit_keys)')
     one = sub.add_parser('run')
     one.add_argument('--prompt', choices=PROMPTS, required=True)
-    one.add_argument('--key', choices=SMALL_FOUR, required=True)
+    one.add_argument('--key', choices=ALL_MODELS, required=True)
     one.add_argument('--dir', type=Path, default=OUT)
     one.add_argument('--limit', type=int)
     one.add_argument('--device', default='mps')
     again = sub.add_parser('redraw')
     again.add_argument('--prompt', choices=PROMPTS, required=True)
-    again.add_argument('--key', choices=SMALL_FOUR, required=True)
+    again.add_argument('--key', choices=ALL_MODELS, required=True)
     again.add_argument('--dir', type=Path, default=OUT)
     again.add_argument('--limit', type=int)
     again.add_argument('--device', default='mps')
     legal = sub.add_parser('teams')
     legal.add_argument('--prompt', choices=PROMPTS, required=True)
-    legal.add_argument('--key', choices=SMALL_FOUR, required=True)
+    legal.add_argument('--key', choices=ALL_MODELS, required=True)
     legal.add_argument('--dir', type=Path, default=OUT)
     gpu = sub.add_parser('gpu-preflight')
-    gpu.add_argument('--key', choices=SMALL_FOUR, required=True)
+    gpu.add_argument('--key', choices=ALL_MODELS, required=True)
     gpu.add_argument('--dir', type=Path, default=OUT)
     gpu.add_argument('--prompt', choices=PROMPTS, default='inplace_header')
     for p in (one, again):
@@ -1584,7 +1774,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     rul = sub.add_parser('rules', help='write rules.jsonl beside a run judged before rule_breaks existed')
     rul.add_argument('--dir', type=Path, default=OUT)
     rul.add_argument('--prompt', choices=PROMPTS, required=True)
-    rul.add_argument('--key', choices=SMALL_FOUR, required=True)
+    rul.add_argument('--key', choices=ALL_MODELS, required=True)
     both = sub.add_parser('compare')
     both.add_argument('--dir', type=Path, default=OUT)
     both.add_argument('--before', choices=PROMPTS, default='inplace_header')
@@ -1592,7 +1782,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.command == 'preflight':
         name = 'cpu.json' if args.prompt == 'inplace_header' else f'cpu-{args.prompt}.json'
-        return 0 if preflight(args.out or OUT / 'preflight' / name, args.prompt)['pass'] else 1
+        keys = args.keys.split(',') if args.keys else None
+        return 0 if preflight(args.out or OUT / 'preflight' / name, args.prompt, keys)['pass'] else 1
     if args.command == 'rules':
         print(json.dumps(rules_for(args.dir, args.prompt, args.key)))
         return 0

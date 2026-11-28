@@ -115,6 +115,39 @@ class FillRowsTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             B.fill_rows(row_forward, rows[:2], slots[:2], MASK_ID, MS.SHARED_SAMPLER, [None])
 
+    def test_eos_gate_ids_commits_content_before_gated_tokens_and_matches_fill(self):
+        """With eos_gate_ids=(2,), a mask proposing token 2 gets confidence 0 and commits after non-gated tokens."""
+        order_seen: list[int] = []
+
+        def step_logits(x: torch.Tensor) -> torch.Tensor:
+            # Slot 0 proposes gated token 2 with huge logit (prob ~1.0); slot 1 proposes token 5 with lower prob (~0.7).
+            # Without gating, slot 0 commits first; with eos_gate_ids=(2,), slot 1 commits first.
+            logits = torch.zeros(x.shape[0], 2, 8)
+            logits[:, 0, 2] = 10.0
+            logits[:, 1, 5] = 2.5
+            if x[0, 2].item() == 5:
+                order_seen.append(5)
+            return logits
+
+        canvas = torch.tensor([[1, 0, 0]])
+        slots = torch.tensor([1, 2])
+        setting = replace(MS.SHARED_SAMPLER, steps=2, temperature=0.0)
+        out_single = B.fill(step_logits, canvas, slots, 0, setting=setting, eos_gate_ids=(2,))
+        self.assertEqual(order_seen, [5])
+        self.assertEqual(out_single[0].tolist(), [1, 2, 5])
+
+        # fill_rows with eos_gate_ids agrees identically with fill
+        rows, row_slots = make_rows()
+        seeds = [101, 202, 303, 404, 505]
+        gate = (2, 3)
+        alone = [B.fill(alone_forward(torch.tensor(s)), torch.tensor([r]), torch.tensor(s), MASK_ID,
+                        generator=torch.Generator().manual_seed(seed), setting=MS.SHARED_SAMPLER,
+                        eos_gate_ids=gate)[0].tolist()
+                 for r, s, seed in zip(rows, row_slots, seeds, strict=True)]
+        batched = B.fill_rows(row_forward, rows, row_slots, MASK_ID, MS.SHARED_SAMPLER,
+                              [torch.Generator().manual_seed(seed) for seed in seeds], eos_gate_ids=gate)
+        self.assertEqual(batched, alone)
+
 
 class MaskingCore(torch.nn.Module):
     """A fake transformer whose output at each position sums the real tokens it is allowed to see: a key position

@@ -360,6 +360,8 @@ class ChatTemplateTest(unittest.TestCase):
     @unittest.mock.patch.object(G, 'LIMIT', 10**6)     # the fake tokenizer's example texts pass 1,024 tokens
     def test_the_text_is_the_template_of_a_header_turn_and_a_team_turn(self):
         for code, prompt in G.PROMPTS.items():
+            if prompt.mode != 'inplace':
+                continue
             for task in TASKS:
                 with self.subTest(prompt=code, task=task['id']):
                     plain = G.canvas(task, prompt, FakeTokenizer(), 0)['built'].text
@@ -801,6 +803,218 @@ class RulesAndFillerPromptTest(unittest.TestCase):
             alone = len(tokenizer(line, add_special_tokens=False)['input_ids'])
             cost = G.line_tokens(TASKS, G.PROMPTS[code], line, tokenizer, 0, None)
             self.assertEqual(cost, {'line_alone': alone, 'added_min': alone, 'added_max': alone, 'masks': 3})
+
+
+def make_all_task_kinds():
+    """One task of each of the six held-out grid task types, including multi-slot masks."""
+    orig = team()
+    out = []
+    # items k=2
+    m = copy.deepcopy(orig)
+    m[1]['item'] = m[4]['item'] = None
+    out.append({'id': 'ft_items', 'source': 'TEST', 'task': 'items', 'k': 2, 'seed': 0, 'slots': [],
+                'masked_team': m, 'masked_paths': ['team[4].item', 'team[1].item'], 'original': orig})
+    # abilities k=1
+    m = copy.deepcopy(orig)
+    m[0]['ability'] = None
+    out.append({'id': 'ft_abilities', 'source': 'TEST', 'task': 'abilities', 'k': 1, 'seed': 0, 'slots': [],
+                'masked_team': m, 'masked_paths': ['team[0].ability'], 'original': orig})
+    # natures k=2
+    m = copy.deepcopy(orig)
+    m[2]['nature'] = m[5]['nature'] = None
+    out.append({'id': 'ft_natures', 'source': 'TEST', 'task': 'natures', 'k': 2, 'seed': 0, 'slots': [],
+                'masked_team': m, 'masked_paths': ['team[2].nature', 'team[5].nature'], 'original': orig})
+    # moves k=2
+    m = copy.deepcopy(orig)
+    m[1]['moves'][3] = m[3]['moves'][0] = None
+    out.append({'id': 'ft_moves', 'source': 'TEST', 'task': 'moves', 'k': 2, 'seed': 0, 'slots': [],
+                'masked_team': m, 'masked_paths': ['team[3].moves[0]', 'team[1].moves[3]'], 'original': orig})
+    # stats k=2
+    m = copy.deepcopy(orig)
+    m[0]['statPoints'] = m[3]['statPoints'] = None
+    out.append({'id': 'ft_stats', 'source': 'TEST', 'task': 'stats', 'k': 2, 'seed': 0, 'slots': [],
+                'masked_team': m, 'masked_paths': ['team[0].statPoints', 'team[3].statPoints'], 'original': orig})
+    # pokemon k=1
+    m = copy.deepcopy(orig)
+    m[4] = None
+    out.append({'id': 'ft_pokemon', 'source': 'TEST', 'task': 'pokemon', 'k': 1, 'seed': 0, 'slots': [],
+                'masked_team': m, 'masked_paths': ['team[4]'], 'original': orig})
+    return out
+
+
+def freetext_answer_model(tokenizer, task, prompt):
+    """A model whose logits put all weight on the true free-text answer + eos + pad."""
+    target = D.freetext_training_target(task, G.ASK, tokenizer, G.LIMIT, tokenizer.pad_token, prompt.example)
+    truth = tokenizer(target, add_special_tokens=False)['input_ids']
+
+    def forward_for(slots):
+        def forward(x):
+            logits = torch.full((x.shape[0], len(slots), len(tokenizer) + 5), -1e9)
+            for n, position in enumerate(slots.tolist()):
+                logits[:, n, truth[position]] = 0.0
+            return logits
+        return forward
+    return forward_for
+
+
+class Qwen3ChatTokenizer(FakeTokenizer):
+    """FakeTokenizer named as Masked Qwen3 0.6B with <|im_end|> EOS and <|endoftext|> pad."""
+    name_or_path = 'dllm-hub/Qwen3-0.6B-diffusion-mdlm-v0.1'
+    eos_token, pad_token = '<|im_end|>', '<|endoftext|>'
+    pattern = r'<\|im_start\|>|<\|im_end\|>|<\|endoftext\|>|<think>|</think>|<\|mask\|>|<\|pad\|>|[A-Za-z]+|.'
+
+    def __init__(self):
+        super().__init__()
+        self.eos_token_id = self.id(self.eos_token)
+        self.pad_token_id = self.id(self.pad_token)
+        self.all_special_ids = [0, 1, self.eos_token_id, self.pad_token_id]
+        self.all_special_tokens = [self.mask_token, self.eos_token, self.pad_token]
+
+    def convert_tokens_to_ids(self, tok):
+        return self.ids.get(tok, -1)
+
+
+class Qwen25CChatTokenizer(Qwen3ChatTokenizer):
+    """FakeTokenizer named as Masked Qwen2.5 Coder 0.5B."""
+    name_or_path = 'dllm-hub/Qwen2.5-Coder-0.5B-Instruct-diffusion-mdlm-v0.1'
+
+
+class FreeTextAnswerPromptTest(unittest.TestCase):
+    """#240: free-text answer layout, trimming, parser, judge, chat templates, EOS gating, and round-trip."""
+
+    def setUp(self):
+        patch = unittest.mock.patch.object(G, 'LIMIT', 8192)
+        patch.start()
+        self.addCleanup(patch.stop)
+        self.tasks = make_all_task_kinds()
+
+    def test_hidden_values_are_null_in_team_and_all_masks_sit_in_the_answer_region(self):
+        tokenizer = FakeTokenizer()
+        prompt = G.PROMPTS['freetext_answer']
+        for task in self.tasks:
+            with self.subTest(task=task['task']):
+                c = G.canvas(task, prompt, tokenizer, 0)
+                built = c['built']
+                self.assertEqual(built.mode, 'freetext')
+                self.assertEqual(len(built.slots), 1)
+                self.assertEqual(built.slots[0].length, built.answer_length)
+                self.assertEqual(built.answer_prefix, '')
+                before_answer, label, answer = built.text.partition(D.ANSWER_LABEL)
+                self.assertEqual(label, D.ANSWER_LABEL)
+                self.assertNotIn(tokenizer.mask_token, before_answer)
+                self.assertEqual(answer, tokenizer.mask_token * built.answer_length)
+                _, _, team_line = before_answer.partition(D.TEAM_LABEL)
+                parsed_team = json.loads(team_line.strip())
+                self.assertEqual(len(parsed_team), 6)
+
+    def test_answer_length_depends_only_on_task_kind_and_k_not_the_hidden_value(self):
+        tokenizer = FakeTokenizer()
+        a, b = copy.deepcopy(self.tasks[0]), copy.deepcopy(self.tasks[0])
+        a['original'][1]['item'] = 'Leftovers'
+        b['original'][1]['item'] = 'Heavy-Duty Boots'
+        len_a = G.canvas(a, G.PROMPTS['freetext_answer'], tokenizer, 0)['built'].answer_length
+        len_b = G.canvas(b, G.PROMPTS['freetext_answer'], tokenizer, 0)['built'].answer_length
+        self.assertEqual(len_a, len_b)
+
+    def test_chat_template_puts_header_and_team_in_user_turn_and_masks_in_assistant_turn(self):
+        for code in ('freetext_answer', 'freetext_header_example'):
+            prompt = G.PROMPTS[code]
+            for task in self.tasks[:3]:
+                with self.subTest(prompt=code, task=task['id']):
+                    plain = G.canvas(task, prompt, FakeTokenizer(), 0)['built']
+                    user_part, _, _ = plain.text.partition(D.ANSWER_LABEL)
+                    built = G.canvas(task, prompt, ChatTokenizer(), 0)['built']
+                    expected_prefix = '<[BOS]>user\n' + user_part.rstrip() + '<[EOS]><[BOS]>assistant\n['
+                    self.assertTrue(built.text.startswith(expected_prefix))
+                    self.assertEqual(built.answer_prefix, '[')
+                    self.assertEqual(built.text[len(expected_prefix):],
+                                     ChatTokenizer.mask_token * built.answer_length)
+                    self.assertEqual(built.tail, '')
+                    self.assertTrue(built.version.endswith('+illada-chat-v1'))
+                    # Round-trip with answer_prefix='[' succeeds cleanly
+                    with tempfile.TemporaryDirectory() as d:
+                        tok = ChatTokenizer()
+                        G.fill_grid([task], prompt, tok, freetext_answer_model(tok, task, prompt), 0,
+                                    Path(d) / 'ok.jsonl', FakeValidator())
+                        row = G.read_rows(Path(d) / 'ok.jsonl')[0]
+                        self.assertTrue(row['legal'], row)
+                        self.assertTrue(row['recovered'])
+
+    def test_qwen_chat_templates_and_eos_gate_ids(self):
+        prompt = G.PROMPTS['freetext_answer']
+        for cls, suffix, want_assistant in (
+            (Qwen3ChatTokenizer, '+qwen3-chat-v1', '<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n'),
+            (Qwen25CChatTokenizer, '+qwen25c-chat-v1', '<|im_end|>\n<|im_start|>assistant\n'),
+        ):
+            tok = cls()
+            built = G.canvas(self.tasks[0], prompt, tok, 0)['built']
+            self.assertIn(want_assistant, built.text)
+            self.assertEqual(built.answer_prefix, '')
+            self.assertTrue(built.version.endswith(suffix))
+            gate = G.eos_gate_ids_for(prompt, tok)
+            self.assertEqual(set(gate), {tok.eos_token_id, tok.pad_token_id})
+            # In-place prompts and non-Qwen tokenizers do not use EOS gating
+            self.assertEqual(G.eos_gate_ids_for(PROMPT, tok), ())
+        self.assertEqual(G.eos_gate_ids_for(prompt, ChatTokenizer()), ())
+        self.assertEqual(G.eos_gate_ids_for(prompt, FakeTokenizer()), ())
+
+    def test_trim_cuts_only_at_eos_and_counts_eos_and_pad_separately(self):
+        tok = Qwen3ChatTokenizer()
+        a, b = tok.id('Leftovers'), tok.id('Junk')
+        text, n, hit, dropped = D.trim_answer_ids(tok, [a, tok.pad_token_id, tok.eos_token_id, b])
+        self.assertEqual((text, n, hit, dropped), ('Leftovers', 2, False, 1))
+        self.assertEqual(D.eos_and_pad_counts(tok, [a, tok.pad_token_id, tok.eos_token_id, tok.pad_token_id]), (1, 2))
+        text2, n2, hit2, _ = D.trim_answer_ids(tok, [a, tok.pad_token_id, b])
+        self.assertEqual((text2, n2, hit2), ('LeftoversJunk', 3, True))
+
+    def test_parser_and_judge_handle_all_six_task_types_code_fences_and_bad_answers(self):
+        names, validate = G.vocabulary(), FakeValidator()
+        for task in self.tasks:
+            with self.subTest(task=task['task']):
+                raw = D.true_answer_json(task)
+                v = G.judge_freetext(task, raw, validate, names)
+                self.assertTrue(v['legal'], v)
+                self.assertTrue(v['json_parses'])
+                self.assertTrue(v['json_parses_strict'])
+                self.assertFalse(v['had_code_fence'])
+                self.assertEqual(G.team_paste(v['team']), G.team_paste(task['original']))
+                # Markdown fenced JSON unwraps cleanly while marking strict=False, had_code_fence=True
+                fenced = G.judge_freetext(task, f'```json\n{raw}\n```', validate, names)
+                self.assertTrue(fenced['legal'], fenced)
+                self.assertTrue(fenced['had_code_fence'])
+                self.assertFalse(fenced['json_parses_strict'])
+                # Prose around JSON fails parsing
+                prose = G.judge_freetext(task, f'Here is the answer: {raw}', validate, names)
+                self.assertEqual(prose['failed'], 'parses')
+                self.assertFalse(prose['json_parses'])
+                self.assertTrue(prose['rules']['does not parse as a team'])
+                self.assertTrue(all(x is None for x in prose['values']))
+        # Valid JSON with wrong length parses as JSON but does not read as a team
+        wrong_len = G.judge_freetext(self.tasks[0], '["Leftovers"]', validate, names)
+        self.assertTrue(wrong_len['json_parses'])
+        self.assertFalse(wrong_len['reads_as_team'])
+        self.assertEqual(wrong_len['failed'], 'parses')
+
+    def test_perfect_model_fills_all_six_task_types_legally_and_summarize_counts_limit_hits(self):
+        tokenizer = FakeTokenizer()
+        prompt = G.PROMPTS['freetext_answer']
+        with tempfile.TemporaryDirectory() as d:
+            for task in self.tasks:
+                G.fill_grid([task], prompt, tokenizer, freetext_answer_model(tokenizer, task, prompt), 0,
+                            Path(d) / 'good.jsonl', FakeValidator())
+            G.fill_grid(self.tasks, prompt, tokenizer, quote_model(tokenizer), 0, Path(d) / 'bad.jsonl', FakeValidator())
+            good = G.read_rows(Path(d) / 'good.jsonl')
+            bad = G.read_rows(Path(d) / 'bad.jsonl')
+        self.assertEqual([r['legal'] for r in good], [True] * len(self.tasks))
+        self.assertEqual([r['hit_length_limit'] for r in good], [False] * len(self.tasks))
+        self.assertEqual([r['recovered'] for r in good], [True] * len(self.tasks))
+        self.assertEqual([r['legal'] for r in bad], [False] * len(self.tasks))
+        self.assertEqual([r['hit_length_limit'] for r in bad], [True] * len(self.tasks))
+        sg, sb = G.summarize(good), G.summarize(bad)
+        self.assertEqual(sg['hit_length_limit'], 0)
+        self.assertEqual(sb['hit_length_limit'], len(self.tasks))
+        self.assertEqual(sb['real_values']['species'], {'real': 0, 'of': 1})
+        self.assertEqual(sg['real_values']['species'], {'real': 1, 'of': 1})
 
 
 if __name__ == '__main__':
