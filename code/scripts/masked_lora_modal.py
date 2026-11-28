@@ -15,6 +15,7 @@ then wait for the owner's go-ahead.
 """
 from __future__ import annotations
 
+import os
 import shlex
 import subprocess
 import time
@@ -38,6 +39,7 @@ IMAGE_PACKAGES: tuple[str, ...] = (
     'safetensors==0.8.0',
     'numpy==2.4.6',
     'huggingface_hub==0.36.2',
+    'wandb==0.31.2',
 )
 
 # Relative paths under code/ packaged into the Modal image: only the masked trainer and its deps.
@@ -47,7 +49,12 @@ PACKAGED_FILES: tuple[str, ...] = (
     'scripts/masked_diffusion_memory_bench.py',
     'scripts/masked_diffusion_sampler.py',
     'scripts/mask_paste.py',
+    'src/early_stopping.py',
+    'src/checkpoints.py',
+    'src/lr_schedule84.py',
+    'src/wandb_tracking.py',
     'data/regmb-vocabulary.json',
+    'data/masked-lora-excluded-teams.json',
 )
 
 
@@ -102,15 +109,17 @@ def run_trainer_subprocess(
     data_dest: Path = Path(REMOTE_DATA),
     out_dir: Path | None = None,
 ) -> dict[str, Any]:
-    """Container-side body: stage data bytes, execute trainer CLI, collect outputs."""
+    """Container-side body: stage data bytes, execute trainer CLI with WANDB_DIR under `--out`, collect outputs."""
     if data_bytes is not None:
         data_dest.parent.mkdir(parents=True, exist_ok=True)
         data_dest.write_bytes(data_bytes)
     target_out = out_dir if out_dir is not None else extract_out_dir(argv)
     target_out.mkdir(parents=True, exist_ok=True)
     cmd = build_remote_command(argv)
+    env = dict(os.environ)
+    env.setdefault('WANDB_DIR', str(target_out / 'wandb'))
     t0 = time.perf_counter()
-    proc = subprocess.run(cmd, cwd=f'{REMOTE_CODE}/scripts', check=False)
+    proc = subprocess.run(cmd, cwd=f'{REMOTE_CODE}/scripts', env=env, check=False)
     elapsed = time.perf_counter() - t0
     files = collect_output_files(target_out)
     if proc.returncode != 0:

@@ -5,6 +5,7 @@ runs on CPU in CI (listed in code/scripts/ci_tests.txt). Every test that invokes
 training or launcher entry point mocks real side effects (model/tokenizer loading,
 dataset reads, subprocess/Modal execution) to raise so no test can start a real run.
 """
+import copy
 import importlib.util
 import json
 import os
@@ -17,6 +18,7 @@ import tempfile
 import types
 import unittest
 from pathlib import Path
+from typing import Any
 from unittest import mock
 
 import numpy as np
@@ -551,6 +553,8 @@ class ModalLauncherTest(unittest.TestCase):
             )
             self.assertEqual(proc.returncode, 0, proc.stderr)
             self.assertIn('tracer', proc.stdout)
+            self.assertIn('train', proc.stdout)
+            self.assertIn('verify-resume', proc.stdout)
 
     def test_build_remote_command_and_extract_out_dir(self):
         cmd = launcher.build_remote_command('tracer --data /tmp/rows.npz --out /tmp/custom_out --rows 256')
@@ -568,9 +572,10 @@ class ModalLauncherTest(unittest.TestCase):
             custom_out = Path(tmp) / 'custom_out'
             seen_cmd: list[str] = []
 
-            def fake_run(cmd, *, cwd, check):
+            def fake_run(cmd, *, cwd, env, check):
                 seen_cmd.extend(cmd)
                 self.assertEqual(cwd, f'{launcher.REMOTE_CODE}/scripts')
+                self.assertEqual(env['WANDB_DIR'], str(custom_out / 'wandb'))
                 self.assertFalse(check)
                 (custom_out / 'tracer_results.json').write_text('{"ok": true}')
                 return types.SimpleNamespace(returncode=0)
@@ -601,6 +606,480 @@ class ModalLauncherTest(unittest.TestCase):
                     f'tracer --data /tmp/rows.npz --out {custom_out}',
                     data_dest=data_dest,
                 )
+
+
+def _make_synthetic_encoded_rows(n: int, vocab_size: int = 4096) -> tuple[list[trainer.EncodedRow], FakeTokenizer, trainer.SplitRecord]:
+    vocab = trainer.load_regmb_vocab(VOCAB_PATH)
+    rows_x = np.stack([sample_team_row(i) for i in range(n)])
+    split = trainer.build_train_val_split(
+        rows_x, vocab, val_fraction=0.2, split_seed=77,
+        excluded_groups={'top50': frozenset(), 'ranks51_100': frozenset(), 'heldout_grid': frozenset()},
+    )
+    tok = FakeTokenizer(max_vocab=vocab_size)
+    teams = [(trainer.decode_team_84(rows_x[i], vocab), 0.5 + 0.01 * i if i % 3 else None) for i in range(n)]
+    train_rows = trainer.build_dataset_rows([teams[p] for p in split.train_positions], tok, seed=101, limit=10_000)
+    val_rows = trainer.build_dataset_rows([teams[p] for p in split.val_positions], tok, seed=202, limit=10_000)
+    return train_rows, val_rows, tok, split
+
+
+class SplitAndExclusionTest(unittest.TestCase):
+    def test_pinned_excluded_teams_file_loads_all_three_groups(self):
+        groups = trainer.load_excluded_groups()
+        self.assertEqual(len(groups['top50']), 49)
+        self.assertEqual(len(groups['ranks51_100']), 50)
+        self.assertEqual(len(groups['heldout_grid']), 5)
+        self.assertTrue(groups['heldout_grid'].issubset(groups['ranks51_100']))
+
+    def test_48_field_key_matches_decoded_team_and_ignores_slot_order_and_stat_points(self):
+        vocab = trainer.load_regmb_vocab(VOCAB_PATH)
+        row = sample_team_row(3)
+        team = trainer.decode_team_84(row, vocab)
+        key_from_row = trainer.row_48_key(row, vocab)
+        key_from_team = trainer.team_48_key(team)
+        self.assertEqual(key_from_row, key_from_team)
+
+        reordered = list(reversed(team))
+        reordered[0] = dict(reordered[0], statPoints={k: 0 for k in mask_paste.STATS})
+        self.assertEqual(trainer.team_48_key(reordered), key_from_row)
+
+    def test_split_excludes_all_three_groups_from_both_sides_and_is_seeded_2_percent(self):
+        vocab = trainer.load_regmb_vocab(VOCAB_PATH)
+        rows_x = np.stack([sample_team_row(i) for i in range(103)])
+        excluded = {
+            'top50': frozenset({trainer.row_48_key(rows_x[0], vocab)}),
+            'ranks51_100': frozenset({trainer.row_48_key(rows_x[1], vocab)}),
+            'heldout_grid': frozenset({trainer.row_48_key(rows_x[2], vocab)}),
+        }
+        row_ids = [1000 + i for i in range(103)]
+        split_a = trainer.build_train_val_split(
+            rows_x, vocab, val_fraction=0.02, split_seed=2026, excluded_groups=excluded, row_ids=row_ids,
+        )
+        split_b = trainer.build_train_val_split(
+            rows_x, vocab, val_fraction=0.02, split_seed=2026, excluded_groups=excluded, row_ids=row_ids,
+        )
+        self.assertEqual(split_a.excluded_counts, {'top50': 1, 'ranks51_100': 1, 'heldout_grid': 1, 'total': 3})
+        self.assertEqual(len(split_a.val_row_ids), 2)       # 2% of 100 eligible rows
+        self.assertEqual(len(split_a.train_row_ids), 98)
+        for bad_id in (1000, 1001, 1002):
+            self.assertNotIn(bad_id, split_a.train_row_ids)
+            self.assertNotIn(bad_id, split_a.val_row_ids)
+        self.assertTrue(set(split_a.train_row_ids).isdisjoint(split_a.val_row_ids))
+        self.assertEqual(split_a.split_hash, split_b.split_hash)
+
+        split_other = trainer.build_train_val_split(
+            rows_x, vocab, val_fraction=0.02, split_seed=2027, excluded_groups=excluded, row_ids=row_ids,
+        )
+        self.assertNotEqual(split_a.split_hash, split_other.split_hash)
+
+
+class FixedNoiseValidationTest(unittest.TestCase):
+    def test_validation_loss_is_exact_same_number_when_computed_twice_and_leaves_training_rng_untouched(self):
+        train_rows, val_rows, tok, _ = _make_synthetic_encoded_rows(10)
+        pad_id = trainer.resolve_pad_id(tok)
+        torch.manual_seed(0)
+        model = TinyLoRALM(vocab_size=4096, dim=16, rank=4)
+        fixed_val = trainer.build_fixed_validation(val_rows, batch_size=2, pad_id=pad_id, val_noise_seed=999)
+
+        ev1 = trainer.evaluate_fixed_validation(model, fixed_val, tok.mask_token_id, 4096, device='cpu')
+        ev2 = trainer.evaluate_fixed_validation(model, fixed_val, tok.mask_token_id, 4096, device='cpu')
+        self.assertEqual(ev1['mdlm_loss'], ev2['mdlm_loss'])
+        self.assertEqual(ev1['unweighted_masked_ce'], ev2['unweighted_masked_ce'])
+
+        # Training with vs without validation between steps must produce identical training losses.
+        torch.manual_seed(11)
+        m_plain = TinyLoRALM(vocab_size=4096, dim=16, rank=4)
+        m_val = TinyLoRALM(vocab_size=4096, dim=16, rank=4)
+        m_val.load_state_dict(m_plain.state_dict())
+        opt_plain = torch.optim.AdamW([p for p in m_plain.parameters() if p.requires_grad], lr=1e-2)
+        opt_val = torch.optim.AdamW([p for p in m_val.parameters() if p.requires_grad], lr=1e-2)
+        gen_plain = torch.Generator().manual_seed(55)
+        gen_val = torch.Generator().manual_seed(55)
+        batch = trainer.collate_rows(train_rows[:2], pad_id)
+
+        losses_plain, losses_val = [], []
+        for _ in range(3):
+            losses_plain.append(float(trainer.train_step(m_plain, opt_plain, batch, tok.mask_token_id, generator=gen_plain).loss.detach()))
+            trainer.evaluate_fixed_validation(m_val, fixed_val, tok.mask_token_id, 4096, device='cpu')
+            losses_val.append(float(trainer.train_step(m_val, opt_val, batch, tok.mask_token_id, generator=gen_val).loss.detach()))
+        self.assertEqual(losses_plain, losses_val)
+
+
+class EarlyStoppingMidEpochTest(unittest.TestCase):
+    def test_synthetic_loss_trace_stalls_three_intervals_stops_mid_epoch_and_restores_best_adapter(self):
+        # 15 total -> 12 train rows, 3 val rows. batch_size=2 -> 6 updates per epoch.
+        # eval_every=2 -> validations at updates 0, 2, 4, 6, 8, 10.
+        # Synthetic trace improves at 1 (upd 2) and 2 (upd 4), stalls at 3, 4, 5 -> stops at update 10 (epoch 10/6 = 1.6667)!
+        train_rows, val_rows, tok, split = _make_synthetic_encoded_rows(15)
+        self.assertEqual(len(train_rows), 12)
+        pad_id = trainer.resolve_pad_id(tok)
+        torch.manual_seed(5)
+        model = TinyLoRALM(vocab_size=4096, dim=16, rank=4)
+        base_hashes = trainer.base_weight_hashes(model)
+
+        trace = {1: 5.0, 2: 4.0, 3: 4.1, 4: 4.05, 5: 4.02}
+        snapshots: dict[int, dict[str, torch.Tensor]] = {}
+
+        def fake_eval(m: torch.nn.Module, val_idx: int) -> dict[str, Any]:
+            snapshots[val_idx] = trainer._snapshot_lora_state(m)
+            return {'mdlm_loss': trace[val_idx], 'unweighted_masked_ce': trace[val_idx]}
+
+        with tempfile.TemporaryDirectory() as tmp:
+            out_dir = Path(tmp) / 'run'
+            cfg = trainer.TrainConfig(
+                max_updates=20, eval_every=2, batch_size=2, eval_batch_size=2,
+                lr=2e-2, min_lr=2e-3, lr_schedule='gidd_cosine', warmup_updates=2,
+                patience=3, early_stopping_threshold=0.001, device='cpu',
+            )
+            result = trainer.train_masked_lora(
+                model, train_rows, val_rows,
+                mask_token_id=tok.mask_token_id, pad_id=pad_id, vocab_size=4096,
+                out_dir=out_dir, split_record=split, config=cfg, eval_fn=fake_eval,
+            )
+
+            self.assertTrue(result['stopped_early'])
+            self.assertEqual(result['best_val_index'], 2)
+            self.assertEqual(result['best_update'], 4)
+            self.assertAlmostEqual(result['best_epoch_share'], 8 / 12)
+            self.assertEqual(result['stopped_update'], 10)
+            self.assertAlmostEqual(result['stopped_epoch_share'], 20 / 12)
+            self.assertFalse(float(result['stopped_epoch_share']).is_integer())   # strictly mid-epoch
+            self.assertEqual(result['teams_seen'], 20)
+            self.assertEqual(result['teams_seen_at_best'], 8)
+            self.assertTrue(result['best_restored'])
+            self.assertEqual(trainer.base_weight_hashes(model), base_hashes)
+
+            # In-memory restored LoRA weights must match validation index 2 (update 4), not update 10.
+            final_lora = trainer._snapshot_lora_state(model)
+            for name, expected in snapshots[2].items():
+                self.assertTrue(torch.equal(final_lora[name], expected), f'mismatch on {name}')
+            self.assertFalse(all(torch.equal(final_lora[n], snapshots[5][n]) for n in final_lora))
+
+            # Results JSON and split JSON hold every required field.
+            saved = json.loads((out_dir / 'results.json').read_text())
+            saved_split = json.loads((out_dir / 'split.json').read_text())
+            self.assertEqual(saved['split_hash'], split.split_hash)
+            self.assertEqual(saved_split['split_hash'], split.split_hash)
+            self.assertEqual(saved_split['train_row_ids'], list(split.train_row_ids))
+            self.assertEqual(saved_split['val_row_ids'], list(split.val_row_ids))
+            self.assertEqual(len(saved['curves']['train']), 10)
+            self.assertEqual(len(saved['curves']['val']), 5)
+            self.assertIn('early_stopping', saved['stop_reason'])
+            self.assertIn('val_noise_seed', saved['seeds'])
+            self.assertIn('train_noise_seed', saved['seeds'])
+
+    def test_non_finite_validation_loss_fails_immediately(self):
+        train_rows, val_rows, tok, split = _make_synthetic_encoded_rows(10)
+        pad_id = trainer.resolve_pad_id(tok)
+        model = TinyLoRALM(vocab_size=4096, dim=16, rank=4)
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg = trainer.TrainConfig(max_updates=4, eval_every=2, batch_size=2, patience=3, device='cpu')
+            with self.assertRaises(RuntimeError):
+                trainer.train_masked_lora(
+                    model, train_rows, val_rows,
+                    mask_token_id=tok.mask_token_id, pad_id=pad_id, vocab_size=4096,
+                    out_dir=Path(tmp) / 'nan', split_record=split, config=cfg,
+                    eval_fn=lambda _m, idx: {'mdlm_loss': float('nan') if idx == 1 else 5.0},
+                )
+
+
+class CheckpointResumeParityTest(unittest.TestCase):
+    def test_killed_run_resumes_from_checkpoint_with_identical_next_losses_and_final_weights(self):
+        train_rows, val_rows, tok, split = _make_synthetic_encoded_rows(15)
+        pad_id = trainer.resolve_pad_id(tok)
+        seeds = trainer.derive_seeds(2026, split_seed=split.split_seed)
+        torch.manual_seed(123)
+        init_model = TinyLoRALM(vocab_size=4096, dim=16, rank=4)
+        init_sd = copy.deepcopy(init_model.state_dict())
+
+        with tempfile.TemporaryDirectory() as tmp:
+            # Run A: uninterrupted 8 updates, eval_every=3 (validates at 0, 3, 6, and cap 8).
+            model_full = TinyLoRALM(vocab_size=4096, dim=16, rank=4)
+            model_full.load_state_dict(init_sd)
+            cfg_full = trainer.TrainConfig(
+                max_updates=8, eval_every=3, batch_size=2, eval_batch_size=2,
+                lr=2e-2, min_lr=2e-3, lr_schedule='gidd_cosine', warmup_updates=2,
+                patience=5, device='cpu', seeds=seeds,
+            )
+            res_full = trainer.train_masked_lora(
+                model_full, train_rows, val_rows,
+                mask_token_id=tok.mask_token_id, pad_id=pad_id, vocab_size=4096,
+                out_dir=Path(tmp) / 'full', split_record=split, config=cfg_full,
+            )
+
+            # Run B part 1: stops at update 3 right after saving checkpoints/last.pt.
+            model_part1 = TinyLoRALM(vocab_size=4096, dim=16, rank=4)
+            model_part1.load_state_dict(init_sd)
+            cfg_part1 = trainer.TrainConfig(
+                max_updates=8, eval_every=3, batch_size=2, eval_batch_size=2,
+                lr=2e-2, min_lr=2e-3, lr_schedule='gidd_cosine', warmup_updates=2,
+                patience=5, stop_after_updates=3, device='cpu', seeds=seeds,
+            )
+            resumed_dir = Path(tmp) / 'resumed'
+            trainer.train_masked_lora(
+                model_part1, train_rows, val_rows,
+                mask_token_id=tok.mask_token_id, pad_id=pad_id, vocab_size=4096,
+                out_dir=resumed_dir, split_record=split, config=cfg_part1,
+            )
+
+            # Run B part 2: fresh model instance resumed from checkpoints/last.pt.
+            model_part2 = TinyLoRALM(vocab_size=4096, dim=16, rank=4)
+            model_part2.load_state_dict(init_sd)
+            res_resumed = trainer.train_masked_lora(
+                model_part2, train_rows, val_rows,
+                mask_token_id=tok.mask_token_id, pad_id=pad_id, vocab_size=4096,
+                out_dir=resumed_dir, split_record=split, config=cfg_full,
+                resume_path=resumed_dir / 'checkpoints' / 'last.pt',
+            )
+
+            # Every update 1..8 (especially 4..8 after resume) must have identical train loss & LR.
+            self.assertEqual(len(res_full['curves']['train']), 8)
+            self.assertEqual(len(res_resumed['curves']['train']), 8)
+            for a, b in zip(res_full['curves']['train'], res_resumed['curves']['train'], strict=True):
+                self.assertEqual(a['update'], b['update'])
+                self.assertEqual(a['teams_seen'], b['teams_seen'])
+                self.assertAlmostEqual(a['lr'], b['lr'], places=10)
+                self.assertAlmostEqual(a['train_loss'], b['train_loss'], places=6)
+
+            # Every validation point (3, 6, and cap 8) must match identically.
+            self.assertEqual([e['update'] for e in res_full['curves']['val']], [3, 6, 8])
+            for a, b in zip(res_full['curves']['val'], res_resumed['curves']['val'], strict=True):
+                self.assertEqual(a['val_index'], b['val_index'])
+                self.assertEqual(a['update'], b['update'])
+                self.assertAlmostEqual(a['val_loss'], b['val_loss'], places=6)
+
+            self.assertEqual(res_full['best_update'], res_resumed['best_update'])
+            self.assertEqual(res_full['stop_reason'], res_resumed['stop_reason'])
+            self.assertEqual(res_resumed['resumed_from'], 'last.pt')
+            for name, p_full in model_full.named_parameters():
+                self.assertTrue(torch.equal(p_full, dict(model_part2.named_parameters())[name]), name)
+
+            # Resuming against a different split hash must raise ValueError.
+            other_split = trainer.SplitRecord(
+                train_positions=split.train_positions, val_positions=split.val_positions,
+                train_row_ids=split.train_row_ids, val_row_ids=split.val_row_ids,
+                split_seed=999, val_fraction=0.2, split_hash='different-hash',
+                excluded_counts=split.excluded_counts,
+            )
+            with self.assertRaises(ValueError):
+                trainer.train_masked_lora(
+                    model_part2, train_rows, val_rows,
+                    mask_token_id=tok.mask_token_id, pad_id=pad_id, vocab_size=4096,
+                    out_dir=resumed_dir, split_record=other_split, config=cfg_full,
+                    resume_path=resumed_dir / 'checkpoints' / 'last.pt',
+                )
+
+    def test_standalone_last_checkpoint_resumed_in_fresh_dir_restores_pre_resume_best_adapter(self):
+        train_rows, val_rows, tok, split = _make_synthetic_encoded_rows(12)
+        pad_id = trainer.resolve_pad_id(tok)
+        seeds = trainer.derive_seeds(2026, split_seed=split.split_seed)
+        torch.manual_seed(77)
+        init_sd = copy.deepcopy(TinyLoRALM(vocab_size=4096, dim=16, rank=4).state_dict())
+        snaps: dict[int, dict[str, torch.Tensor]] = {}
+        losses = {1: 4.0, 2: 5.0, 3: 5.1}
+
+        def eval_fn(m: torch.nn.Module, val_idx: int) -> dict[str, Any]:
+            snaps[val_idx] = trainer._snapshot_lora_state(m)
+            return {'mdlm_loss': losses[val_idx]}
+
+        with tempfile.TemporaryDirectory() as tmp:
+            part1_dir = Path(tmp) / 'part1'
+            m1 = TinyLoRALM(vocab_size=4096, dim=16, rank=4)
+            m1.load_state_dict(init_sd)
+            trainer.train_masked_lora(
+                m1, train_rows, val_rows, mask_token_id=tok.mask_token_id, pad_id=pad_id, vocab_size=4096,
+                out_dir=part1_dir, split_record=split, eval_fn=eval_fn,
+                config=trainer.TrainConfig(max_updates=6, eval_every=2, batch_size=2, stop_after_updates=4, seeds=seeds),
+            )
+            standalone_last = Path(tmp) / 'copied_last.pt'
+            standalone_last.write_bytes((part1_dir / 'checkpoints' / 'last.pt').read_bytes())
+
+            fresh_dir = Path(tmp) / 'fresh_out'
+            m2 = TinyLoRALM(vocab_size=4096, dim=16, rank=4)
+            m2.load_state_dict(init_sd)
+            res2 = trainer.train_masked_lora(
+                m2, train_rows, val_rows, mask_token_id=tok.mask_token_id, pad_id=pad_id, vocab_size=4096,
+                out_dir=fresh_dir, split_record=split, eval_fn=eval_fn,
+                config=trainer.TrainConfig(max_updates=6, eval_every=2, batch_size=2, seeds=seeds),
+                resume_path=standalone_last,
+            )
+            self.assertTrue(res2['best_restored'])
+            self.assertEqual(res2['best_update'], 2)
+            self.assertTrue((fresh_dir / 'checkpoints' / 'best.pt').is_file())
+            final_lora = trainer._snapshot_lora_state(m2)
+            for name, expected in snaps[1].items():
+                self.assertTrue(torch.equal(final_lora[name], expected), f'mismatch on {name}')
+
+
+class _FakeWandbRun:
+    def __init__(self, *, project: str, name: str | None = None, mode: str = 'online', config: dict[str, Any] | None = None):
+        self.project = project
+        self.entity = None
+        self.name = name or 'run-1'
+        self.id = 'fake-lora-1'
+        self.mode = mode
+        self.url = f'https://wandb.ai/user/{project}/runs/{self.id}'
+        self.config = dict(config or {})
+        self.summary: dict[str, Any] = {}
+        self.metrics_defined: list[tuple[str, str | None]] = []
+        self.logged: list[dict[str, Any]] = []
+        self.finished = 0
+
+    def define_metric(self, name: str, step_metric: str | None = None) -> None:
+        self.metrics_defined.append((name, step_metric))
+
+    def log(self, data: dict[str, Any]) -> None:
+        self.logged.append(dict(data))
+
+    def finish(self) -> None:
+        self.finished += 1
+
+
+class _FakeWandb:
+    def __init__(self) -> None:
+        self.runs: list[_FakeWandbRun] = []
+
+    def init(self, **kwargs: Any) -> _FakeWandbRun:
+        run = _FakeWandbRun(
+            project=kwargs['project'], name=kwargs.get('name'),
+            mode=kwargs.get('mode', 'online'), config=kwargs.get('config'),
+        )
+        self.runs.append(run)
+        return run
+
+
+class WandbAndTrainEntryPointTest(unittest.TestCase):
+    def test_wandb_mirrors_validation_curve_on_epoch_axis_and_public_project(self):
+        train_rows, val_rows, tok, split = _make_synthetic_encoded_rows(12)
+        pad_id = trainer.resolve_pad_id(tok)
+        model = TinyLoRALM(vocab_size=4096, dim=16, rank=4)
+        fake_wandb = _FakeWandb()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tracker = trainer.wandb_track.WandbTracker(
+                name='masked-lora-test', mode='online', dir=tmp, wandb_module=fake_wandb,
+            )
+            cfg = trainer.TrainConfig(max_updates=4, eval_every=2, batch_size=2, patience=3, device='cpu')
+            result = trainer.train_masked_lora(
+                model, train_rows, val_rows,
+                mask_token_id=tok.mask_token_id, pad_id=pad_id, vocab_size=4096,
+                out_dir=Path(tmp) / 'wb', split_record=split, config=cfg, tracker=tracker,
+            )
+            self.assertEqual(len(fake_wandb.runs), 1)
+            run = fake_wandb.runs[0]
+            self.assertEqual(run.project, trainer.wandb_track.DEFAULT_PROJECT)
+            self.assertEqual(run.metrics_defined, [('epoch', None), ('*', 'epoch')])
+            self.assertEqual([e['val_index'] for e in run.logged], [1, 2])
+            self.assertAlmostEqual(run.logged[0]['epoch'], 4 / len(train_rows))
+            self.assertIn('val_loss', run.logged[0])
+            self.assertIn('train_loss', run.logged[0])
+            self.assertEqual(run.finished, 1)
+            self.assertEqual(result['wandb']['project'], trainer.wandb_track.DEFAULT_PROJECT)
+
+    def test_run_train_seeds_rng_before_model_init_so_fresh_cli_runs_are_identical(self):
+        vocab = trainer.load_regmb_vocab(VOCAB_PATH)
+        rows_x = np.stack([sample_team_row(i) for i in range(10)])
+        split = trainer.build_train_val_split(
+            rows_x, vocab, val_fraction=0.2, split_seed=2026,
+            excluded_groups={'top50': frozenset(), 'ranks51_100': frozenset(), 'heldout_grid': frozenset()},
+        )
+        teams = [(trainer.decode_team_84(rows_x[i], vocab), 0.5) for i in range(10)]
+        train_teams = [teams[p] for p in split.train_positions]
+        val_teams = [teams[p] for p in split.val_positions]
+        fake_info = {'key': 'diffugpt_s', 'label': 'Fake DiffuGPT', 'repo': 'fake/repo',
+                     'revision': '00000000', 'mask_id': 0}
+
+        def make_random_lora(_dev: str, _dtype: str):
+            return TinyLoRALM(vocab_size=4096, dim=16, rank=4), FakeTokenizer(max_vocab=4096), fake_info
+
+        with tempfile.TemporaryDirectory() as tmp:
+            out_a, out_b = Path(tmp) / 'a', Path(tmp) / 'b'
+            with (
+                mock.patch.object(memory_bench, 'load_diffugpt', side_effect=_forbid),
+                mock.patch.object(memory_bench, 'load_tokenizer', side_effect=_forbid),
+                mock.patch.object(trainer, 'load_diffugpt_small_lora', side_effect=make_random_lora),
+                mock.patch.object(trainer, 'load_split_teams', return_value=(train_teams, val_teams, split)),
+            ):
+                torch.manual_seed(1)
+                args_a = trainer.build_parser().parse_args([
+                    'train', '--data', '/forbidden/real.npz', '--out', str(out_a),
+                    '--max-updates', '4', '--eval-every', '2', '--batch-size', '2',
+                    '--seed', '2026', '--device', 'cpu', '--no-wandb',
+                ])
+                res_a = trainer.run_train(args_a)
+                torch.manual_seed(99999)
+                args_b = trainer.build_parser().parse_args([
+                    'train', '--data', '/forbidden/real.npz', '--out', str(out_b),
+                    '--max-updates', '4', '--eval-every', '2', '--batch-size', '2',
+                    '--seed', '2026', '--device', 'cpu', '--no-wandb',
+                ])
+                res_b = trainer.run_train(args_b)
+            self.assertEqual(
+                [e['train_loss'] for e in res_a['curves']['train']],
+                [e['train_loss'] for e in res_b['curves']['train']],
+            )
+            self.assertEqual(
+                [e['val_loss'] for e in res_a['curves']['val']],
+                [e['val_loss'] for e in res_b['curves']['val']],
+            )
+
+    def test_main_train_and_run_train_mock_all_real_side_effects(self):
+        vocab = trainer.load_regmb_vocab(VOCAB_PATH)
+        rows_x = np.stack([sample_team_row(i) for i in range(10)])
+        split = trainer.build_train_val_split(
+            rows_x, vocab, val_fraction=0.2, split_seed=2026,
+            excluded_groups={'top50': frozenset(), 'ranks51_100': frozenset(), 'heldout_grid': frozenset()},
+        )
+        teams = [(trainer.decode_team_84(rows_x[i], vocab), 0.5) for i in range(10)]
+        train_teams = [teams[p] for p in split.train_positions]
+        val_teams = [teams[p] for p in split.val_positions]
+        tok = FakeTokenizer(max_vocab=4096)
+        tiny = TinyLoRALM(vocab_size=4096, dim=16, rank=4)
+        fake_info = {'key': 'diffugpt_s', 'label': 'Fake DiffuGPT', 'repo': 'fake/repo',
+                     'revision': '00000000', 'mask_id': tok.mask_token_id}
+
+        with tempfile.TemporaryDirectory() as tmp:
+            out_dir = Path(tmp) / 'train_out'
+            with (
+                mock.patch.object(memory_bench, 'load_diffugpt', side_effect=_forbid),
+                mock.patch.object(memory_bench, 'load_tokenizer', side_effect=_forbid),
+                mock.patch.object(trainer, 'run_tracer', side_effect=_forbid),
+                mock.patch.object(trainer, 'slice_training_npz', side_effect=_forbid),
+                mock.patch.object(trainer, 'load_diffugpt_small_lora', return_value=(tiny, tok, fake_info)),
+                mock.patch.object(trainer, 'load_split_teams', return_value=(train_teams, val_teams, split)),
+            ):
+                rc = trainer.main([
+                    'train', '--data', '/forbidden/real.npz', '--out', str(out_dir),
+                    '--max-updates', '4', '--eval-every', '2', '--batch-size', '2',
+                    '--eval-batch-size', '2', '--patience', '3', '--device', 'cpu', '--no-wandb',
+                ])
+            self.assertEqual(rc, 0)
+            saved = json.loads((out_dir / 'results.json').read_text())
+            self.assertEqual(saved['split_hash'], split.split_hash)
+            self.assertTrue((out_dir / 'checkpoints' / 'best.pt').is_file())
+            self.assertTrue((out_dir / 'checkpoints' / 'last.pt').is_file())
+            self.assertTrue((out_dir / 'split.json').is_file())
+
+    def test_main_verify_resume_dispatch_mocks_real_side_effects(self):
+        captured: dict[str, object] = {}
+
+        def fake_verify(args):
+            captured['stop_at'] = args.stop_at
+            captured['max_updates'] = args.max_updates
+            return {'parity_passed': True, 'max_train_loss_abs_diff': 0.0}
+
+        with (
+            mock.patch.object(memory_bench, 'load_diffugpt', side_effect=_forbid),
+            mock.patch.object(memory_bench, 'load_tokenizer', side_effect=_forbid),
+            mock.patch.object(trainer, 'run_train', side_effect=_forbid),
+            mock.patch.object(trainer, 'run_tracer', side_effect=_forbid),
+            mock.patch.object(trainer, 'run_verify_resume', side_effect=fake_verify),
+        ):
+            rc = trainer.main([
+                'verify-resume', '--data', '/forbidden/real.npz', '--out', '/tmp/unused',
+                '--max-updates', '8', '--eval-every', '4', '--stop-at', '4',
+            ])
+        self.assertEqual(rc, 0)
+        self.assertEqual(captured, {'stop_at': 4, 'max_updates': 8})
 
 
 if __name__ == '__main__':
